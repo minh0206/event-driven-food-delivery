@@ -1,5 +1,7 @@
 package com.fooddelivery.userservice.controller;
 
+import com.fooddelivery.userservice.dto.LoginRequestDto;
+import com.fooddelivery.userservice.dto.LoginResponseDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.service.UserService;
 import lombok.AllArgsConstructor;
@@ -20,9 +22,19 @@ public class UserController {
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequestDto request) {
         try {
             userService.registerUser(request);
+            return new ResponseEntity<>("User registered successfully!:", HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("User registration failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>("User registered successfully!:", HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
+        try {
+            String token = userService.login(request);
+            return new ResponseEntity<>(new LoginResponseDto(token), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
     }
 }

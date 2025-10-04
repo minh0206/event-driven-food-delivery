@@ -25,6 +25,14 @@
         <module>api-gateway</module>
     </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+    </dependencies>
+
     <!-- This section manages dependency versions for all child modules -->
     <dependencyManagement>
         <dependencies>
@@ -46,7 +54,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Update the commons-io-->
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
