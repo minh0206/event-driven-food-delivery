@@ -2,6 +2,7 @@ package com.fooddelivery.userservice.service;
 
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
+import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
@@ -20,7 +21,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
-    private JwtTokenProvider jwtTokenProvider;
+    private JwtService jwtService;
 
     public User registerUser(RegisterRequestDto request) throws IllegalStateException {
         if (userRepository.findByEmail(request.email()).isPresent()) {
@@ -41,6 +42,11 @@ public class UserService {
                         request.password()
                 )
         );
-        return jwtTokenProvider.generateToken(request.email());
+        return jwtService.generateToken(request.email());
+    }
+
+    public UserDto getUser(String email) {
+        var user = userRepository.findByEmail(email).orElseThrow();
+        return userMapper.toDto(user);
     }
 }

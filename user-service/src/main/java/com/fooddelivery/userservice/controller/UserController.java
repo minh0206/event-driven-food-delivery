@@ -3,14 +3,14 @@ package com.fooddelivery.userservice.controller;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.LoginResponseDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
+import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -36,5 +36,12 @@ public class UserController {
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserDto> getUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        var email = userDetails.getUsername();
+        var userDto = userService.getUser(email);
+        return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 }
