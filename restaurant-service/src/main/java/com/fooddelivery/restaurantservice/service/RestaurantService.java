@@ -11,8 +11,13 @@ import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -106,5 +111,25 @@ public class RestaurantService {
                 .orElseThrow(() -> new EntityNotFoundException("MenuItem not found"));
 
         menuItemRepository.delete(menuItem);
+    }
+
+    public Page<RestaurantDto> getAllRestaurants(Pageable pageable) {
+        // Pageable is automatically resolved by Spring from query params (?page=0&size=10)
+        return restaurantRepository.findAll(pageable)
+                .map(restaurantMapper::toDto);
+    }
+
+    public RestaurantDto getRestaurantById(Long id) {
+        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow();
+        return restaurantMapper.toDto(restaurant);
+    }
+
+    @Transactional
+    public List<MenuItemDto> getRestaurantMenu(Long id) {
+        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow();
+        return restaurant.getMenu()
+                .stream()
+                .map(menuItemMapper::toDto)
+                .toList();
     }
 }
