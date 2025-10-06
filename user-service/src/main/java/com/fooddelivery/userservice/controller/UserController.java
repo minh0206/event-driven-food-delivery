@@ -4,7 +4,9 @@ import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.LoginResponseDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
+import com.fooddelivery.userservice.service.JwtService;
 import com.fooddelivery.userservice.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,32 +18,26 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/users")
 @AllArgsConstructor
 public class UserController {
-    private UserService userService;
+    private final UserService userService;
+    private final JwtService jwtService;
+
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody RegisterRequestDto request) {
-        try {
-            userService.registerUser(request);
-            return new ResponseEntity<>("User registered successfully!:", HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>("User registration failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterRequestDto request) {
+        UserDto user = userService.registerUser(request);
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
-        try {
-            String token = userService.login(request);
-            return new ResponseEntity<>(new LoginResponseDto(token), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
-        }
+    public LoginResponseDto login(@RequestBody LoginRequestDto request) {
+        var user = userService.loginUser(request);
+        var token = jwtService.generateToken(request.email());
+        return new LoginResponseDto(token);
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<UserDto> getUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
+    public UserDto getUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
         var email = userDetails.getUsername();
-        var userDto = userService.getUser(email);
-        return new ResponseEntity<>(userDto, HttpStatus.OK);
+        return userService.getUser(email);
     }
 }

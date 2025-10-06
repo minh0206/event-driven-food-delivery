@@ -3,9 +3,9 @@ package com.fooddelivery.userservice.service;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
+import com.fooddelivery.userservice.exception.EmailExistsException;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
-import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,29 +20,30 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private AuthenticationManager authenticationManager;
-    private JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
-    public User registerUser(RegisterRequestDto request) throws IllegalStateException {
+    public UserDto registerUser(RegisterRequestDto request) throws EmailExistsException {
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new IllegalStateException("Email already in use");
+            throw new EmailExistsException();
         }
         var user = userMapper.toUser(request); // Convert RegisterRequestDto to User
 
         user.setPassword(passwordEncoder.encode(request.password())); // Hash password
         user.setRole(Role.CUSTOMER); // Default role
+        userRepository.save(user);
 
-        return userRepository.save(user);
+        return userMapper.toDto(user);
     }
 
-    public String login(LoginRequestDto request) {
+    public UserDto loginUser(LoginRequestDto request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
                         request.password()
                 )
         );
-        return jwtService.generateToken(request.email());
+
+        return getUser(request.email());
     }
 
     public UserDto getUser(String email) {
