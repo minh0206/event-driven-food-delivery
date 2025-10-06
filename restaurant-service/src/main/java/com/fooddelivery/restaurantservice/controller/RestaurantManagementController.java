@@ -1,6 +1,8 @@
 package com.fooddelivery.restaurantservice.controller;
 
 
+import com.fooddelivery.restaurantservice.dto.MenuItemDto;
+import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.service.RestaurantService;
@@ -25,7 +27,9 @@ public class RestaurantManagementController {
 
     @PostMapping
     // @PreAuthorize("hasRole('RESTAURANT_ADMIN')") -> Add this when security is fully configured
-    public ResponseEntity<RestaurantDto> createRestaurant(@RequestBody RestaurantRequestDto requestDto, Principal principal) {
+    public ResponseEntity<RestaurantDto> createRestaurant(
+            @RequestBody RestaurantRequestDto requestDto,
+            Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
         RestaurantDto createdRestaurant = restaurantService.createRestaurant(requestDto, ownerId);
         return new ResponseEntity<>(createdRestaurant, HttpStatus.CREATED);
@@ -33,8 +37,42 @@ public class RestaurantManagementController {
 
     @PutMapping("/{id}")
     // @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
-    public RestaurantDto updateRestaurant(@PathVariable Long id, @RequestBody RestaurantRequestDto dto, Principal principal) {
+    public RestaurantDto updateRestaurant(
+            @PathVariable Long id,
+            @RequestBody RestaurantRequestDto dto,
+            Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
         return restaurantService.updateRestaurant(id, dto, ownerId);
+    }
+
+    @PostMapping("/{restaurantId}/menu")
+    public ResponseEntity<MenuItemDto> addMenuItem(
+            @PathVariable Long restaurantId,
+            @RequestBody MenuItemRequestDto dto,
+            Principal principal) {
+        Long ownerId = getAuthenticatedUserId(principal);
+        MenuItemDto newItem = restaurantService.addMenuItem(restaurantId, dto, ownerId);
+        return new ResponseEntity<>(newItem, HttpStatus.CREATED);
+    }
+
+    // TODO: Add @PutMapping("/{restaurantId}/menu/{itemId}") and @DeleteMapping("/{restaurantId}/menu/{itemId}")
+    @PutMapping("/{restaurantId}/menu/{itemId}")
+    public MenuItemDto updateMenuItem(
+            @PathVariable Long restaurantId,
+            @PathVariable Long itemId,
+            @RequestBody MenuItemRequestDto dto,
+            Principal principal) {
+        Long ownerId = getAuthenticatedUserId(principal);
+        return restaurantService.updateMenuItem(restaurantId, itemId, dto, ownerId);
+    }
+
+    @DeleteMapping("/{restaurantId}/menu/{itemId}")
+    public ResponseEntity<Void> deleteMenuItem(
+            @PathVariable Long restaurantId,
+            @PathVariable Long itemId,
+            Principal principal) {
+        Long ownerId = getAuthenticatedUserId(principal);
+        restaurantService.deleteMenuItem(restaurantId, itemId, ownerId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
