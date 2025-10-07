@@ -6,6 +6,7 @@ import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.exception.EmailExistsException;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
+import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,12 +27,14 @@ public class UserService {
         if (userRepository.findByEmail(request.email()).isPresent()) {
             throw new EmailExistsException();
         }
-        var user = userMapper.toUser(request); // Convert RegisterRequestDto to User
-
+        User user = new User();
+        user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password())); // Hash password
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
         user.setRole(Role.CUSTOMER); // Default role
-        userRepository.save(user);
 
+        userRepository.save(user);
         return userMapper.toDto(user);
     }
 
@@ -42,12 +45,12 @@ public class UserService {
                         request.password()
                 )
         );
-
-        return getUser(request.email());
+        var user = userRepository.findByEmail(request.email()).orElseThrow();
+        return userMapper.toDto(user);
     }
 
-    public UserDto getUser(String email) {
-        var user = userRepository.findByEmail(email).orElseThrow();
+    public UserDto getUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow();
         return userMapper.toDto(user);
     }
 }

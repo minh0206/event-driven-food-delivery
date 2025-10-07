@@ -1,6 +1,7 @@
 package com.fooddelivery.userservice.config;
 
-import com.fooddelivery.userservice.filter.JwtAuthenticationFilter;
+
+import com.fooddelivery.securitylib.filter.JwtAuthenticationFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,7 +48,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/register", "/api/users/login", "/api/users/profile").permitAll() // Allow public access to register and login
+                        .requestMatchers("/api/users/register", "/api/users/login").permitAll() // Allow public access to register and login
                         .anyRequest().authenticated() // Secure all other endpoints
                 )
                 .sessionManagement(session -> session

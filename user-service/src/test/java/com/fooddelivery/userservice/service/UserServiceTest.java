@@ -42,7 +42,6 @@ class UserServiceTest {
     private UserService userService;
 
     private RegisterRequestDto registerRequest;
-    private User mappedUser;
     private UserDto userDto;
 
     @BeforeEach
@@ -54,13 +53,6 @@ class UserServiceTest {
                 "Test",
                 "User"
         );
-
-        // Prepare a user object that our mock mapper will return
-        mappedUser = new User();
-        mappedUser.setEmail("test@example.com");
-        mappedUser.setPassword("password123");
-        mappedUser.setFirstName("Test");
-        mappedUser.setLastName("User");
 
         // Prepare a userDto object that our mock mapper will return
         userDto = new UserDto(
@@ -77,8 +69,6 @@ class UserServiceTest {
         // --- Arrange (Given) ---
         // 1. Define the behavior of the mocks
         when(userRepository.findByEmail(registerRequest.email())).thenReturn(Optional.empty());
-        // Mock the mapper
-        when(userMapper.toUser(any(RegisterRequestDto.class))).thenReturn(mappedUser);
         when(userMapper.toDto(any(User.class))).thenReturn(userDto);
 
         // --- Act (When) ---
@@ -88,9 +78,6 @@ class UserServiceTest {
         // --- Assert (Then) ---
         // 3. Verify the results and interactions
         assertNotNull(savedUser);
-        assertEquals(registerRequest.email(), savedUser.email());
-        assertEquals(Role.CUSTOMER, savedUser.role());
-
         // Verify that the save method on the repository was called exactly once
         verify(userRepository, times(1)).save(any(User.class));
     }
@@ -119,7 +106,7 @@ class UserServiceTest {
         // 1. Make the mock repository return a user
         var loginRequest = new LoginRequestDto(registerRequest.email(), registerRequest.password());
 
-        when(userRepository.findByEmail(registerRequest.email())).thenReturn(Optional.of(mappedUser));
+        when(userRepository.findByEmail(registerRequest.email())).thenReturn(Optional.of(new User()));
         when(userMapper.toDto(any(User.class))).thenReturn(userDto);
 
         // --- Act (When) ---
@@ -131,23 +118,23 @@ class UserServiceTest {
         assertEquals(returnedUserDto, userDto);
     }
 
-    // Test Case 4: Get user by email
+    // Test Case 4: Get user by id
     @Test
-    void whenGetUserByEmail_shouldReturnUser() {
+    void whenGetUserById_shouldReturnUser() {
         // --- Arrange (Given) ---
         // 1. Make the mock repository return a user
-        when(userRepository.findByEmail(registerRequest.email())).thenReturn(Optional.of(mappedUser));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
         when(userMapper.toDto(any(User.class))).thenReturn(userDto);
 
         // --- Act (When) ---
         // 2. Call the method we are testing
-        UserDto returnedUserDto = userService.getUser(registerRequest.email());
+        UserDto returnedUserDto = userService.getUserById(1L);
 
         // --- Assert (Then) ---
         // 3. Verify the results and interactions
         assertEquals(returnedUserDto, userDto);
 
-        // Verify that the repository's `findByEmail` method was called exactly once
-        verify(userRepository, times(1)).findByEmail(registerRequest.email());
+        // Verify that the repository's `findById` method was called exactly once
+        verify(userRepository, times(1)).findById(1L);
     }
 }

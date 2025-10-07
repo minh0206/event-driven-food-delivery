@@ -1,13 +1,14 @@
 package com.fooddelivery.userservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fooddelivery.securitylib.service.JwtService;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.exception.EmailExistsException;
 import com.fooddelivery.userservice.model.Role;
-import com.fooddelivery.userservice.service.JwtService;
 import com.fooddelivery.userservice.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
+
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtService jwtService;
+
     @Autowired
     private ObjectMapper objectMapper; // For converting objects to JSON
+
+    private UserDto userDto;
+
+    @BeforeEach
+    void setUp() {
+        // Common setup for tests
+        // Prepare a userDto object that our mock mapper will return
+        userDto = new UserDto(
+                1L,
+                "test@example.com",
+                "Test",
+                "User",
+                Role.CUSTOMER);
+    }
 
     // Test Case 1: Successful registration request
     @Test
@@ -46,14 +66,6 @@ class UserControllerTest {
                 "password123",
                 "Test",
                 "User"
-        );
-
-        var userDto = new UserDto(
-                1L,
-                validRequest.email(),
-                validRequest.firstName(),
-                validRequest.lastName(),
-                Role.CUSTOMER
         );
 
         when(userService.registerUser(validRequest)).thenReturn(userDto);
@@ -112,12 +124,15 @@ class UserControllerTest {
 
     // Test Case 4: Login request with valid credentials
     @Test
+    @WithMockUser(username = "1")
     void whenPostLogin_withValidCredentials_shouldReturnOk() throws Exception {
         // --- Arrange (Given) ---
         LoginRequestDto validRequest = new LoginRequestDto(
                 "test@example.com",
                 "password123"
         );
+        when(userService.loginUser(validRequest)).thenReturn(userDto);
+        when(jwtService.generateToken(any(String.class), any(Long.class))).thenReturn("token");
 
         // --- Act & Assert (When & Then) ---
         mockMvc.perform(post("/api/users/login")
@@ -146,15 +161,13 @@ class UserControllerTest {
 
     // Test Case 6: Get user profile with valid credentials
     @Test
-    @WithMockUser()
+    @WithMockUser(username = "1")
     void whenGetProfile_withValidCredentials_shouldReturnOk() throws Exception {
         // --- Arrange (Given) ---
-
         // --- Act & Assert (When & Then) ---
         mockMvc.perform(get("/api/users/profile"))
                 .andExpect(status().isOk()); // Expect HTTP 200 OK
     }
-
 
     @TestConfiguration
     static class TestConfig {
