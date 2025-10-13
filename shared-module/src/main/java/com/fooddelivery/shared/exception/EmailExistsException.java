@@ -1,4 +1,4 @@
-package com.fooddelivery.userservice.exception;
+package com.fooddelivery.shared.exception;
 
 public class EmailExistsException extends IllegalStateException {
 }
