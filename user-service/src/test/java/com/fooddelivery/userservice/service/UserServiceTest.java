@@ -1,9 +1,9 @@
 package com.fooddelivery.userservice.service;
 
+import com.fooddelivery.shared.exception.EmailExistsException;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
-import com.fooddelivery.userservice.exception.EmailExistsException;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;

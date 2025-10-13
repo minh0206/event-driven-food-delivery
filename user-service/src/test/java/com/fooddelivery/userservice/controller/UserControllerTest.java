@@ -2,10 +2,11 @@ package com.fooddelivery.userservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fooddelivery.securitylib.service.JwtService;
+import com.fooddelivery.shared.config.SharedModuleAutoConfiguration;
+import com.fooddelivery.shared.exception.EmailExistsException;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
-import com.fooddelivery.userservice.exception.EmailExistsException;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(SharedModuleAutoConfiguration.class)
 class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
