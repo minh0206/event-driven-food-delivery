@@ -9,9 +9,9 @@ import com.fooddelivery.restaurantservice.service.RestaurantService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/restaurants/manage")
@@ -19,18 +19,16 @@ import java.security.Principal;
 public class RestaurantManagementController {
     private RestaurantService restaurantService;
 
-    private Long getAuthenticatedUserId(Principal principal) {
-        // In a real app, you'd parse the JWT principal to get the user ID
-        // For now, we'll simulate it.
-        return Long.parseLong(principal.getName());
+    private Long getAuthenticatedUserId(UserDetails userDetails) {
+        return Long.parseLong(userDetails.getUsername());
     }
 
     @PostMapping
     // @PreAuthorize("hasRole('RESTAURANT_ADMIN')") -> Add this when security is fully configured
     public ResponseEntity<RestaurantDto> createRestaurant(
             @RequestBody RestaurantRequestDto requestDto,
-            Principal principal) {
-        Long ownerId = getAuthenticatedUserId(principal);
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
         RestaurantDto createdRestaurant = restaurantService.createRestaurant(requestDto, ownerId);
         return new ResponseEntity<>(createdRestaurant, HttpStatus.CREATED);
     }
@@ -40,8 +38,8 @@ public class RestaurantManagementController {
     public RestaurantDto updateRestaurant(
             @PathVariable Long id,
             @RequestBody RestaurantRequestDto dto,
-            Principal principal) {
-        Long ownerId = getAuthenticatedUserId(principal);
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
         return restaurantService.updateRestaurant(id, dto, ownerId);
     }
 
@@ -49,20 +47,19 @@ public class RestaurantManagementController {
     public ResponseEntity<MenuItemDto> addMenuItem(
             @PathVariable Long restaurantId,
             @RequestBody MenuItemRequestDto dto,
-            Principal principal) {
-        Long ownerId = getAuthenticatedUserId(principal);
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
         MenuItemDto newItem = restaurantService.addMenuItem(restaurantId, dto, ownerId);
         return new ResponseEntity<>(newItem, HttpStatus.CREATED);
     }
 
-    // TODO: Add @PutMapping("/{restaurantId}/menu/{itemId}") and @DeleteMapping("/{restaurantId}/menu/{itemId}")
     @PutMapping("/{restaurantId}/menu/{itemId}")
     public MenuItemDto updateMenuItem(
             @PathVariable Long restaurantId,
             @PathVariable Long itemId,
             @RequestBody MenuItemRequestDto dto,
-            Principal principal) {
-        Long ownerId = getAuthenticatedUserId(principal);
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
         return restaurantService.updateMenuItem(restaurantId, itemId, dto, ownerId);
     }
 
@@ -70,8 +67,8 @@ public class RestaurantManagementController {
     public ResponseEntity<Void> deleteMenuItem(
             @PathVariable Long restaurantId,
             @PathVariable Long itemId,
-            Principal principal) {
-        Long ownerId = getAuthenticatedUserId(principal);
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
         restaurantService.deleteMenuItem(restaurantId, itemId, ownerId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

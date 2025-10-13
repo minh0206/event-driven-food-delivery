@@ -114,7 +114,6 @@ public class RestaurantService {
     }
 
     public Page<RestaurantDto> getAllRestaurants(Pageable pageable) {
-        // Pageable is automatically resolved by Spring from query params (?page=0&size=10)
         return restaurantRepository.findAll(pageable)
                 .map(restaurantMapper::toDto);
     }

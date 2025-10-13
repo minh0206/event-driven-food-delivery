@@ -21,6 +21,7 @@ public class PublicRestaurantController {
 
     @GetMapping
     public Page<RestaurantDto> getAllRestaurants(Pageable pageable) {
+        // Pageable is automatically resolved by Spring from query params (?page=0&size=10)
         return restaurantService.getAllRestaurants(pageable);
     }
 
