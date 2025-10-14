@@ -22,16 +22,28 @@ public class UserController {
     private final UserService userService;
     private final JwtService jwtService;
 
-    @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterRequestDto request) {
-        UserDto user = userService.registerUser(request);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+    @PostMapping("/register/customer")
+    public ResponseEntity<UserDto> registerCustomer(@Valid @RequestBody RegisterRequestDto request) {
+        UserDto userDto = userService.registerCustomer(request);
+        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/register/restaurant")
+    public ResponseEntity<UserDto> registerRestaurantAdmin(@Valid @RequestBody RegisterRequestDto request) {
+        UserDto userDto = userService.registerRestaurantAdmin(request);
+        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/register/driver")
+    public ResponseEntity<UserDto> registerDriver(@Valid @RequestBody RegisterRequestDto request) {
+        UserDto userDto = userService.registerDriver(request);
+        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
     public Map<String, String> login(@RequestBody LoginRequestDto requestDto) {
-        UserDto user = userService.loginUser(requestDto);
-        var token = jwtService.generateToken(user.email(), user.id());
+        UserDto userDto = userService.loginUser(requestDto);
+        var token = jwtService.generateToken(userDto.id().toString(), userDto.role().name());
         return Map.of("token", token);
     }
 

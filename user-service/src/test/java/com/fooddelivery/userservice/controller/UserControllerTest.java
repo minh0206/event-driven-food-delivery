@@ -71,17 +71,17 @@ class UserControllerTest {
                 "User"
         );
 
-        when(userService.registerUser(validRequest)).thenReturn(userDto);
+        when(userService.registerCustomer(validRequest)).thenReturn(userDto);
 
         // --- Act & Assert (When & Then) ---
-        mockMvc.perform(post("/api/users/register")
+        mockMvc.perform(post("/api/users/register/customer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isCreated()) // Expect HTTP 201 Created
                 .andExpect(content().json(objectMapper.writeValueAsString(userDto))); // Expect JSON response
 
         // Verify that the service method was called exactly once
-        verify(userService, times(1)).registerUser(validRequest);
+        verify(userService, times(1)).registerCustomer(validRequest);
     }
 
     // Test Case 2: Registration request with invalid data (e.g., missing email)
@@ -97,13 +97,13 @@ class UserControllerTest {
         );
 
         // --- Act & Assert (When & Then) ---
-        mockMvc.perform(post("/api/users/register")
+        mockMvc.perform(post("/api/users/register/customer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest()); // Expect HTTP 400 Bad Request
 
         // Verify that the service method was never called
-        verify(userService, times(0)).registerUser(invalidRequest);
+        verify(userService, times(0)).registerCustomer(invalidRequest);
     }
 
     // Test Case 3: Registration request with existing email
@@ -116,10 +116,10 @@ class UserControllerTest {
                 "Test",
                 "User"
         );
-        when(userService.registerUser(existingEmailRequest)).thenThrow(new EmailExistsException());
+        when(userService.registerCustomer(existingEmailRequest)).thenThrow(new EmailExistsException());
 
         // --- Act & Assert (When & Then) ---
-        mockMvc.perform(post("/api/users/register")
+        mockMvc.perform(post("/api/users/register/customer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(existingEmailRequest)))
                 .andExpect(status().isConflict()); // Expect HTTP 409 Conflict
@@ -135,7 +135,7 @@ class UserControllerTest {
                 "password123"
         );
         when(userService.loginUser(validRequest)).thenReturn(userDto);
-        when(jwtService.generateToken(any(String.class), any(Long.class))).thenReturn("token");
+        when(jwtService.generateToken(userDto.id().toString(), userDto.role().name())).thenReturn("token");
 
         // --- Act & Assert (When & Then) ---
         mockMvc.perform(post("/api/users/login")

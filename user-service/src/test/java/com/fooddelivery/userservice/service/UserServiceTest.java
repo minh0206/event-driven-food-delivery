@@ -73,7 +73,7 @@ class UserServiceTest {
 
         // --- Act (When) ---
         // 2. Call the method we are testing
-        UserDto savedUser = userService.registerUser(registerRequest);
+        UserDto savedUser = userService.registerCustomer(registerRequest);
 
         // --- Assert (Then) ---
         // 3. Verify the results and interactions
@@ -92,7 +92,7 @@ class UserServiceTest {
         // --- Act & Assert (When & Then) ---
         // 2. Assert that calling the method throws the expected exception
         EmailExistsException exception = assertThrows(EmailExistsException.class, () -> {
-            userService.registerUser(registerRequest);
+            userService.registerCustomer(registerRequest);
         });
 
         // 3. Verify that the save method was never called because of the exception
