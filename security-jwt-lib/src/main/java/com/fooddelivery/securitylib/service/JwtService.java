@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.function.Function;
 
 public class JwtService {
     @Value("${spring.jwt.expiration}")
@@ -22,18 +21,10 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    public String generateToken(String username, Long userId) {
+    public String generateToken(String id, String role) {
         return Jwts.builder()
-                .setSubject(username)
-                .claim("userId", userId)
+                .setSubject(id)
+                .claim("role", "ROLE_" + role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + tokenExpiration * 1000))
                 .signWith(getSigningKey())
@@ -42,8 +33,8 @@ public class JwtService {
 
     public boolean validateToken(String token) {
         try {
-            extractAllClaims(token); // This will throw an exception if the token is invalid
-            return !isTokenExpired(token);
+            Claims claims = extractAllClaims(token); // This will throw an exception if the token is invalid
+            return !claims.getExpiration().before(new Date());
         } catch (Exception e) {
             // Log the exception (e.g., MalformedJwtException, ExpiredJwtException)
             return false;
@@ -56,18 +47,5 @@ public class JwtService {
                 .build().
                 parseClaimsJws(token)
                 .getBody();
-    }
-
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    public Long extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 }

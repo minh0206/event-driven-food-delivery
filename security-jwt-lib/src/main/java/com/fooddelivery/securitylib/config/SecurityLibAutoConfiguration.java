@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 public class SecurityLibAutoConfiguration {
 
     @Bean
-    public JwtService jwtUtil() {
+    public JwtService jwtService() {
         return new JwtService();
     }
 
