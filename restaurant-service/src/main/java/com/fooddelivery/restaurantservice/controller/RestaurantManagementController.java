@@ -9,6 +9,7 @@ import com.fooddelivery.restaurantservice.service.RestaurantService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class RestaurantManagementController {
     }
 
     @PostMapping
-    // @PreAuthorize("hasRole('RESTAURANT_ADMIN')") -> Add this when security is fully configured
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public ResponseEntity<RestaurantDto> createRestaurant(
             @RequestBody RestaurantRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -34,7 +35,7 @@ public class RestaurantManagementController {
     }
 
     @PutMapping("/{id}")
-    // @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public RestaurantDto updateRestaurant(
             @PathVariable Long id,
             @RequestBody RestaurantRequestDto dto,
@@ -44,6 +45,7 @@ public class RestaurantManagementController {
     }
 
     @PostMapping("/{restaurantId}/menu")
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public ResponseEntity<MenuItemDto> addMenuItem(
             @PathVariable Long restaurantId,
             @RequestBody MenuItemRequestDto dto,
@@ -54,6 +56,7 @@ public class RestaurantManagementController {
     }
 
     @PutMapping("/{restaurantId}/menu/{itemId}")
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public MenuItemDto updateMenuItem(
             @PathVariable Long restaurantId,
             @PathVariable Long itemId,
@@ -64,6 +67,7 @@ public class RestaurantManagementController {
     }
 
     @DeleteMapping("/{restaurantId}/menu/{itemId}")
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public ResponseEntity<Void> deleteMenuItem(
             @PathVariable Long restaurantId,
             @PathVariable Long itemId,

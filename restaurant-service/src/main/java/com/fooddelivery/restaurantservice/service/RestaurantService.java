@@ -27,7 +27,6 @@ public class RestaurantService {
     private final MenuItemRepository menuItemRepository;
     private final MenuItemMapper menuItemMapper;
 
-    // The ownerId would be extracted from the JWT in a real scenario
     public RestaurantDto createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
         if (restaurantRepository.findByOwnerId(ownerId).isPresent()) {
             throw new IllegalStateException("User already owns a restaurant.");
@@ -119,13 +118,17 @@ public class RestaurantService {
     }
 
     public RestaurantDto getRestaurantById(Long id) {
-        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow();
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+
         return restaurantMapper.toDto(restaurant);
     }
 
     @Transactional
     public List<MenuItemDto> getRestaurantMenu(Long id) {
-        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow();
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+
         return restaurant.getMenu()
                 .stream()
                 .map(menuItemMapper::toDto)
