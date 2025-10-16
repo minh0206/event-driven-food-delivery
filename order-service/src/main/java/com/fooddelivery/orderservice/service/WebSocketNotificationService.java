@@ -1,5 +1,6 @@
 package com.fooddelivery.orderservice.service;
 
+import com.fooddelivery.orderservice.dto.DriverLocationDto;
 import com.fooddelivery.orderservice.dto.OrderStatusUpdateDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,6 +24,14 @@ public class WebSocketNotificationService {
         messagingTemplate.convertAndSendToUser(
                 userId,
                 "/queue/order-updates",
+                update
+        );
+    }
+
+    public void sendDriverLocationUpdate(String userId, DriverLocationDto update) {
+        messagingTemplate.convertAndSendToUser(
+                userId,
+                "/queue/driver-location",
                 update
         );
     }
