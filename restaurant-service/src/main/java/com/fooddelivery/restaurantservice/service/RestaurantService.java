@@ -10,6 +10,7 @@ import com.fooddelivery.restaurantservice.model.MenuItem;
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
+import com.fooddelivery.shared.event.OrderAcceptedEvent;
 import com.fooddelivery.shared.event.OrderStatusUpdateEvent;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -25,11 +26,14 @@ import java.util.List;
 @AllArgsConstructor
 public class RestaurantService {
     private static final String TOPIC_ORDER_STATUS = "order_status_updates";
+    private static final String TOPIC_ORDER_ACCEPTED = "order_accepted";
+
     private final RestaurantRepository restaurantRepository;
     private final RestaurantMapper restaurantMapper;
     private final MenuItemRepository menuItemRepository;
     private final MenuItemMapper menuItemMapper;
-    private final KafkaTemplate<String, OrderStatusUpdateEvent> kafkaTemplate;
+    private final KafkaTemplate<String, OrderStatusUpdateEvent> orderStatusUpdateKafkaTemplate;
+    private final KafkaTemplate<String, OrderAcceptedEvent> orderAcceptedKafkaTemplate;
 
     public RestaurantDto createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
         if (restaurantRepository.findByOwnerId(ownerId).isPresent()) {
@@ -141,13 +145,24 @@ public class RestaurantService {
 
     public void acceptOrder(Long orderId, Long ownerId) {
         // TODO: Add logic to find the restaurant by ownerId and verify this order belongs to them.
-        OrderStatusUpdateEvent event = new OrderStatusUpdateEvent(orderId, "ACCEPTED");
-        kafkaTemplate.send(TOPIC_ORDER_STATUS, event);
+        Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+
+        OrderStatusUpdateEvent statusUpdateEvent = new OrderStatusUpdateEvent(orderId, "ACCEPTED");
+        orderStatusUpdateKafkaTemplate.send(TOPIC_ORDER_STATUS, statusUpdateEvent);
+
+        // TODO: Implement restaurant latitude and longitude
+        OrderAcceptedEvent acceptedEvent = new OrderAcceptedEvent(
+                orderId,
+                restaurant.getId(),
+                1F,
+                1F);
+        orderAcceptedKafkaTemplate.send(TOPIC_ORDER_ACCEPTED, acceptedEvent);
     }
 
     public void rejectOrder(Long orderId, Long ownerId) {
         // TODO: Add logic to find the restaurant by ownerId and verify this order belongs to them.
         OrderStatusUpdateEvent event = new OrderStatusUpdateEvent(orderId, "REJECTED");
-        kafkaTemplate.send(TOPIC_ORDER_STATUS, event);
+        orderStatusUpdateKafkaTemplate.send(TOPIC_ORDER_STATUS, event);
     }
 }
