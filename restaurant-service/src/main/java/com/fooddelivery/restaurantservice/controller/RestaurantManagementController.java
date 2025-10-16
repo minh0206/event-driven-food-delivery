@@ -76,4 +76,22 @@ public class RestaurantManagementController {
         restaurantService.deleteMenuItem(restaurantId, itemId, ownerId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @PostMapping("/orders/{orderId}/accept")
+    public ResponseEntity<Void> acceptOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
+        restaurantService.acceptOrder(orderId, ownerId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/orders/{orderId}/reject")
+    public ResponseEntity<Void> rejectOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
+        restaurantService.rejectOrder(orderId, ownerId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

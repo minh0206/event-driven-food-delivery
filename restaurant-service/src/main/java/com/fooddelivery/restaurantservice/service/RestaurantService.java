@@ -10,11 +10,13 @@ import com.fooddelivery.restaurantservice.model.MenuItem;
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
+import com.fooddelivery.shared.event.OrderStatusUpdateEvent;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,10 +24,12 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class RestaurantService {
+    private static final String TOPIC_ORDER_STATUS = "order_status_updates";
     private final RestaurantRepository restaurantRepository;
     private final RestaurantMapper restaurantMapper;
     private final MenuItemRepository menuItemRepository;
     private final MenuItemMapper menuItemMapper;
+    private final KafkaTemplate<String, OrderStatusUpdateEvent> kafkaTemplate;
 
     public RestaurantDto createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
         if (restaurantRepository.findByOwnerId(ownerId).isPresent()) {
@@ -133,5 +137,17 @@ public class RestaurantService {
                 .stream()
                 .map(menuItemMapper::toDto)
                 .toList();
+    }
+
+    public void acceptOrder(Long orderId, Long ownerId) {
+        // TODO: Add logic to find the restaurant by ownerId and verify this order belongs to them.
+        OrderStatusUpdateEvent event = new OrderStatusUpdateEvent(orderId, "ACCEPTED");
+        kafkaTemplate.send(TOPIC_ORDER_STATUS, event);
+    }
+
+    public void rejectOrder(Long orderId, Long ownerId) {
+        // TODO: Add logic to find the restaurant by ownerId and verify this order belongs to them.
+        OrderStatusUpdateEvent event = new OrderStatusUpdateEvent(orderId, "REJECTED");
+        kafkaTemplate.send(TOPIC_ORDER_STATUS, event);
     }
 }
