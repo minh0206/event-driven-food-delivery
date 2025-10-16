@@ -2,6 +2,7 @@ package com.fooddelivery.shared.exception;
 
 import com.fooddelivery.shared.dto.ErrorResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     // Handler for authentication failures (e.g., wrong credentials)
@@ -92,10 +94,12 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "An unexpected internal server error occurred: " + ex.getMessage(),
+                "An unexpected internal server error occurred.",
                 request.getRequestURI()
         );
+
+        log.error(ex.getMessage(), (Object[]) ex.getStackTrace());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 }
