@@ -146,8 +146,12 @@ All API requests should be made through the API Gateway. The gateway routes requ
 
 This table defines the topics used for asynchronous communication between services.
 
-| Topic Name             | Event Schema (Payload)                           | Producer Service(s)  | Consumer Service(s)  |
-|------------------------|--------------------------------------------------|----------------------|----------------------|
-| `order_placed`         | `{ orderId, restaurantId, customerId, items[] }` | `order-service`      | `restaurant-service` |
-| `order_status_updates` | `{ orderId, newStatus }`                         | `restaurant-service` | `order-service`      |
-| ... *(more to come)*   |                                                  |                      |                      |
+| Topic Name                | Event Schema (Payload)                                               | Producer Service(s)  | Consumer Service(s)  |
+|---------------------------|----------------------------------------------------------------------|----------------------|----------------------|
+| `order_placed`            | `{ orderId, restaurantId, customerId, items[] }`                     | `order-service`      | `restaurant-service` |
+| `order_status_updates`    | `{ orderId, newStatus }`                                             | `restaurant-service` | `order-service`      |
+| `order_accepted`          | `{ orderId, restaurantId, restaurantLatitude, restaurantLongitude }` | `restaurant-service` | `delivery-service`   |
+| `driver_assigned`         | `{ orderId, driverId, driverUserId }`                                | `delivery-service`   | `order-service`      |
+| `driver_location_updates` | `{ orderId, driverId, latitude, longitude }`                         | `delivery-service`   | `order-service`      |
+| `order_in_transit`        | `{ orderId, driverId, driverUserId }`                                | `delivery-service`   | `order-service`      |
+| ... *(more to come)*      |                                                                      |                      |                      |
