@@ -1,4 +1,4 @@
-import { Button } from "shared-ui";
+import { Button } from "@chakra-ui/react";
 
 function App() {
   return (
