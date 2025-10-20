@@ -1,7 +1,12 @@
-import React from "react";
+import RestaurantListPage from "./RestaurantListPage";
 
 const HomePage = () => {
-  return <div>HomePage</div>;
+  return (
+    <>
+      <h1>Home Page</h1>
+      <RestaurantListPage></RestaurantListPage>
+    </>
+  );
 };
 
 export default HomePage;
