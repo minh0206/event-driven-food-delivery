@@ -1,9 +1,8 @@
-import RestaurantListPage from "./RestaurantListPage";
+import { RestaurantListPage } from "@repo/ui";
 
 const HomePage = () => {
   return (
     <>
-      <h1>Home Page</h1>
       <RestaurantListPage></RestaurantListPage>
     </>
   );

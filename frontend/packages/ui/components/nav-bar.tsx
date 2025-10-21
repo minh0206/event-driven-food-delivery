@@ -1,7 +1,7 @@
 import { Button, HStack } from "@chakra-ui/react";
 import { NavLink, useLocation } from "react-router-dom";
 
-const NavBar = () => {
+export const NavBar = () => {
   const location = useLocation();
   const isHomeActive =
     location.pathname === "/" || location.pathname.startsWith("/restaurants");
@@ -19,5 +19,3 @@ const NavBar = () => {
     </HStack>
   );
 };
-
-export default NavBar;

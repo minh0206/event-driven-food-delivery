@@ -4,7 +4,12 @@ import type { Restaurant } from "../models/Restaurant";
 
 interface FetchRestaurantsResponse {
   content: Restaurant[];
-  page: any;
+  page: {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+  };
 }
 
 class RestaurantService {

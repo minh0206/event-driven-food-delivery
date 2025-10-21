@@ -1,11 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
-import ErrorPage from "./pages/ErrorPage";
+
+import {
+  ErrorPage,
+  Layout,
+  LoginPage,
+  RestaurantDetailPage,
+  SignUpPage,
+} from "@repo/ui";
 import HomePage from "./pages/HomePage";
-import Layout from "./pages/Layout";
-import LoginPage from "./pages/LoginPage";
 import OrderListPage from "./pages/OrderListPage";
-import RestaurantDetailPage from "./pages/RestaurantDetailPage";
-import SignUpPage from "./pages/SignUpPage";
 // ... import other pages
 
 const router = createBrowserRouter([

@@ -1,7 +1,7 @@
-import type { Restaurant } from "@/models/Restaurant";
-import restaurantService from "@/services/RestaurantService";
 import { CanceledError } from "axios";
 import { useEffect, useState } from "react";
+import type { Restaurant } from "../models/Restaurant";
+import restaurantService from "../services/RestaurantService";
 
 const useRestaurants = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);

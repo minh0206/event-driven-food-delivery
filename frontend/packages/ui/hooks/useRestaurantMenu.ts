@@ -1,7 +1,7 @@
-import { type MenuItem } from "@/models/MenuItem";
-import restaurantService from "@/services/RestaurantService";
 import { CanceledError } from "axios";
 import { useEffect, useState } from "react";
+import { type MenuItem } from "../models/MenuItem";
+import restaurantService from "../services/RestaurantService";
 
 const useRestaurantMenu = (id: string) => {
   const [menu, setMenu] = useState<MenuItem[]>([]);

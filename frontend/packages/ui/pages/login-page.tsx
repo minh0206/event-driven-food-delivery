@@ -1,34 +1,26 @@
-// apps/customer/src/pages/LoginPage.tsx
 import {
-  Button,
-  Field,
-  Fieldset,
-  For,
-  Input,
-  NativeSelect,
-  Card,
-  Stack,
-  Link as ChakraLink,
-  Center,
   AbsoluteCenter,
+  Button,
+  Card,
+  Link as ChakraLink,
+  Field,
+  Input,
+  Stack,
   Text,
 } from "@chakra-ui/react";
-import {
-  PasswordInput,
-  PasswordStrengthMeter,
-} from "@/components/ui/password-input";
+import { PasswordInput } from "../components/ui/password-input";
 
 import apiClient from "api-client";
 import { useForm, type FieldValues } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "shared-hooks";
+import { useAuth } from "shared-hooks";
 
 interface FormValues {
   email: string;
   password: string;
 }
 
-const LoginPage = () => {
+export const LoginPage = () => {
   const {
     register,
     handleSubmit,
@@ -105,5 +97,3 @@ const LoginPage = () => {
     </AbsoluteCenter>
   );
 };
-
-export default LoginPage;

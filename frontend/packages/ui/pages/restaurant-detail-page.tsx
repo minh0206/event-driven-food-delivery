@@ -1,7 +1,7 @@
-import useRestaurantMenu from "@/hooks/useRestaurantMenu";
 import { useParams } from "react-router-dom";
+import useRestaurantMenu from "../hooks/useRestaurantMenu";
 
-const RestaurantDetailPage = () => {
+export const RestaurantDetailPage = () => {
   const { id } = useParams();
   const { menu, error } = useRestaurantMenu(id!);
 
@@ -12,5 +12,3 @@ const RestaurantDetailPage = () => {
     </>
   );
 };
-
-export default RestaurantDetailPage;
