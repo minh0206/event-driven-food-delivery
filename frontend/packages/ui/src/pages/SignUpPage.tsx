@@ -9,12 +9,10 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { PasswordInput } from "../components/ui/password-input";
-
-import apiClient from "api-client";
+import { useAuthStore } from "@repo/shared/hooks";
 import { useForm, type FieldValues } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "shared-hooks";
+import { PasswordInput } from "../components/ui/password-input";
 
 interface FormValues {
   email: string;
@@ -30,22 +28,22 @@ export const SignUpPage = () => {
     setError,
     formState: { errors },
   } = useForm<FormValues>();
-  const { login } = useAuth();
+  const { login } = useAuthStore();
   const navigate = useNavigate();
 
   const onSubmit = async (data: FieldValues) => {
-    try {
-      const response = await apiClient.post("/users/register/customer", data);
-      const { token } = response.data;
-      login(token); // Save token to context and localStorage
-      navigate("/"); // Redirect to home on successful login
-    } catch (error: any) {
-      // Handle sign up error (e.g., show a notification)
-      if (error.response.status === 409) {
-        console.log(error.response.data);
-        setError("email", { type: "conflict" });
-      }
-    }
+    // try {
+    //   const response = await apiClient.post("/users/register/customer", data);
+    //   const { token } = response.data;
+    //   login(token); // Save token to context and localStorage
+    //   navigate("/"); // Redirect to home on successful login
+    // } catch (error: any) {
+    //   // Handle sign up error (e.g., show a notification)
+    //   if (error.response.status === 409) {
+    //     console.log(error.response.data);
+    //     setError("email", { type: "conflict" });
+    //   }
+    // }
   };
 
   return (

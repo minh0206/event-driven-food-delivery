@@ -1,13 +1,22 @@
 {
-  "name": "shared-hooks",
+  "name": "@repo/shared",
   "version": "0.0.0",
-  "main": "./index.tsx",
-  "types": "./index.tsx",
+  "type": "module",
   "exports": {
-    ".": "./index.tsx"
+    "./hooks": "./src/hooks/index.ts",
+    "./models": "./src/models/index.ts",
+    "./services": "./src/services/index.ts"
   },
   "scripts": {
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "api-client": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@tanstack/react-query": "^5.90.5"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -17,9 +26,5 @@
     "@types/react-dom": "19.1.1",
     "eslint": "^9.34.0",
     "typescript": "5.9.2"
-  },
-  "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
   }
 }
