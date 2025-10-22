@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "api-client": "workspace:*",
-    "shared-hooks": "workspace:*",
+    "@repo/shared": "workspace:*",
     "@repo/ui": "workspace:*"
   },
   "peerDependencies": {
