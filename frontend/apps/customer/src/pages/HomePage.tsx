@@ -1,4 +1,4 @@
-import { RestaurantListPage } from "@repo/ui";
+import { RestaurantListPage } from "./RestaurantListPage";
 
 const HomePage = () => {
   return (
