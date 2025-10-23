@@ -24,6 +24,11 @@ class RestaurantService {
     return request.data;
   }
 
+  async getRestaurantProfile() {
+    const request = await apiClient.get<Restaurant>("/restaurants/manage");
+    return request.data;
+  }
+
   async getMenuItems(restaurantId: number) {
     const request = await apiClient.get<MenuItem[]>(
       `/restaurants/${restaurantId}/menu`

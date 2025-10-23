@@ -13,11 +13,11 @@ import { useQuery } from "@tanstack/react-query";
 import AddMenuItemDialog from "../components/AddMenuItemDialog";
 
 const MenuManagementPage = () => {
-  const { user } = useAuthStore();
+  const { user, restaurant } = useAuthStore();
 
   const { data: menuItems, error } = useQuery<MenuItem[], Error>({
     queryKey: ["menu-items"],
-    queryFn: () => restaurantService.getMenuItems(user!.id),
+    queryFn: () => restaurantService.getMenuItems(restaurant!.id),
   });
 
   if (error) {

@@ -1,10 +1,12 @@
 import { create } from "zustand";
+import { Restaurant } from "../models";
 import { User } from "../models/User";
-import { userService } from "../services";
+import { restaurantService, userService } from "../services";
 
 type State = {
   token: string | null;
   user: User | null;
+  restaurant: Restaurant | null;
   isLoading: boolean;
 };
 
@@ -17,6 +19,7 @@ type Action = {
 export const useAuthStore = create<State & Action>((set, get) => ({
   token: null,
   user: null,
+  restaurant: null,
   isLoading: true,
 
   initialize: async () => {
@@ -30,6 +33,11 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       if (token) {
         const user = await userService.getProfile();
         set({ user, token });
+
+        if (user.role === "RESTAURANT_ADMIN") {
+          const restaurant = await restaurantService.getRestaurantProfile();
+          set({ restaurant });
+        }
       }
     } catch (error) {
       console.error("Failed to initialize auth store:", error);
