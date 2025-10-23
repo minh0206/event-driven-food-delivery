@@ -6,14 +6,18 @@ import {
   Input,
   Portal,
   Stack,
+  useDialog,
 } from "@chakra-ui/react";
-import { useAddMenuItem, useMenuItemForm } from "@repo/shared/hooks";
+import { useMenuItemForm, useUpdateMenuItem } from "@repo/shared/hooks";
+import { MenuItem } from "@repo/shared/models";
 import { FieldValues } from "react-hook-form";
 
-const AddMenuItemDialog = ({
+const UpdateMenuItemDialog = ({
+  menuItem,
   onSuccess,
   onError,
 }: {
+  menuItem: MenuItem;
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }) => {
@@ -22,34 +26,52 @@ const AddMenuItemDialog = ({
     register,
     reset,
     handleSubmit,
+    setError,
     formState: { errors },
-  } = useMenuItemForm();
+  } = useMenuItemForm({
+    name: menuItem.name,
+    description: menuItem.description,
+    price: menuItem.price.toString(),
+  });
 
   // Mutation
-  const addMenuItem = useAddMenuItem();
+  const updateMenuItem = useUpdateMenuItem();
+
+  const dialog = useDialog();
 
   const onSubmit = async (data: FieldValues) => {
     try {
-      await addMenuItem.mutateAsync({
-        id: 0,
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        restaurantId: 0,
+      // Validate the new values
+      if (
+        data.name === menuItem.name &&
+        data.price === menuItem.price.toString()
+      ) {
+        setError("name", { message: "Please enter a new name" });
+        setError("price", { message: "Please enter a new price" });
+        return;
+      }
+
+      await updateMenuItem.mutateAsync({
+        menuItemId: menuItem.id,
+        menuItem: {
+          id: menuItem.id,
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          restaurantId: menuItem.restaurantId,
+        },
       });
       onSuccess?.();
-      reset();
+      dialog.setOpen(false);
     } catch (error) {
       onError?.(error as Error);
     }
   };
 
   return (
-    <Dialog.Root>
+    <Dialog.RootProvider value={dialog}>
       <Dialog.Trigger asChild>
-        <Button variant="solid" colorPalette="blue">
-          Add Item
-        </Button>
+        <Button variant="outline">Edit</Button>
       </Dialog.Trigger>
 
       <Portal>
@@ -58,7 +80,7 @@ const AddMenuItemDialog = ({
           <Dialog.Content>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Dialog.Header>
-                <Dialog.Title>Add Item</Dialog.Title>
+                <Dialog.Title>Edit Item</Dialog.Title>
               </Dialog.Header>
               <Dialog.Body>
                 <Stack gap="4" w="full">
@@ -107,8 +129,8 @@ const AddMenuItemDialog = ({
           </Dialog.Content>
         </Dialog.Positioner>
       </Portal>
-    </Dialog.Root>
+    </Dialog.RootProvider>
   );
 };
 
-export default AddMenuItemDialog;
+export default UpdateMenuItemDialog;
