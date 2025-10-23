@@ -8,6 +8,7 @@ type State = {
   user: User | null;
   restaurant: Restaurant | null;
   isLoading: boolean;
+  isInitialized: boolean;
 };
 
 type Action = {
@@ -20,7 +21,8 @@ export const useAuthStore = create<State & Action>((set, get) => ({
   token: null,
   user: null,
   restaurant: null,
-  isLoading: true,
+  isLoading: false,
+  isInitialized: false,
 
   initialize: async () => {
     set({ isLoading: true });
@@ -43,7 +45,7 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       console.error("Failed to initialize auth store:", error);
     }
 
-    set({ isLoading: false });
+    set({ isLoading: false, isInitialized: true });
   },
 
   login: async (email, password) => {

@@ -9,8 +9,9 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useAuthStore } from "@repo/shared/hooks";
+import { useEffect } from "react";
 import { useForm, type FieldValues } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { PasswordInput } from "../components/ui/password-input";
 
 interface FormValues {
@@ -25,7 +26,7 @@ export const LoginPage = () => {
     formState: { errors },
   } = useForm<FormValues>();
 
-  const { login } = useAuthStore();
+  const { user, isLoading, isInitialized, login, initialize } = useAuthStore();
   const navigate = useNavigate();
 
   const onSubmit = async (data: FieldValues) => {
@@ -37,6 +38,16 @@ export const LoginPage = () => {
       // Handle login error (e.g., show a notification)
     }
   };
+
+  useEffect(() => {
+    if (!isInitialized) initialize();
+  }, [initialize]);
+
+  // If the user is loading, show a loading state
+  if (isLoading) return <div>Loading...</div>;
+
+  // If the user is authenticated, redirect to home page
+  if (user) return <Navigate to="/" replace />;
 
   return (
     <AbsoluteCenter>
