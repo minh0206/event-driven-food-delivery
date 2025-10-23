@@ -13,6 +13,7 @@ interface FetchRestaurantsResponse {
 }
 
 class RestaurantService {
+  // Public endpoints
   async getAllRestaurants() {
     const request =
       await apiClient.get<FetchRestaurantsResponse>("/restaurants");
@@ -24,11 +25,6 @@ class RestaurantService {
     return request.data;
   }
 
-  async getRestaurantProfile() {
-    const request = await apiClient.get<Restaurant>("/restaurants/manage");
-    return request.data;
-  }
-
   async getMenuItems(restaurantId: number) {
     const request = await apiClient.get<MenuItem[]>(
       `/restaurants/${restaurantId}/menu`
@@ -36,12 +32,36 @@ class RestaurantService {
     return request.data;
   }
 
+  // Private endpoints
+  async getRestaurantProfile() {
+    const request = await apiClient.get<Restaurant>("/restaurants/manage");
+    return request.data;
+  }
+
   async addMenuItem(restaurantId: number, menuItem: MenuItem) {
     const request = await apiClient.post<MenuItem>(
-      `/restaurants/${restaurantId}/menu`,
+      `/restaurants/manage/${restaurantId}/menu`,
       menuItem
     );
     return request.data;
+  }
+
+  async updateMenuItem(
+    restaurantId: number,
+    menuItemId: number,
+    menuItem: MenuItem
+  ) {
+    const request = await apiClient.put<MenuItem>(
+      `/restaurants/manage/${restaurantId}/menu/${menuItemId}`,
+      menuItem
+    );
+    return request.data;
+  }
+
+  async deleteMenuItem(restaurantId: number, menuItemId: number) {
+    await apiClient.delete(
+      `/restaurants/manage/${restaurantId}/menu/${menuItemId}`
+    );
   }
 }
 
