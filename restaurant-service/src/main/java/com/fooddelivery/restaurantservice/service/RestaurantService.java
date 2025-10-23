@@ -132,6 +132,13 @@ public class RestaurantService {
         return restaurantMapper.toDto(restaurant);
     }
 
+    public RestaurantDto getRestaurantByOwnerId(Long ownerId) {
+        Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+
+        return restaurantMapper.toDto(restaurant);
+    }
+
     @Transactional
     public List<MenuItemDto> getRestaurantMenu(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)

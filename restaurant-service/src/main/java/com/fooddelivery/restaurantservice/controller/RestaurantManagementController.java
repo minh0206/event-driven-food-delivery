@@ -24,6 +24,13 @@ public class RestaurantManagementController {
         return Long.parseLong(userDetails.getUsername());
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
+    public RestaurantDto getRestaurant(@AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
+        return restaurantService.getRestaurantByOwnerId(ownerId);
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public ResponseEntity<RestaurantDto> createRestaurant(
