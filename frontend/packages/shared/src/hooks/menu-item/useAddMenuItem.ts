@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CACHE_KEYS } from "../constants";
-import { MenuItem } from "../models";
-import { restaurantService } from "../services/RestaurantService";
-import { useAuthStore } from "./useAuthStore";
+import { CACHE_KEYS } from "../../constants";
+import { MenuItem } from "../../models";
+import { restaurantService } from "../../services/RestaurantService";
+import { useAuthStore } from "../useAuthStore";
 
 export const useAddMenuItem = () => {
-  const { restaurant } = useAuthStore();
+  const { restaurantId: restaurantId } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -15,7 +15,7 @@ export const useAddMenuItem = () => {
     { previousMenuItems: MenuItem[] }
   >({
     mutationFn: (menuItem: MenuItem) =>
-      restaurantService.addMenuItem(restaurant!.id!, menuItem),
+      restaurantService.addMenuItem(restaurantId!, menuItem),
     onMutate: (menuItem) => {
       const previousMenuItems =
         queryClient.getQueryData<MenuItem[]>([CACHE_KEYS.MENU_ITEMS]) || [];

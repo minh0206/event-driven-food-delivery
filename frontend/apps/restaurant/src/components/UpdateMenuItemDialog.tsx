@@ -8,7 +8,7 @@ import {
   Stack,
   useDialog,
 } from "@chakra-ui/react";
-import { useMenuItemForm, useUpdateMenuItem } from "@repo/shared/hooks";
+import { useUpdateMenuItem, useUpdateMenuItemForm } from "@repo/shared/hooks";
 import { MenuItem } from "@repo/shared/models";
 import { FieldValues } from "react-hook-form";
 
@@ -21,46 +21,29 @@ const UpdateMenuItemDialog = ({
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }) => {
+  const dialog = useDialog();
+
   // Form
   const {
     register,
     reset,
     handleSubmit,
-    setError,
-    formState: { errors },
-  } = useMenuItemForm({
-    name: menuItem.name,
-    description: menuItem.description,
-    price: menuItem.price.toString(),
-  });
+    formState: { errors, isDirty, isValid },
+  } = useUpdateMenuItemForm(menuItem);
 
   // Mutation
   const updateMenuItem = useUpdateMenuItem();
 
-  const dialog = useDialog();
-
   const onSubmit = async (data: FieldValues) => {
     try {
-      // Validate the new values
-      if (
-        data.name === menuItem.name &&
-        data.price === menuItem.price.toString()
-      ) {
-        setError("name", { message: "Please enter a new name" });
-        setError("price", { message: "Please enter a new price" });
-        return;
-      }
-
       await updateMenuItem.mutateAsync({
-        menuItemId: menuItem.id,
-        menuItem: {
-          id: menuItem.id,
-          name: data.name,
-          description: data.description,
-          price: data.price,
-          restaurantId: menuItem.restaurantId,
-        },
+        id: menuItem.id,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        restaurantId: menuItem.restaurantId,
       });
+
       onSuccess?.();
       dialog.setOpen(false);
     } catch (error) {
@@ -107,7 +90,13 @@ const UpdateMenuItemDialog = ({
                     <Field.Label>
                       Price <Field.RequiredIndicator />
                     </Field.Label>
-                    <Input {...register("price")} placeholder="eg. 10" />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...register("price")}
+                      placeholder="eg. 10"
+                    />
                     <Field.ErrorText>{errors.price?.message}</Field.ErrorText>
                   </Field.Root>
                 </Stack>
@@ -119,7 +108,9 @@ const UpdateMenuItemDialog = ({
                     Cancel
                   </Button>
                 </Dialog.ActionTrigger>
-                <Button type="submit">Save</Button>
+                <Button type="submit" disabled={!isDirty || !isValid}>
+                  Save
+                </Button>
               </Dialog.Footer>
 
               <Dialog.CloseTrigger asChild>

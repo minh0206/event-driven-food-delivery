@@ -54,13 +54,9 @@ class RestaurantService {
     return request.data;
   }
 
-  async updateMenuItem(
-    restaurantId: number,
-    menuItemId: number,
-    menuItem: MenuItem
-  ) {
+  async updateMenuItem(menuItem: MenuItem) {
     const request = await apiClient.put<MenuItem>(
-      `/restaurants/manage/${restaurantId}/menu/${menuItemId}`,
+      `/restaurants/manage/${menuItem.restaurantId}/menu/${menuItem.id}`,
       menuItem
     );
     return request.data;

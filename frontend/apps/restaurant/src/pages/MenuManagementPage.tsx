@@ -17,8 +17,8 @@ import AddMenuItemDialog from "../components/AddMenuItemDialog";
 import UpdateMenuItemDialog from "../components/UpdateMenuItemDialog";
 
 const MenuManagementPage = () => {
-  const { restaurant } = useAuthStore();
-  const { data: menuItems, error } = useMenuItems(restaurant!.id);
+  const { restaurantId } = useAuthStore();
+  const { data: menuItems, error } = useMenuItems(restaurantId!);
   const deleteMenuItem = useDeleteMenuItem();
 
   const handleAddMenuItem = (error?: Error) => {

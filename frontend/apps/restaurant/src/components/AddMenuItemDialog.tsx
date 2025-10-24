@@ -7,7 +7,7 @@ import {
   Portal,
   Stack,
 } from "@chakra-ui/react";
-import { useAddMenuItem, useMenuItemForm } from "@repo/shared/hooks";
+import { useAddMenuItem, useAddMenuItemForm } from "@repo/shared/hooks";
 import { FieldValues } from "react-hook-form";
 
 const AddMenuItemDialog = ({
@@ -22,8 +22,8 @@ const AddMenuItemDialog = ({
     register,
     reset,
     handleSubmit,
-    formState: { errors },
-  } = useMenuItemForm();
+    formState: { errors, isValid },
+  } = useAddMenuItemForm();
 
   // Mutation
   const addMenuItem = useAddMenuItem();
@@ -85,7 +85,13 @@ const AddMenuItemDialog = ({
                     <Field.Label>
                       Price <Field.RequiredIndicator />
                     </Field.Label>
-                    <Input {...register("price")} placeholder="eg. 10" />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...register("price")}
+                      placeholder="eg. 10"
+                    />
                     <Field.ErrorText>{errors.price?.message}</Field.ErrorText>
                   </Field.Root>
                 </Stack>
@@ -97,7 +103,9 @@ const AddMenuItemDialog = ({
                     Cancel
                   </Button>
                 </Dialog.ActionTrigger>
-                <Button type="submit">Save</Button>
+                <Button type="submit" disabled={!isValid}>
+                  Save
+                </Button>
               </Dialog.Footer>
 
               <Dialog.CloseTrigger asChild>
