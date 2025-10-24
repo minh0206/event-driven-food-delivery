@@ -38,6 +38,14 @@ class RestaurantService {
     return request.data;
   }
 
+  async updateRestaurant(restaurant: Restaurant) {
+    const request = await apiClient.put<Restaurant>(
+      `/restaurants/manage/${restaurant.id}`,
+      restaurant
+    );
+    return request.data;
+  }
+
   async addMenuItem(restaurantId: number, menuItem: MenuItem) {
     const request = await apiClient.post<MenuItem>(
       `/restaurants/manage/${restaurantId}/menu`,

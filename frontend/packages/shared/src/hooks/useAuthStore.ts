@@ -1,12 +1,11 @@
 import { create } from "zustand";
-import { Restaurant } from "../models";
 import { User } from "../models/User";
 import { restaurantService, userService } from "../services";
 
 type State = {
   token: string | null;
   user: User | null;
-  restaurant: Restaurant | null;
+  restaurantId: number | null;
   isLoading: boolean;
   isInitialized: boolean;
 };
@@ -20,7 +19,7 @@ type Action = {
 export const useAuthStore = create<State & Action>((set, get) => ({
   token: null,
   user: null,
-  restaurant: null,
+  restaurantId: null,
   isLoading: false,
   isInitialized: false,
 
@@ -36,9 +35,10 @@ export const useAuthStore = create<State & Action>((set, get) => ({
         const user = await userService.getProfile();
         set({ user, token });
 
+        // If the user is a restaurant admin, get the restaurant id
         if (user.role === "RESTAURANT_ADMIN") {
           const restaurant = await restaurantService.getRestaurantProfile();
-          set({ restaurant });
+          set({ restaurantId: restaurant.id });
         }
       }
     } catch (error) {
@@ -55,6 +55,12 @@ export const useAuthStore = create<State & Action>((set, get) => ({
     const { token, user } = response;
     set(() => ({ token, user }));
     localStorage.setItem("authToken", token!);
+
+    // If the user is a restaurant admin, get the restaurant id
+    if (user.role === "RESTAURANT_ADMIN") {
+      const restaurant = await restaurantService.getRestaurantProfile();
+      set({ restaurantId: restaurant.id });
+    }
 
     set({ isLoading: false });
   },

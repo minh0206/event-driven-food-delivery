@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { ErrorPage, LoginPage, SignUpPage } from "@repo/ui/pages";
 import PrivateRoutes from "./components/PrivateRoutes";
 import MenuManagementPage from "./pages/MenuManagementPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const router = createBrowserRouter([
   {
@@ -10,8 +11,9 @@ const router = createBrowserRouter([
     element: <PrivateRoutes />,
     errorElement: <ErrorPage />,
     children: [
-      { index: true, element: <MenuManagementPage /> },
+      { index: true, element: <>Home Page</> },
       { path: "/menu", element: <MenuManagementPage /> },
+      { path: "/profile", element: <ProfilePage /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },
