@@ -4,14 +4,14 @@ import { Navigate } from "react-router-dom";
 import { Layout } from "../pages/Layout";
 
 const PrivateRoutes = () => {
-  const { user, isLoading, initialize } = useAuthStore();
+  const { user, isLoading, isInitialized, initialize } = useAuthStore();
 
   useEffect(() => {
-    initialize();
+    if (!isInitialized) initialize();
   }, [initialize]);
 
   // If the user is loading, show a loading state.
-  if (isLoading) return <div>Loading user data...</div>;
+  if (isLoading || !isInitialized) return <div>Loading user data...</div>;
 
   // If the user is not authenticated, redirect to login.
   if (!user) return <Navigate to="/login" replace />;
