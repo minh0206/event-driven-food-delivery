@@ -1,21 +1,21 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import { ErrorPage, LoginPage, SignUpPage } from "@repo/ui/pages";
-import HomePage from "./pages/HomePage";
-import { Layout } from "./pages/Layout";
+import { ErrorPage, LoginPage, ProfilePage, SignUpPage } from "@repo/ui/pages";
+import PrivateRoutes from "./components/PrivateRoutes";
 import OrderListPage from "./pages/OrderListPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
-// ... import other pages
+import { RestaurantListPage } from "./pages/RestaurantListPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />,
+    element: <PrivateRoutes />,
     errorElement: <ErrorPage />,
     children: [
-      { index: true, element: <HomePage /> },
+      { index: true, element: <RestaurantListPage /> },
       { path: "restaurants/:id", element: <RestaurantDetailPage /> },
       { path: "orders", element: <OrderListPage /> },
+      { path: "profile", element: <ProfilePage /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },
