@@ -1,11 +1,9 @@
-import { Avatar, Button, HStack, Menu, Portal } from "@chakra-ui/react";
-import { useAuthStore } from "@repo/shared/hooks";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Button, HStack } from "@chakra-ui/react";
+import { UserAvatar } from "@repo/ui/components";
+import { NavLink, useLocation } from "react-router-dom";
 
 export const NavBar = () => {
   const location = useLocation();
-  const { user, logout } = useAuthStore();
-
   const isHomeActive =
     location.pathname === "/" || location.pathname.startsWith("/restaurants");
   const isMenuActive = location.pathname.startsWith("/menu");
@@ -21,28 +19,7 @@ export const NavBar = () => {
         </Button>
       </HStack>
 
-      <Menu.Root>
-        <Menu.Trigger marginRight="1" rounded="full" focusRing="outside">
-          <Avatar.Root size="sm" variant="solid">
-            <Avatar.Fallback>
-              {user?.firstName?.[0] || ""}
-              {user?.lastName?.[0] || ""}
-            </Avatar.Fallback>
-          </Avatar.Root>
-        </Menu.Trigger>
-        <Portal>
-          <Menu.Positioner>
-            <Menu.Content>
-              <Menu.Item value="profile" asChild>
-                <Link to="/profile">Profile</Link>
-              </Menu.Item>
-              <Menu.Item value="logout" onClick={logout}>
-                Logout
-              </Menu.Item>
-            </Menu.Content>
-          </Menu.Positioner>
-        </Portal>
-      </Menu.Root>
+      <UserAvatar />
     </HStack>
   );
 };

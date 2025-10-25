@@ -1,9 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import { ErrorPage, LoginPage, SignUpPage } from "@repo/ui/pages";
+import { ErrorPage, LoginPage, ProfilePage, SignUpPage } from "@repo/ui/pages";
 import PrivateRoutes from "./components/PrivateRoutes";
 import MenuManagementPage from "./pages/MenuManagementPage";
-import ProfilePage from "./pages/ProfilePage";
 
 const router = createBrowserRouter([
   {
