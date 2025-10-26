@@ -15,16 +15,11 @@ const CartItemCard = ({ item }: { item: CartItem }) => {
   const { updateQuantity, removeItem } = useCartStore();
 
   return (
-    <Flex
-      gap={3}
-      direction={{ base: "column", sm: "row" }}
-      align={{ base: "stretch", sm: "flex-start" }}
-    >
+    <Flex gap={3} direction={{ base: "column", md: "row" }} align="stretch">
       <Image
         //   src={item.image}
         alt={item.name}
-        boxSize={{ base: "100%", sm: "100px" }}
-        maxW={{ base: "150px", sm: "100px" }}
+        w={{ base: "150px", sm: "100px" }}
         h={{ base: "150px", sm: "100px" }}
         objectFit="cover"
         borderRadius="md"
@@ -36,18 +31,11 @@ const CartItemCard = ({ item }: { item: CartItem }) => {
       <Stack flex="1">
         <Text fontWeight="medium">{item.name}</Text>
         <Text color="gray.600" fontSize="sm">
-          Description
+          {item.description}
         </Text>
-        <Text>${item.price.toFixed(2)}</Text>
       </Stack>
 
-      <HStack
-        flex="1"
-        justify="space-between"
-        align={{ base: "center", sm: "flex-start" }}
-        w={{ base: "100%", sm: "auto" }}
-        mt={{ base: 2, sm: 0 }}
-      >
+      <HStack align="center" mt={{ base: 2, sm: 0 }}>
         <Stack>
           <NumberInput.Root
             onValueChange={(quantity) =>
@@ -88,6 +76,7 @@ const CartItemCard = ({ item }: { item: CartItem }) => {
         </Stack>
 
         <Text
+          flex="1"
           fontWeight="medium"
           fontSize="lg"
           textAlign="right"
