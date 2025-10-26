@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Restaurant } from "../models/Restaurant";
-import { restaurantService } from "../services/RestaurantService";
+import { Restaurant } from "../../models/";
+import { restaurantService } from "../../services";
 
 export const useRestaurants = () => {
   return useQuery<Restaurant[], Error>({

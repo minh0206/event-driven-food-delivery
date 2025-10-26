@@ -3,6 +3,7 @@ export * from "./useAuthStore";
 
 // restaurant
 export * from "./restaurant/useRestaurant";
+export * from "./restaurant/useRestaurantProfile";
 export * from "./restaurant/useRestaurants";
 export * from "./restaurant/useUpdateRestaurant";
 export * from "./restaurant/useUpdateRestaurantForm";

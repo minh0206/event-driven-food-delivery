@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_KEYS } from "../../constants";
-import { Restaurant } from "../../models/Restaurant";
-import { restaurantService } from "../../services/RestaurantService";
+import { Restaurant } from "../../models/";
+import { restaurantService } from "../../services/";
 
-export const useRestaurant = () => {
+export const useRestaurant = (id: number) => {
   return useQuery<Restaurant, Error>({
     queryKey: [CACHE_KEYS.RESTAURANT],
-    queryFn: restaurantService.getRestaurantProfile,
+    queryFn: () => restaurantService.getRestaurant(id),
   });
 };

@@ -11,31 +11,26 @@ import { Link } from "react-router-dom";
 
 export const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => {
   return (
-    <>
-      <LinkBox>
-        <Card.Root flexDirection="row" overflow="hidden" maxW="xl">
-          <Image
-            objectFit="cover"
-            maxW="130px"
-            src="https://images.unsplash.com/photo-1667489022797-ab608913feeb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw5fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=800&q=60"
-            alt="Caffe Latte"
-          />
-          <Card.Body>
-            <Card.Title mb="2">
-              <LinkOverlay asChild>
-                <Link to={`/restaurants/${restaurant.id}`}>
-                  {restaurant.name}
-                </Link>
-              </LinkOverlay>
-            </Card.Title>
-            <Card.Description>{restaurant.address}</Card.Description>
-            <HStack mt="4">
-              <Badge>Hot</Badge>
-              <Badge>Caffeine</Badge>
-            </HStack>
-          </Card.Body>
-        </Card.Root>
-      </LinkBox>
-    </>
+    <LinkBox>
+      <Card.Root w="270px" overflow="hidden" size="sm">
+        <Image
+          h="120px"
+          src="https://down-zl-vn.img.susercontent.com/vn-11134513-7r98o-lsu6zq1im07td5@resize_ss640x400!@crop_w640_h400_cT"
+        />
+        <Card.Body>
+          <Card.Title mb="1">
+            <LinkOverlay asChild>
+              <Link to={`/restaurants/${restaurant.id}`}>
+                {restaurant.name}
+              </Link>
+            </LinkOverlay>
+          </Card.Title>
+          <Card.Description>{restaurant.address}</Card.Description>
+          <HStack mt="2">
+            <Badge>{restaurant.cuisineType}</Badge>
+          </HStack>
+        </Card.Body>
+      </Card.Root>
+    </LinkBox>
   );
 };
