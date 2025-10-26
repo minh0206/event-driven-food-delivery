@@ -41,8 +41,8 @@ export const RestaurantDetailPage = () => {
         </HStack>
 
         <Stack
-          align="center"
           margin={4}
+          align="stretch"
           w={{ base: "100%", md: "50%", lg: "40%", xl: "30%" }}
           bg="white"
           p={6}

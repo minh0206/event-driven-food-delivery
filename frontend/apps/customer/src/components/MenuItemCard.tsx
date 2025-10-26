@@ -1,12 +1,4 @@
-import {
-  Flex,
-  Heading,
-  HStack,
-  IconButton,
-  Image,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Flex, HStack, IconButton, Image, Stack, Text } from "@chakra-ui/react";
 import { MenuItem } from "@repo/shared/models";
 import { RiAddLargeFill } from "react-icons/ri";
 import { useCartStore } from "../stores/cartStore";
@@ -15,31 +7,37 @@ const MenuItemCard = ({ menuItem }: { menuItem: MenuItem }) => {
   const { addItem: addItemToCart } = useCartStore();
 
   return (
-    <Flex
-      gap={3}
-      justify="space-between"
-      direction={{ base: "column", lg: "row" }}
-      align={{ base: "flex-end", lg: "center" }}
-    >
-      <HStack align="flex-start">
-        <Image
-          padding={3}
-          w="100px"
-          h="100px"
-          src="https://down-zl-vn.img.susercontent.com/vn-11134513-7r98o-lsu6zq1im07td5@resize_ss640x400!@crop_w640_h400_cT"
-        />
-        <VStack mt="3" align="flex-start">
-          <Heading size="md">{menuItem.name}</Heading>
-          <Text textStyle="xs" color="gray.500">
-            {menuItem.description}
-          </Text>
-        </VStack>
-      </HStack>
+    <Flex gap={3} direction={{ base: "column", sm: "row" }} align="stretch">
+      <Image
+        //   src={item.image}
+        alt={menuItem.name}
+        // boxSize={{ base: "100px", sm: "100px" }}
+        w={{ base: "150px", sm: "100px" }}
+        h={{ base: "150px", sm: "100px" }}
+        objectFit="cover"
+        borderRadius="md"
+        bg="blue.50"
+        alignSelf={{ base: "center", sm: "flex-start" }}
+        mb={{ base: 2, sm: 0 }}
+      />
 
-      <HStack mr="2">
-        <Heading size="md" mr="2">
-          ${menuItem.price}
-        </Heading>
+      <Stack flex="1">
+        <Text fontWeight="medium">{menuItem.name}</Text>
+        <Text color="gray.600" fontSize="sm">
+          {menuItem.description}
+        </Text>
+      </Stack>
+
+      <HStack align="center" mt={{ base: 2, sm: 0 }}>
+        <Text
+          flex="1"
+          fontWeight="medium"
+          fontSize="lg"
+          textAlign="right"
+          minW={{ base: "auto", sm: "70px" }}
+        >
+          ${menuItem.price.toFixed(2)}
+        </Text>
 
         <IconButton
           aria-label="Add to cart"
