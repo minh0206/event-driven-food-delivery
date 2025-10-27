@@ -8,6 +8,25 @@ spring:
     gateway:
       server:
         webflux:
+          # Enable CORS for all routes
+          globalcors:
+            corsConfigurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:5173"
+                  - "http://localhost:5174"
+                  - "http://localhost:5175"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
+                maxAge: 3600
+
+          # Configure the API gateway server
           routes:
             - id: user-service-route
               uri: http://localhost:8081
