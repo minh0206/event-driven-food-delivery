@@ -2,21 +2,18 @@ import { create } from "zustand";
 import { User } from "../models/User";
 import { restaurantService, userService } from "../services";
 
-type State = {
+type AuthState = {
   token: string | null;
   user: User | null;
   restaurantId: number | null;
   isLoading: boolean;
   isInitialized: boolean;
-};
-
-type Action = {
   initialize: () => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
-export const useAuthStore = create<State & Action>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
   restaurantId: null,
