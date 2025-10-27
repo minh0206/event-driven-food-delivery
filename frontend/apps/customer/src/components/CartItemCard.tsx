@@ -39,7 +39,7 @@ const CartItemCard = ({ item }: { item: CartItem }) => {
         <Stack>
           <NumberInput.Root
             onValueChange={(quantity) =>
-              updateQuantity(item.id, quantity.valueAsNumber)
+              updateQuantity(item.menuItemId, quantity.valueAsNumber)
             }
             defaultValue={item.quantity.toString()}
             min={1}
@@ -69,7 +69,7 @@ const CartItemCard = ({ item }: { item: CartItem }) => {
             variant="subtle"
             colorPalette="red"
             size="sm"
-            onClick={() => removeItem(item.id)}
+            onClick={() => removeItem(item.menuItemId)}
           >
             Remove
           </Button>

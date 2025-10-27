@@ -13,11 +13,14 @@ import {
 } from "@chakra-ui/react";
 import { LuShoppingCart } from "react-icons/lu";
 
+import { useRestaurant } from "@repo/shared/hooks";
 import CartItemCard from "../components/CartItemCard";
+import { orderService } from "../services/OrderService";
 import { useCartStore } from "../stores/cartStore";
 
 const CartPage = () => {
-  const cartItems = useCartStore((state) => state.items);
+  const { restaurantId, items: cartItems, clearCart } = useCartStore();
+  const { data: restaurant } = useRestaurant(restaurantId);
 
   const subtotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -25,6 +28,23 @@ const CartPage = () => {
   );
   const shipping = 0.1 * subtotal; // 10% shipping fee
   const total = subtotal + shipping;
+
+  const handlePlaceOrder = () => {
+    if (!restaurantId) {
+      return;
+    }
+
+    // Place order logic
+    orderService
+      .placeOrder({
+        restaurantId,
+        items: cartItems,
+      })
+      .then((response) => {
+        console.log("Order placed successfully:", response);
+        clearCart();
+      });
+  };
 
   return (
     <Container maxW="container.lg" py={8} px={{ base: 4, md: 8 }}>
@@ -64,11 +84,19 @@ const CartPage = () => {
               </EmptyState.Root>
             }
           >
-            {cartItems.map((item) => (
-              <Box key={item.id}>
-                <CartItemCard item={item} />
+            <Heading as="h2" fontSize="xl" mb={5}>
+              {restaurant?.name}
+            </Heading>
+            {cartItems.map((cartItem) => (
+              <Box key={cartItem.menuItemId}>
+                <CartItemCard item={cartItem} />
 
-                <Show when={item.id !== cartItems[cartItems.length - 1].id}>
+                <Show
+                  when={
+                    cartItem.menuItemId !==
+                    cartItems[cartItems.length - 1].menuItemId
+                  }
+                >
                   <Separator my={4} />
                 </Show>
               </Box>
@@ -107,8 +135,16 @@ const CartPage = () => {
               ${total.toFixed(2)}
             </Text>
           </HStack>
-          <Button colorScheme="blue" size="lg" mt={4} w="100%">
-            Check out
+          <Button
+            disabled={cartItems.length === 0}
+            onClick={handlePlaceOrder}
+            colorPalette="green"
+            variant="subtle"
+            size="lg"
+            mt={4}
+            w="100%"
+          >
+            Place order
           </Button>
         </VStack>
       </Stack>
