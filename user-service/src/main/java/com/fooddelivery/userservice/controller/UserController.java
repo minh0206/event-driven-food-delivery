@@ -2,6 +2,7 @@ package com.fooddelivery.userservice.controller;
 
 import com.fooddelivery.securitylib.service.JwtService;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
+import com.fooddelivery.userservice.dto.LoginResponseDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.service.UserService;
@@ -13,8 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/users")
 @AllArgsConstructor
@@ -23,28 +22,31 @@ public class UserController {
     private final JwtService jwtService;
 
     @PostMapping("/register/customer")
-    public ResponseEntity<UserDto> registerCustomer(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<LoginResponseDto> registerCustomer(@Valid @RequestBody RegisterRequestDto request) {
         UserDto userDto = userService.registerCustomer(request);
-        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
+        var token = jwtService.generateToken(userDto.id().toString(), userDto.role().name());
+        return new ResponseEntity<>(new LoginResponseDto(token, userDto), HttpStatus.CREATED);
     }
 
     @PostMapping("/register/restaurant")
-    public ResponseEntity<UserDto> registerRestaurantAdmin(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<LoginResponseDto> registerRestaurantAdmin(@Valid @RequestBody RegisterRequestDto request) {
         UserDto userDto = userService.registerRestaurantAdmin(request);
-        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
+        var token = jwtService.generateToken(userDto.id().toString(), userDto.role().name());
+        return new ResponseEntity<>(new LoginResponseDto(token, userDto), HttpStatus.CREATED);
     }
 
     @PostMapping("/register/driver")
-    public ResponseEntity<UserDto> registerDriver(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<LoginResponseDto> registerDriver(@Valid @RequestBody RegisterRequestDto request) {
         UserDto userDto = userService.registerDriver(request);
-        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
+        var token = jwtService.generateToken(userDto.id().toString(), userDto.role().name());
+        return new ResponseEntity<>(new LoginResponseDto(token, userDto), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody LoginRequestDto requestDto) {
+    public LoginResponseDto login(@RequestBody LoginRequestDto requestDto) {
         UserDto userDto = userService.loginUser(requestDto);
         var token = jwtService.generateToken(userDto.id().toString(), userDto.role().name());
-        return Map.of("token", token);
+        return new LoginResponseDto(token, userDto);
     }
 
     @GetMapping("/profile")
