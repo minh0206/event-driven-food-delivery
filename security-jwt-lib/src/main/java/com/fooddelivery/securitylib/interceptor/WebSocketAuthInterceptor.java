@@ -1,4 +1,4 @@
-package com.fooddelivery.orderservice.config;
+package com.fooddelivery.securitylib.interceptor;
 
 import com.fooddelivery.securitylib.service.JwtService;
 import io.jsonwebtoken.Claims;
@@ -11,11 +11,9 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 
-@Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     @Autowired
@@ -41,8 +39,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                     UsernamePasswordAuthenticationToken user = new UsernamePasswordAuthenticationToken(
                             userId, // This becomes the Principal's name
                             jwt,
-                            Collections.singleton(new SimpleGrantedAuthority(role))
-                    );
+                            Collections.singleton(new SimpleGrantedAuthority(role)));
                     // Associate the Principal with the WebSocket session
                     accessor.setUser(user);
                 }

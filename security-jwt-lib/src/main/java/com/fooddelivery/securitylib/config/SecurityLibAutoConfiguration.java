@@ -1,6 +1,7 @@
 package com.fooddelivery.securitylib.config;
 
 import com.fooddelivery.securitylib.filter.JwtAuthenticationFilter;
+import com.fooddelivery.securitylib.interceptor.WebSocketAuthInterceptor;
 import com.fooddelivery.securitylib.service.JwtService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
@@ -18,5 +19,10 @@ public class SecurityLibAutoConfiguration {
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService) {
         return new JwtAuthenticationFilter(jwtService);
+    }
+
+    @Bean
+    public WebSocketAuthInterceptor webSocketAuthInterceptor() {
+        return new WebSocketAuthInterceptor();
     }
 }
