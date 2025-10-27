@@ -1,6 +1,9 @@
 // auth
 export * from "./useAuthStore";
 
+// websocket
+export * from "./useWebSocket";
+
 // restaurant
 export * from "./restaurant/useRestaurant";
 export * from "./restaurant/useRestaurantProfile";
