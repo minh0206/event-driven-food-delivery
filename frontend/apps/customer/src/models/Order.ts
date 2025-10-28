@@ -1,6 +1,11 @@
-import { CartItem } from "./CartItem";
+import { OrderItem } from "./OrderItem";
 
 export interface Order {
+  id: number;
+  customerId: number;
   restaurantId: number;
-  items: CartItem[];
+  status: string;
+  totalPrice: number;
+  items: OrderItem[];
+  createdAt: Date;
 }
