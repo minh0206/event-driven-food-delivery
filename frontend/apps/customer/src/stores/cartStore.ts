@@ -1,103 +1,66 @@
+import { STORAGE_KEYS } from "@repo/shared/constants";
 import { MenuItem } from "@repo/shared/models";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-export interface CartItem {
-  menuItemId: number;
-  name: string;
-  description: string;
-  price: number;
+export interface CartItem extends MenuItem {
   quantity: number;
 }
 
 interface CartState {
-  restaurantId: number | null;
   items: CartItem[];
   addItem: (item: MenuItem) => void;
-  updateQuantity: (menuItemId: number, quantity: number) => void;
-  removeItem: (menuItemId: number) => void;
+  updateQuantity: (id: number, quantity: number) => void;
+  removeItem: (id: number) => void;
   clearCart: () => void;
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
-      restaurantId: null,
       items: [],
       addItem: (menuItem: MenuItem) =>
         set((state) => {
           // If adding item from a different restaurant, clear the cart first
           if (
-            state.restaurantId !== null &&
-            state.restaurantId !== menuItem.restaurantId
+            state.items.length > 0 &&
+            state.items[0].restaurantId !== menuItem.restaurantId
           ) {
-            return {
-              restaurantId: menuItem.restaurantId,
-              items: [
-                {
-                  menuItemId: menuItem.id,
-                  name: menuItem.name,
-                  description: menuItem.description,
-                  quantity: 1,
-                  price: menuItem.price,
-                },
-              ],
-            };
+            return { items: [{ ...menuItem, quantity: 1 }] };
           }
 
           // Increment quantity if item already exists
           const existingItem = state.items.find(
-            (cartItem) => cartItem.menuItemId === menuItem.id
+            (cartItem) => cartItem.id === menuItem.id
           );
 
           if (existingItem) {
             return {
-              restaurantId: menuItem.restaurantId,
-              items: state.items.map((cartItem) =>
-                cartItem.menuItemId === existingItem.menuItemId
-                  ? { ...cartItem, quantity: cartItem.quantity + 1 }
-                  : cartItem
+              items: state.items.map((item) =>
+                item.id === existingItem.id
+                  ? { ...item, quantity: item.quantity + 1 }
+                  : item
               ),
             };
           }
 
           // Add new item if it doesn't exist
-          return {
-            restaurantId: menuItem.restaurantId,
-            items: [
-              ...state.items,
-              {
-                menuItemId: menuItem.id,
-                name: menuItem.name,
-                description: menuItem.description,
-                quantity: 1,
-                price: menuItem.price,
-              },
-            ],
-          };
+          return { items: [...state.items, { ...menuItem, quantity: 1 }] };
         }),
-      updateQuantity: (menuItemId, quantity) =>
+      updateQuantity: (id, quantity) =>
         set((state) => ({
-          items: state.items.map((cartItem) =>
-            cartItem.menuItemId === menuItemId
-              ? { ...cartItem, quantity }
-              : cartItem
+          items: state.items.map((item) =>
+            item.id === id ? { ...item, quantity } : item
           ),
         })),
-      removeItem: (menuItemId) =>
+      removeItem: (id) =>
         set((state) => ({
-          items: state.items.filter(
-            (cartItem) => cartItem.menuItemId !== menuItemId
-          ),
+          items: state.items.filter((item) => item.id !== id),
         })),
-      clearCart: () =>
-        set(() => ({
-          restaurantId: null,
-          items: [],
-        })),
+      clearCart: () => set(() => ({ items: [] })),
     }),
     {
-      name: "cart-storage",
+      name: STORAGE_KEYS.CART,
       storage: createJSONStorage(() => sessionStorage),
     }
   )

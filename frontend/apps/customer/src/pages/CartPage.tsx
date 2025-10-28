@@ -11,6 +11,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { toaster, Toaster } from "@repo/ui/components";
 import { LuShoppingCart } from "react-icons/lu";
 
 import { useRestaurant } from "@repo/shared/hooks";
@@ -19,7 +20,8 @@ import { orderService } from "../services/OrderService";
 import { useCartStore } from "../stores/cartStore";
 
 const CartPage = () => {
-  const { restaurantId, items: cartItems, clearCart } = useCartStore();
+  const { items: cartItems, clearCart } = useCartStore();
+  const restaurantId = cartItems[0]?.restaurantId;
   const { data: restaurant } = useRestaurant(restaurantId);
 
   const subtotal = cartItems.reduce(
@@ -30,19 +32,28 @@ const CartPage = () => {
   const total = subtotal + shipping;
 
   const handlePlaceOrder = () => {
-    if (!restaurantId) {
-      return;
-    }
-
     // Place order logic
     orderService
-      .placeOrder({
+      .createOrder({
         restaurantId,
-        items: cartItems,
+        items: cartItems.map((item) => ({
+          menuItemId: item.id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
       })
       .then((response) => {
+        toaster.success({
+          title: "Order placed successfully!",
+        });
         console.log("Order placed successfully:", response);
         clearCart();
+      })
+      .catch((error) => {
+        toaster.error({
+          title: "Failed to place order. Please try again.",
+        });
+        console.error("Error placing order:", error);
       });
   };
 
@@ -87,16 +98,11 @@ const CartPage = () => {
             <Heading as="h2" fontSize="xl" mb={5}>
               {restaurant?.name}
             </Heading>
-            {cartItems.map((cartItem) => (
-              <Box key={cartItem.menuItemId}>
-                <CartItemCard item={cartItem} />
+            {cartItems.map((item) => (
+              <Box key={item.id}>
+                <CartItemCard item={item} />
 
-                <Show
-                  when={
-                    cartItem.menuItemId !==
-                    cartItems[cartItems.length - 1].menuItemId
-                  }
-                >
+                <Show when={item.id !== cartItems[cartItems.length - 1].id}>
                   <Separator my={4} />
                 </Show>
               </Box>
@@ -148,6 +154,8 @@ const CartPage = () => {
           </Button>
         </VStack>
       </Stack>
+
+      <Toaster />
     </Container>
   );
 };

@@ -1,21 +1,20 @@
 import apiClient from "api-client";
-import { CartItem } from "../models/CartItem";
 import { Order } from "../models/Order";
+import { OrderItem } from "../models/OrderItem";
 
-interface OrderResponse {
-  id: number;
-  customerId: number;
+export interface CreateOrderRequest {
   restaurantId: number;
-  status: string;
-  totalPrice: number;
-  createdAt: string;
-  items: CartItem[];
+  items: Omit<OrderItem, "id">[];
 }
 
 class OrderService {
-  async placeOrder(order: Order): Promise<OrderResponse> {
-    const request = await apiClient.post<OrderResponse>("/orders", order);
+  async createOrder(order: CreateOrderRequest): Promise<Order> {
+    const request = await apiClient.post<Order>("/orders", order);
     return request.data;
+  }
+
+  async getCustomerOrders(): Promise<Order[]> {
+    return (await apiClient.get<Order[]>("/orders")).data;
   }
 }
 
