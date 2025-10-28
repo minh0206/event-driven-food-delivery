@@ -5,7 +5,7 @@ import { restaurantService } from "../../services/RestaurantService";
 import { useAuthStore } from "../useAuthStore";
 
 export const useAddMenuItem = () => {
-  const { restaurantId: restaurantId } = useAuthStore();
+  const { restaurantId } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -18,10 +18,12 @@ export const useAddMenuItem = () => {
       restaurantService.addMenuItem(restaurantId!, menuItem),
     onMutate: (menuItem) => {
       const previousMenuItems =
-        queryClient.getQueryData<MenuItem[]>([CACHE_KEYS.MENU_ITEMS]) || [];
+        queryClient.getQueryData<MenuItem[]>(
+          CACHE_KEYS.MENU_ITEMS(restaurantId!)
+        ) || [];
 
       queryClient.setQueryData<MenuItem[]>(
-        [CACHE_KEYS.MENU_ITEMS],
+        CACHE_KEYS.MENU_ITEMS(restaurantId!),
         (menuItems) => [...(menuItems || []), menuItem]
       );
 
@@ -29,7 +31,7 @@ export const useAddMenuItem = () => {
     },
     onSuccess: (savedMenuItem, oldMenuItem) => {
       queryClient.setQueryData<MenuItem[]>(
-        [CACHE_KEYS.MENU_ITEMS],
+        CACHE_KEYS.MENU_ITEMS(savedMenuItem.restaurantId),
         (menuItems) =>
           menuItems?.map((item) =>
             item === oldMenuItem ? savedMenuItem : item
@@ -39,7 +41,7 @@ export const useAddMenuItem = () => {
     onError: (_error, _variables, context) => {
       if (context) {
         queryClient.setQueryData<MenuItem[]>(
-          [CACHE_KEYS.MENU_ITEMS],
+          CACHE_KEYS.MENU_ITEMS(restaurantId!),
           context.previousMenuItems
         );
       }

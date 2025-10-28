@@ -5,7 +5,7 @@ import { restaurantService } from "../../services/RestaurantService";
 import { useAuthStore } from "../useAuthStore";
 
 export const useDeleteMenuItem = () => {
-  const { restaurantId: restaurantId } = useAuthStore();
+  const { restaurantId } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -18,10 +18,12 @@ export const useDeleteMenuItem = () => {
       restaurantService.deleteMenuItem(restaurantId!, menuItemId),
     onMutate: ({ menuItemId }) => {
       const previousMenuItems =
-        queryClient.getQueryData<MenuItem[]>([CACHE_KEYS.MENU_ITEMS]) || [];
+        queryClient.getQueryData<MenuItem[]>(
+          CACHE_KEYS.MENU_ITEMS(restaurantId!)
+        ) || [];
 
       queryClient.setQueryData<MenuItem[]>(
-        [CACHE_KEYS.MENU_ITEMS],
+        CACHE_KEYS.MENU_ITEMS(restaurantId!),
         (menuItems) => menuItems?.filter((item) => item.id !== menuItemId)
       );
 
@@ -30,7 +32,7 @@ export const useDeleteMenuItem = () => {
     onError: (_error, _variables, context) => {
       if (context) {
         queryClient.setQueryData<MenuItem[]>(
-          [CACHE_KEYS.MENU_ITEMS],
+          CACHE_KEYS.MENU_ITEMS(restaurantId!),
           context.previousMenuItems
         );
       }
