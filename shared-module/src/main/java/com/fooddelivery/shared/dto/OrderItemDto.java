@@ -1,7 +1,7 @@
-package com.fooddelivery.shared.event;
+package com.fooddelivery.shared.dto;
 
 // DTO representing a single item in the order request
-public record OrderItemDetails(
+public record OrderItemDto(
         Long menuItemId,
         int quantity
 ) {
