@@ -19,13 +19,11 @@ class RestaurantService {
       .content;
   }
 
-  async getRestaurant(id: number | null) {
-    if (!id) return null;
+  async getRestaurant(id: number) {
     return (await apiClient.get<Restaurant>(`/restaurants/${id}`)).data;
   }
 
-  async getMenuItems(restaurantId: number | null) {
-    if (!restaurantId) return null;
+  async getMenuItems(restaurantId: number) {
     return (
       await apiClient.get<MenuItem[]>(`/restaurants/${restaurantId}/menu`)
     ).data;

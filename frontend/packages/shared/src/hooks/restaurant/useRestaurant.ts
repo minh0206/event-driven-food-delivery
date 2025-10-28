@@ -3,9 +3,10 @@ import { CACHE_KEYS } from "../../constants";
 import { Restaurant } from "../../models/";
 import { restaurantService } from "../../services/";
 
-export const useRestaurant = (id: number | null) => {
-  return useQuery<Restaurant | null, Error>({
-    queryKey: [CACHE_KEYS.RESTAURANT, id],
-    queryFn: () => restaurantService.getRestaurant(id),
+export const useRestaurant = (restaurantId: number) => {
+  return useQuery<Restaurant, Error>({
+    enabled: !!restaurantId,
+    queryKey: [CACHE_KEYS.RESTAURANTS, restaurantId],
+    queryFn: () => restaurantService.getRestaurant(restaurantId),
   });
 };
