@@ -15,8 +15,8 @@ import { toaster, Toaster } from "@repo/ui/components";
 import { LuShoppingCart } from "react-icons/lu";
 
 import { useRestaurant } from "@repo/shared/hooks";
+import { orderService } from "@repo/shared/services";
 import CartItemCard from "../components/CartItemCard";
-import { orderService } from "../services/OrderService";
 import { useCartStore } from "../stores/cartStore";
 
 const CartPage = () => {
