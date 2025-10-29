@@ -26,7 +26,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/restaurants",
                                 "/api/restaurants/{id}",
-                                "/api/restaurants/{id}/menu").permitAll()
+                                "/api/restaurants/{id}/menu",
+                                "/ws/**")
+                        .permitAll()
                         .anyRequest().authenticated() // Secure all other endpoints
                 )
                 .sessionManagement(session -> session
