@@ -1,11 +1,11 @@
 package com.fooddelivery.restaurantservice.controller;
 
-
 import com.fooddelivery.restaurantservice.dto.MenuItemDto;
 import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.service.RestaurantService;
+import com.fooddelivery.shared.enumerate.OrderStatus;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -89,7 +89,7 @@ public class RestaurantManagementController {
             @PathVariable Long orderId,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        restaurantService.acceptOrder(orderId, ownerId);
+        restaurantService.updateOrderStatus(orderId, ownerId, OrderStatus.ACCEPTED);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -98,7 +98,25 @@ public class RestaurantManagementController {
             @PathVariable Long orderId,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        restaurantService.rejectOrder(orderId, ownerId);
+        restaurantService.updateOrderStatus(orderId, ownerId, OrderStatus.REJECTED);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/orders/{orderId}/prepare")
+    public ResponseEntity<Void> prepareOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
+        restaurantService.updateOrderStatus(orderId, ownerId, OrderStatus.PREPARING);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/orders/{orderId}/ready")
+    public ResponseEntity<Void> readyForPickup(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long ownerId = getAuthenticatedUserId(userDetails);
+        restaurantService.updateOrderStatus(orderId, ownerId, OrderStatus.READY_FOR_PICKUP);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

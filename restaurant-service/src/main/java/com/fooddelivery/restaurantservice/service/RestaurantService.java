@@ -10,6 +10,7 @@ import com.fooddelivery.restaurantservice.model.MenuItem;
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
+import com.fooddelivery.shared.enumerate.OrderStatus;
 import com.fooddelivery.shared.event.OrderAcceptedEvent;
 import com.fooddelivery.shared.event.OrderStatusUpdateEvent;
 import jakarta.persistence.EntityNotFoundException;
@@ -150,13 +151,17 @@ public class RestaurantService {
                 .toList();
     }
 
-    public void acceptOrder(Long orderId, Long ownerId) {
-        // TODO: Add logic to find the restaurant by ownerId and verify this order belongs to them.
+    public void updateOrderStatus(Long orderId, Long ownerId, OrderStatus status) {
+        // TODO: Add logic to find the restaurant by ownerId and verify this order
+        // belongs to them.
         Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
-        OrderStatusUpdateEvent statusUpdateEvent = new OrderStatusUpdateEvent(orderId, "ACCEPTED");
+        OrderStatusUpdateEvent statusUpdateEvent = new OrderStatusUpdateEvent(orderId, status);
         orderStatusUpdateKafkaTemplate.send(TOPIC_ORDER_STATUS, statusUpdateEvent);
+
+        if (status != OrderStatus.ACCEPTED)
+            return;
 
         // TODO: Implement restaurant latitude and longitude
         OrderAcceptedEvent acceptedEvent = new OrderAcceptedEvent(
@@ -165,11 +170,5 @@ public class RestaurantService {
                 1F,
                 1F);
         orderAcceptedKafkaTemplate.send(TOPIC_ORDER_ACCEPTED, acceptedEvent);
-    }
-
-    public void rejectOrder(Long orderId, Long ownerId) {
-        // TODO: Add logic to find the restaurant by ownerId and verify this order belongs to them.
-        OrderStatusUpdateEvent event = new OrderStatusUpdateEvent(orderId, "REJECTED");
-        orderStatusUpdateKafkaTemplate.send(TOPIC_ORDER_STATUS, event);
     }
 }
