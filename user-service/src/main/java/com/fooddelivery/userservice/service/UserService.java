@@ -1,10 +1,6 @@
 package com.fooddelivery.userservice.service;
 
 import com.fooddelivery.shared.exception.EmailExistsException;
-import com.fooddelivery.userservice.dto.LoginRequestDto;
-import com.fooddelivery.userservice.dto.RegisterRequestDto;
-import com.fooddelivery.userservice.dto.UserDto;
-import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.repository.UserRepository;
@@ -24,51 +20,31 @@ import java.util.Collections;
 @AllArgsConstructor
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    private UserDto registerNewUser(RegisterRequestDto request, Role role) throws EmailExistsException {
-        if (userRepository.findByEmail(request.email()).isPresent()) {
+    public User registerNewUser(User user, Role role) throws EmailExistsException {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new EmailExistsException();
         }
-        User user = new User();
-        user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password())); // Hash password
-        user.setFirstName(request.firstName());
-        user.setLastName(request.lastName());
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // Hash password
         user.setRole(role); // Set role
 
-        userRepository.save(user);
-        return userMapper.toDto(user);
+        return userRepository.save(user);
     }
 
-    public UserDto registerCustomer(RegisterRequestDto request) {
-        return registerNewUser(request, Role.CUSTOMER);
-    }
-
-    public UserDto registerRestaurantAdmin(RegisterRequestDto request) {
-        return registerNewUser(request, Role.RESTAURANT_ADMIN);
-    }
-
-    public UserDto registerDriver(RegisterRequestDto request) {
-        return registerNewUser(request, Role.DELIVERY_DRIVER);
-    }
-
-    public UserDto loginUser(LoginRequestDto request) {
+    public User loginUser(String email, String password) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
+                        email,
+                        password
                 )
         );
-        var user = userRepository.findByEmail(request.email()).orElseThrow();
-        return userMapper.toDto(user);
+        return userRepository.findByEmail(email).orElseThrow();
     }
 
-    public UserDto getUserById(Long id) {
-        User user = userRepository.findById(id).orElseThrow();
-        return userMapper.toDto(user);
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow();
     }
 
     @Override
