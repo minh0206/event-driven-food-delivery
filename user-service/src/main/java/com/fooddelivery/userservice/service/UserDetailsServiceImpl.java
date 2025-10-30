@@ -1,14 +1,16 @@
 package com.fooddelivery.userservice.service;
 
-import com.fooddelivery.userservice.model.User;
-import com.fooddelivery.userservice.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import java.util.Collections;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import com.fooddelivery.userservice.model.User;
+import com.fooddelivery.userservice.repository.UserRepository;
+
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 @Service

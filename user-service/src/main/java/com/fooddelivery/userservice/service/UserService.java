@@ -1,14 +1,16 @@
 package com.fooddelivery.userservice.service;
 
-import com.fooddelivery.shared.exception.EmailExistsException;
-import com.fooddelivery.userservice.model.Role;
-import com.fooddelivery.userservice.model.User;
-import com.fooddelivery.userservice.repository.UserRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.fooddelivery.shared.exception.EmailExistsException;
+import com.fooddelivery.userservice.model.Role;
+import com.fooddelivery.userservice.model.User;
+import com.fooddelivery.userservice.repository.UserRepository;
+
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor

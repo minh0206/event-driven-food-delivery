@@ -1,9 +1,10 @@
 package com.fooddelivery.userservice.repository;
 
-import com.fooddelivery.userservice.model.User;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import com.fooddelivery.userservice.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     // Custom query to find a user by email

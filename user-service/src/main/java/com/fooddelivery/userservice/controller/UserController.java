@@ -1,5 +1,15 @@
 package com.fooddelivery.userservice.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.fooddelivery.securitylib.service.JwtService;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.LoginResponseDto;
@@ -9,14 +19,9 @@ import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.service.UserService;
+
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,9 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
     private final JwtService jwtService;
-
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
     @PostMapping("/register/customer")
     public ResponseEntity<LoginResponseDto> registerCustomer(@Valid @RequestBody RegisterRequestDto request) {
@@ -39,19 +42,19 @@ public class UserController {
 
     @PostMapping("/register/restaurant")
     public ResponseEntity<LoginResponseDto> registerRestaurantAdmin(@Valid @RequestBody RegisterRequestDto request) {
-        User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.CUSTOMER);
+        User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.RESTAURANT_ADMIN);
         String token = jwtService.generateToken(
                 registeredUser.getId().toString(),
-                Role.CUSTOMER.toString());
+                Role.RESTAURANT_ADMIN.toString());
         return new ResponseEntity<>(new LoginResponseDto(token, userMapper.toDto(registeredUser)), HttpStatus.CREATED);
     }
 
     @PostMapping("/register/driver")
     public ResponseEntity<LoginResponseDto> registerDriver(@Valid @RequestBody RegisterRequestDto request) {
-        User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.CUSTOMER);
+        User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.DELIVERY_DRIVER);
         String token = jwtService.generateToken(
                 registeredUser.getId().toString(),
-                Role.CUSTOMER.toString());
+                Role.DELIVERY_DRIVER.toString());
         return new ResponseEntity<>(new LoginResponseDto(token, userMapper.toDto(registeredUser)), HttpStatus.CREATED);
     }
 
