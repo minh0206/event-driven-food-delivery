@@ -33,8 +33,7 @@ public class UserController {
         User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.CUSTOMER);
         String token = jwtService.generateToken(
                 registeredUser.getId().toString(),
-                Role.CUSTOMER.toString()
-        );
+                Role.CUSTOMER.toString());
         return new ResponseEntity<>(new LoginResponseDto(token, userMapper.toDto(registeredUser)), HttpStatus.CREATED);
     }
 
@@ -43,8 +42,7 @@ public class UserController {
         User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.CUSTOMER);
         String token = jwtService.generateToken(
                 registeredUser.getId().toString(),
-                Role.CUSTOMER.toString()
-        );
+                Role.CUSTOMER.toString());
         return new ResponseEntity<>(new LoginResponseDto(token, userMapper.toDto(registeredUser)), HttpStatus.CREATED);
     }
 
@@ -53,8 +51,7 @@ public class UserController {
         User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.CUSTOMER);
         String token = jwtService.generateToken(
                 registeredUser.getId().toString(),
-                Role.CUSTOMER.toString()
-        );
+                Role.CUSTOMER.toString());
         return new ResponseEntity<>(new LoginResponseDto(token, userMapper.toDto(registeredUser)), HttpStatus.CREATED);
     }
 
