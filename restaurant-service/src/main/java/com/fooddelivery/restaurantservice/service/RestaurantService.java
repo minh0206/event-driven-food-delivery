@@ -1,5 +1,7 @@
 package com.fooddelivery.restaurantservice.service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -8,13 +10,18 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
+import com.fooddelivery.restaurantservice.dto.RestaurantOrderRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.model.MenuItem;
 import com.fooddelivery.restaurantservice.model.Restaurant;
+import com.fooddelivery.restaurantservice.model.RestaurantOrder;
+import com.fooddelivery.restaurantservice.model.RestaurantOrderItem;
 import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
+import com.fooddelivery.restaurantservice.repository.RestaurantOrderRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
 import com.fooddelivery.shared.enumerate.OrderStatus;
 import com.fooddelivery.shared.event.OrderAcceptedEvent;
+import com.fooddelivery.shared.event.OrderPlacedEvent;
 import com.fooddelivery.shared.event.OrderStatusUpdateEvent;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -31,6 +38,7 @@ public class RestaurantService {
     private final MenuItemRepository menuItemRepository;
     private final KafkaTemplate<String, OrderStatusUpdateEvent> orderStatusUpdateKafkaTemplate;
     private final KafkaTemplate<String, OrderAcceptedEvent> orderAcceptedKafkaTemplate;
+    private final RestaurantOrderRepository restaurantOrderRepository;
 
     public Restaurant createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
         if (restaurantRepository.findByOwnerId(ownerId).isPresent()) {
@@ -131,8 +139,7 @@ public class RestaurantService {
     public List<MenuItem> getRestaurantMenu(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
-
-        return restaurant.getMenu();
+        return new ArrayList<>(restaurant.getMenu());
     }
 
     public void updateOrderStatus(Long orderId, Long ownerId, OrderStatus status) {
@@ -154,5 +161,52 @@ public class RestaurantService {
                 1F,
                 1F);
         orderAcceptedKafkaTemplate.send(TOPIC_ORDER_ACCEPTED, acceptedEvent);
+    }
+
+    public List<RestaurantOrder> getRestaurantOrders(Long ownerId) {
+        Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+
+        return restaurantOrderRepository.findByRestaurantId(restaurant.getId());
+    }
+
+    public void createRestaurantOrder(OrderPlacedEvent event) {
+        RestaurantOrder restaurantOrder = new RestaurantOrder();
+        restaurantOrder.setOrderId(event.orderId());
+        restaurantOrder.setRestaurantId(event.restaurantId());
+        restaurantOrder.setLocalStatus(OrderStatus.PENDING);
+        restaurantOrder.setReceivedAt(LocalDateTime.now());
+
+        List<RestaurantOrderItem> orderItems = event.items().stream().map(item -> {
+            RestaurantOrderItem orderItem = new RestaurantOrderItem();
+            orderItem.setOrderItemId(item.orderItemId());
+            orderItem.setMenuItemId(item.menuItemId());
+            orderItem.setQuantity(item.quantity());
+            orderItem.setOrder(restaurantOrder);
+            return orderItem;
+        }).toList();
+
+        restaurantOrder.setItems(orderItems);
+
+        restaurantOrderRepository.save(restaurantOrder);
+    }
+
+    public RestaurantOrder updateRestaurantOrder(Long orderId, RestaurantOrderRequestDto requestDto, Long ownerId) {
+        Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+
+        RestaurantOrder restaurantOrderToUpdate = restaurantOrderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        // **CRITICAL** Authorization check
+        if (!restaurant.getId().equals(restaurantOrderToUpdate.getRestaurantId())) {
+            throw new SecurityException("User is not authorized to modify this order");
+        }
+
+        restaurantOrderToUpdate.setLocalStatus(requestDto.status());
+        restaurantOrderToUpdate.setAssignedCook(requestDto.assignedCook());
+        restaurantOrderToUpdate.setInternalNotes(requestDto.internalNotes());
+
+        return restaurantOrderRepository.save(restaurantOrderToUpdate);
     }
 }

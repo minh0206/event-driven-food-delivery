@@ -41,8 +41,6 @@ public class PublicRestaurantController {
     @GetMapping("/{id}/menu")
     public List<MenuItemDto> getRestaurantMenu(@PathVariable Long id) {
         List<MenuItem> menu = restaurantService.getRestaurantMenu(id);
-        return menu.stream()
-                .map(menuItemMapper::toDto)
-                .toList();
+        return menu.stream().map(menuItemMapper::toDto).toList();
     }
 }

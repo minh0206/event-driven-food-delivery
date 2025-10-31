@@ -1,5 +1,7 @@
 package com.fooddelivery.restaurantservice.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,13 +19,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fooddelivery.restaurantservice.dto.MenuItemDto;
 import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantDto;
+import com.fooddelivery.restaurantservice.dto.RestaurantOrderDto;
+import com.fooddelivery.restaurantservice.dto.RestaurantOrderRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.mapper.MenuItemMapper;
 import com.fooddelivery.restaurantservice.mapper.RestaurantMapper;
+import com.fooddelivery.restaurantservice.mapper.RestaurantOrderMapper;
 import com.fooddelivery.restaurantservice.model.MenuItem;
 import com.fooddelivery.restaurantservice.model.Restaurant;
+import com.fooddelivery.restaurantservice.model.RestaurantOrder;
 import com.fooddelivery.restaurantservice.service.RestaurantService;
-import com.fooddelivery.shared.enumerate.OrderStatus;
 
 import lombok.AllArgsConstructor;
 
@@ -33,7 +38,8 @@ import lombok.AllArgsConstructor;
 public class RestaurantManagementController {
     private final RestaurantMapper restaurantMapper;
     private final MenuItemMapper menuItemMapper;
-    private RestaurantService restaurantService;
+    private final RestaurantService restaurantService;
+    private final RestaurantOrderMapper restaurantOrderMapper;
 
     private Long getAuthenticatedUserId(UserDetails userDetails) {
         return Long.parseLong(userDetails.getUsername());
@@ -82,10 +88,10 @@ public class RestaurantManagementController {
     public MenuItemDto updateMenuItem(
             @PathVariable Long restaurantId,
             @PathVariable Long itemId,
-            @RequestBody MenuItemRequestDto dto,
+            @RequestBody MenuItemRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        MenuItem updatedItem = restaurantService.updateMenuItem(restaurantId, itemId, dto, ownerId);
+        MenuItem updatedItem = restaurantService.updateMenuItem(restaurantId, itemId, requestDto, ownerId);
         return menuItemMapper.toDto(updatedItem);
     }
 
@@ -100,39 +106,22 @@ public class RestaurantManagementController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping("/orders/{orderId}/accept")
-    public ResponseEntity<Void> acceptOrder(
-            @PathVariable Long orderId,
-            @AuthenticationPrincipal UserDetails userDetails) {
+    @GetMapping("/orders")
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
+    public List<RestaurantOrderDto> getRestaurantOrders(@AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        restaurantService.updateOrderStatus(orderId, ownerId, OrderStatus.ACCEPTED);
-        return new ResponseEntity<>(HttpStatus.OK);
+        List<RestaurantOrder> orders = restaurantService.getRestaurantOrders(ownerId);
+        return orders.stream().map(restaurantOrderMapper::toDto).toList();
     }
 
-    @PostMapping("/orders/{orderId}/reject")
-    public ResponseEntity<Void> rejectOrder(
+    @PutMapping("/orders/{orderId}")
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
+    public RestaurantOrderDto updateRestaurantOrder(
             @PathVariable Long orderId,
+            @RequestBody RestaurantOrderRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        restaurantService.updateOrderStatus(orderId, ownerId, OrderStatus.REJECTED);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @PostMapping("/orders/{orderId}/prepare")
-    public ResponseEntity<Void> prepareOrder(
-            @PathVariable Long orderId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long ownerId = getAuthenticatedUserId(userDetails);
-        restaurantService.updateOrderStatus(orderId, ownerId, OrderStatus.PREPARING);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @PostMapping("/orders/{orderId}/ready")
-    public ResponseEntity<Void> readyForPickup(
-            @PathVariable Long orderId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long ownerId = getAuthenticatedUserId(userDetails);
-        restaurantService.updateOrderStatus(orderId, ownerId, OrderStatus.READY_FOR_PICKUP);
-        return new ResponseEntity<>(HttpStatus.OK);
+        RestaurantOrder updatedOrder = restaurantService.updateRestaurantOrder(orderId, requestDto, ownerId);
+        return restaurantOrderMapper.toDto(updatedOrder);
     }
 }
