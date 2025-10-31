@@ -7,4 +7,3 @@ public record MenuItemRequestDto(
         String description,
         BigDecimal price) {
 }
-

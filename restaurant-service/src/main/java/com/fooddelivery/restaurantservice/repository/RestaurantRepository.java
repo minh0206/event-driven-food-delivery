@@ -1,9 +1,10 @@
 package com.fooddelivery.restaurantservice.repository;
 
-import com.fooddelivery.restaurantservice.model.Restaurant;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import com.fooddelivery.restaurantservice.model.Restaurant;
 
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     // Find a restaurant owned by a specific user

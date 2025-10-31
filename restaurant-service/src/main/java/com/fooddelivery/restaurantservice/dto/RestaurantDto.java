@@ -8,4 +8,3 @@ public record RestaurantDto(
         String cuisineType,
         Long ownerId) {
 }
-
