@@ -1,11 +1,14 @@
 package com.fooddelivery.restaurantservice.service;
 
-import com.fooddelivery.restaurantservice.dto.MenuItemDto;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
 import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
-import com.fooddelivery.restaurantservice.dto.RestaurantDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
-import com.fooddelivery.restaurantservice.mapper.MenuItemMapper;
-import com.fooddelivery.restaurantservice.mapper.RestaurantMapper;
 import com.fooddelivery.restaurantservice.model.MenuItem;
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
@@ -13,15 +16,10 @@ import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
 import com.fooddelivery.shared.enumerate.OrderStatus;
 import com.fooddelivery.shared.event.OrderAcceptedEvent;
 import com.fooddelivery.shared.event.OrderStatusUpdateEvent;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -30,13 +28,11 @@ public class RestaurantService {
     private static final String TOPIC_ORDER_ACCEPTED = "order_accepted";
 
     private final RestaurantRepository restaurantRepository;
-    private final RestaurantMapper restaurantMapper;
     private final MenuItemRepository menuItemRepository;
-    private final MenuItemMapper menuItemMapper;
     private final KafkaTemplate<String, OrderStatusUpdateEvent> orderStatusUpdateKafkaTemplate;
     private final KafkaTemplate<String, OrderAcceptedEvent> orderAcceptedKafkaTemplate;
 
-    public RestaurantDto createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
+    public Restaurant createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
         if (restaurantRepository.findByOwnerId(ownerId).isPresent()) {
             throw new IllegalStateException("User already owns a restaurant.");
         }
@@ -46,11 +42,10 @@ public class RestaurantService {
         restaurant.setCuisineType(requestDto.cuisineType());
         restaurant.setOwnerId(ownerId);
 
-        restaurantRepository.save(restaurant);
-        return restaurantMapper.toDto(restaurant);
+        return restaurantRepository.save(restaurant);
     }
 
-    public RestaurantDto updateRestaurant(Long restaurantId, RestaurantRequestDto requestDto, Long ownerId) {
+    public Restaurant updateRestaurant(Long restaurantId, RestaurantRequestDto requestDto, Long ownerId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
@@ -63,11 +58,10 @@ public class RestaurantService {
         restaurant.setAddress(requestDto.address());
         restaurant.setCuisineType(requestDto.cuisineType());
 
-        restaurantRepository.save(restaurant);
-        return restaurantMapper.toDto(restaurant);
+        return restaurantRepository.save(restaurant);
     }
 
-    public MenuItemDto addMenuItem(Long restaurantId, MenuItemRequestDto requestDto, Long ownerId) {
+    public MenuItem addMenuItem(Long restaurantId, MenuItemRequestDto requestDto, Long ownerId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
@@ -82,11 +76,10 @@ public class RestaurantService {
         menuItem.setPrice(requestDto.price());
         menuItem.setRestaurant(restaurant);
 
-        menuItemRepository.save(menuItem);
-        return menuItemMapper.toDto(menuItem);
+        return menuItemRepository.save(menuItem);
     }
 
-    public MenuItemDto updateMenuItem(Long restaurantId, Long itemId, MenuItemRequestDto dto, Long ownerId) {
+    public MenuItem updateMenuItem(Long restaurantId, Long itemId, MenuItemRequestDto dto, Long ownerId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
@@ -102,8 +95,7 @@ public class RestaurantService {
         menuItem.setDescription(dto.description());
         menuItem.setPrice(dto.price());
 
-        menuItemRepository.save(menuItem);
-        return menuItemMapper.toDto(menuItem);
+        return menuItemRepository.save(menuItem);
     }
 
     public void deleteMenuItem(Long restaurantId, Long itemId, Long ownerId) {
@@ -121,34 +113,26 @@ public class RestaurantService {
         menuItemRepository.delete(menuItem);
     }
 
-    public Page<RestaurantDto> getAllRestaurants(Pageable pageable) {
-        return restaurantRepository.findAll(pageable)
-                .map(restaurantMapper::toDto);
+    public Page<Restaurant> getAllRestaurants(Pageable pageable) {
+        return restaurantRepository.findAll(pageable);
     }
 
-    public RestaurantDto getRestaurantById(Long id) {
-        Restaurant restaurant = restaurantRepository.findById(id)
+    public Restaurant getRestaurantById(Long id) {
+        return restaurantRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
-
-        return restaurantMapper.toDto(restaurant);
     }
 
-    public RestaurantDto getRestaurantByOwnerId(Long ownerId) {
-        Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
+    public Restaurant getRestaurantByOwnerId(Long ownerId) {
+        return restaurantRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
-
-        return restaurantMapper.toDto(restaurant);
     }
 
     @Transactional
-    public List<MenuItemDto> getRestaurantMenu(Long id) {
+    public List<MenuItem> getRestaurantMenu(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
-        return restaurant.getMenu()
-                .stream()
-                .map(menuItemMapper::toDto)
-                .toList();
+        return restaurant.getMenu();
     }
 
     public void updateOrderStatus(Long orderId, Long ownerId, OrderStatus status) {

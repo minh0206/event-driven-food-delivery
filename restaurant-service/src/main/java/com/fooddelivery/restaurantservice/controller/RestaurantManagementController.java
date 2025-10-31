@@ -1,23 +1,38 @@
 package com.fooddelivery.restaurantservice.controller;
 
-import com.fooddelivery.restaurantservice.dto.MenuItemDto;
-import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
-import com.fooddelivery.restaurantservice.dto.RestaurantDto;
-import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
-import com.fooddelivery.restaurantservice.service.RestaurantService;
-import com.fooddelivery.shared.enumerate.OrderStatus;
-import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fooddelivery.restaurantservice.dto.MenuItemDto;
+import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
+import com.fooddelivery.restaurantservice.dto.RestaurantDto;
+import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
+import com.fooddelivery.restaurantservice.mapper.MenuItemMapper;
+import com.fooddelivery.restaurantservice.mapper.RestaurantMapper;
+import com.fooddelivery.restaurantservice.model.MenuItem;
+import com.fooddelivery.restaurantservice.model.Restaurant;
+import com.fooddelivery.restaurantservice.service.RestaurantService;
+import com.fooddelivery.shared.enumerate.OrderStatus;
+
+import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/api/restaurants/manage")
 @AllArgsConstructor
 public class RestaurantManagementController {
+    private final RestaurantMapper restaurantMapper;
+    private final MenuItemMapper menuItemMapper;
     private RestaurantService restaurantService;
 
     private Long getAuthenticatedUserId(UserDetails userDetails) {
@@ -28,7 +43,7 @@ public class RestaurantManagementController {
     @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public RestaurantDto getRestaurant(@AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        return restaurantService.getRestaurantByOwnerId(ownerId);
+        return restaurantMapper.toDto(restaurantService.getRestaurantByOwnerId(ownerId));
     }
 
     @PostMapping
@@ -37,29 +52,29 @@ public class RestaurantManagementController {
             @RequestBody RestaurantRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        RestaurantDto createdRestaurant = restaurantService.createRestaurant(requestDto, ownerId);
-        return new ResponseEntity<>(createdRestaurant, HttpStatus.CREATED);
+        Restaurant createdRestaurant = restaurantService.createRestaurant(requestDto, ownerId);
+        return new ResponseEntity<>(restaurantMapper.toDto(createdRestaurant), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public RestaurantDto updateRestaurant(
             @PathVariable Long id,
-            @RequestBody RestaurantRequestDto dto,
+            @RequestBody RestaurantRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        return restaurantService.updateRestaurant(id, dto, ownerId);
+        return restaurantMapper.toDto(restaurantService.updateRestaurant(id, requestDto, ownerId));
     }
 
     @PostMapping("/{restaurantId}/menu")
     @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public ResponseEntity<MenuItemDto> addMenuItem(
             @PathVariable Long restaurantId,
-            @RequestBody MenuItemRequestDto dto,
+            @RequestBody MenuItemRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        MenuItemDto newItem = restaurantService.addMenuItem(restaurantId, dto, ownerId);
-        return new ResponseEntity<>(newItem, HttpStatus.CREATED);
+        MenuItem newItem = restaurantService.addMenuItem(restaurantId, requestDto, ownerId);
+        return new ResponseEntity<>(menuItemMapper.toDto(newItem), HttpStatus.CREATED);
     }
 
     @PutMapping("/{restaurantId}/menu/{itemId}")
@@ -70,7 +85,8 @@ public class RestaurantManagementController {
             @RequestBody MenuItemRequestDto dto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long ownerId = getAuthenticatedUserId(userDetails);
-        return restaurantService.updateMenuItem(restaurantId, itemId, dto, ownerId);
+        MenuItem updatedItem = restaurantService.updateMenuItem(restaurantId, itemId, dto, ownerId);
+        return menuItemMapper.toDto(updatedItem);
     }
 
     @DeleteMapping("/{restaurantId}/menu/{itemId}")
