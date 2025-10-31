@@ -1,23 +1,25 @@
 package com.fooddelivery.orderservice.config;
 
-import com.fooddelivery.securitylib.interceptor.WebSocketAuthInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-@Configuration
-@EnableWebSocketMessageBroker // Enables WebSocket message handling, backed by a message broker.
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+import com.fooddelivery.securitylib.interceptor.WebSocketAuthInterceptor;
 
-    @Autowired
-    private WebSocketAuthInterceptor webSocketAuthInterceptor;
+import lombok.AllArgsConstructor;
+
+@Configuration
+@EnableWebSocketMessageBroker
+@AllArgsConstructor
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private final WebSocketAuthInterceptor webSocketAuthInterceptor;
 
     @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
+    public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         // The "/ws" endpoint is where the client will connect to for the WebSocket
         // handshake.
         // withSockJS() is a fallback for browsers that don't support WebSocket.
@@ -27,7 +29,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
+    public void configureMessageBroker(@NonNull MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
         // Enables a simple in-memory message broker.
         registry.enableSimpleBroker("/topic", "/queue");
@@ -35,7 +37,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
+    public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
         // Register our interceptor to be executed on messages from the client.
         registration.interceptors(webSocketAuthInterceptor);
     }

@@ -1,38 +1,32 @@
 package com.fooddelivery.orderservice.service;
 
-import com.fooddelivery.orderservice.dto.DriverLocationDto;
-import com.fooddelivery.orderservice.dto.OrderStatusUpdateDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import com.fooddelivery.orderservice.dto.DriverLocationDto;
+import com.fooddelivery.orderservice.dto.OrderStatusUpdateDto;
+
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class WebSocketNotificationService {
+    private final SimpMessagingTemplate messagingTemplate;
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-
-    /**
-     * Sends an order status update to a specific user.
-     *
-     * @param userId The ID of the user to notify. Must match the user's Principal name.
-     * @param update The update payload to send.
-     */
-    public void sendOrderStatusUpdate(String userId, OrderStatusUpdateDto update) {
-        // The destination is "/queue/order-updates". The "/user" prefix is handled by Spring
+    public void sendOrderStatusUpdate(String userId, OrderStatusUpdateDto statusUpdateDto) {
+        // The destination is "/queue/order-updates". The "/user" prefix is handled by
+        // Spring
         // to ensure this message is routed only to the specified user's session.
         messagingTemplate.convertAndSendToUser(
                 userId,
                 "/queue/order-updates",
-                update
-        );
+                statusUpdateDto);
     }
 
-    public void sendDriverLocationUpdate(String userId, DriverLocationDto update) {
+    public void sendDriverLocation(String userId, DriverLocationDto locationDto) {
         messagingTemplate.convertAndSendToUser(
                 userId,
                 "/queue/driver-location",
-                update
-        );
+                locationDto);
     }
 }

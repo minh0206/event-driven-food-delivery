@@ -1,9 +1,8 @@
 package com.fooddelivery.orderservice.dto;
 
-// This object will be sent as the JSON payload in the WebSocket message.
+import com.fooddelivery.shared.enumerate.OrderStatus;
+
 public record OrderStatusUpdateDto(
         Long orderId,
-        String status,
-        String description
-) {
+        OrderStatus status) {
 }
