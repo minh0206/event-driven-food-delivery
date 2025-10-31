@@ -6,6 +6,5 @@ import java.util.List;
 public record OrderPlacedEvent(
         Long orderId,
         Long restaurantId,
-        Long customerId,
         List<OrderItemDetails> items) {
 }
