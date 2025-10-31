@@ -31,14 +31,12 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class RestaurantService {
-    private static final String TOPIC_ORDER_STATUS = "order_status_updates";
-    private static final String TOPIC_ORDER_ACCEPTED = "order_accepted";
-
     private final RestaurantRepository restaurantRepository;
     private final MenuItemRepository menuItemRepository;
     private final KafkaTemplate<String, OrderStatusUpdateEvent> orderStatusUpdateKafkaTemplate;
     private final KafkaTemplate<String, OrderAcceptedEvent> orderAcceptedKafkaTemplate;
     private final RestaurantOrderRepository restaurantOrderRepository;
+    private final OrderEventPublisher orderEventPublisher;
 
     public Restaurant createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
         if (restaurantRepository.findByOwnerId(ownerId).isPresent()) {
@@ -142,27 +140,6 @@ public class RestaurantService {
         return new ArrayList<>(restaurant.getMenu());
     }
 
-    public void updateOrderStatus(Long orderId, Long ownerId, OrderStatus status) {
-        // TODO: Add logic to find the restaurant by ownerId and verify this order
-        // belongs to them.
-        Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
-
-        OrderStatusUpdateEvent statusUpdateEvent = new OrderStatusUpdateEvent(orderId, status);
-        orderStatusUpdateKafkaTemplate.send(TOPIC_ORDER_STATUS, statusUpdateEvent);
-
-        if (status != OrderStatus.ACCEPTED)
-            return;
-
-        // TODO: Implement restaurant latitude and longitude
-        OrderAcceptedEvent acceptedEvent = new OrderAcceptedEvent(
-                orderId,
-                restaurant.getId(),
-                1F,
-                1F);
-        orderAcceptedKafkaTemplate.send(TOPIC_ORDER_ACCEPTED, acceptedEvent);
-    }
-
     public List<RestaurantOrder> getRestaurantOrders(Long ownerId) {
         Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
@@ -195,18 +172,27 @@ public class RestaurantService {
         Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
-        RestaurantOrder restaurantOrderToUpdate = restaurantOrderRepository.findById(orderId)
+        RestaurantOrder orderToUpdate = restaurantOrderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
 
         // **CRITICAL** Authorization check
-        if (!restaurant.getId().equals(restaurantOrderToUpdate.getRestaurantId())) {
+        if (!restaurant.getId().equals(orderToUpdate.getRestaurantId())) {
             throw new SecurityException("User is not authorized to modify this order");
         }
 
-        restaurantOrderToUpdate.setLocalStatus(requestDto.status());
-        restaurantOrderToUpdate.setAssignedCook(requestDto.assignedCook());
-        restaurantOrderToUpdate.setInternalNotes(requestDto.internalNotes());
+        orderToUpdate.setLocalStatus(requestDto.status());
+        orderToUpdate.setAssignedCook(requestDto.assignedCook());
+        orderToUpdate.setInternalNotes(requestDto.internalNotes());
 
-        return restaurantOrderRepository.save(restaurantOrderToUpdate);
+        var updatedOrder = restaurantOrderRepository.save(orderToUpdate);
+
+        // Publish order status update event
+        orderEventPublisher.publishOrderStatusUpdate(updatedOrder);
+
+        if (updatedOrder.getLocalStatus() == OrderStatus.ACCEPTED) {
+            orderEventPublisher.publishOrderAccepted(updatedOrder, restaurant);
+        }
+
+        return updatedOrder;
     }
 }
