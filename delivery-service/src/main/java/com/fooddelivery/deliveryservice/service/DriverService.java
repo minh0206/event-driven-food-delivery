@@ -1,22 +1,21 @@
 package com.fooddelivery.deliveryservice.service;
 
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
 import com.fooddelivery.deliveryservice.model.Driver;
 import com.fooddelivery.deliveryservice.model.DriverStatus;
 import com.fooddelivery.deliveryservice.repository.DriverRepository;
 import com.fooddelivery.shared.event.DriverLocationUpdateEvent;
+
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Service;
+import lombok.AllArgsConstructor;
 
 @Service
+@AllArgsConstructor
 public class DriverService {
     private static final String TOPIC_DRIVER_LOCATION_UPDATE = "driver_location_updates";
-
-    @Autowired
     private DriverRepository driverRepository;
-
-    @Autowired
     private KafkaTemplate<String, DriverLocationUpdateEvent> kafkaTemplate;
 
     public Driver updateDriverStatus(Long userId, DriverStatus newStatus) {
@@ -41,9 +40,7 @@ public class DriverService {
                 driver.getCurrentOrderId(),
                 driver.getId(),
                 latitude,
-                longitude
-        );
+                longitude);
         kafkaTemplate.send(TOPIC_DRIVER_LOCATION_UPDATE, event);
-
     }
 }
