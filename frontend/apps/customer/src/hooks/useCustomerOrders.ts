@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useCustomerOrders = () => {
   return useQuery<Order[], Error>({
-    queryKey: [CACHE_KEYS.CUSTOMER_ORDERS],
+    queryKey: CACHE_KEYS.CUSTOMER_ORDERS,
     queryFn: orderService.getCustomerOrders,
   });
 };
