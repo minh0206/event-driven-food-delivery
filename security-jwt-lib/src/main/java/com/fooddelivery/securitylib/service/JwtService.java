@@ -1,13 +1,15 @@
 package com.fooddelivery.securitylib.service;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 public class JwtService {
     @Value("${spring.jwt.expiration}")
@@ -44,8 +46,7 @@ public class JwtService {
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
-                .build().
-                parseClaimsJws(token)
+                .build().parseClaimsJws(token)
                 .getBody();
     }
 }

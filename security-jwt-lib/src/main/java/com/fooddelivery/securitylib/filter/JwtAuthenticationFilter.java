@@ -1,12 +1,10 @@
 package com.fooddelivery.securitylib.filter;
 
-import com.fooddelivery.securitylib.service.JwtService;
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,16 +14,22 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
+import com.fooddelivery.securitylib.service.JwtService;
+
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
@@ -41,13 +45,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Claims claims = jwtService.extractAllClaims(jwt);
 
             // Extract the role claim and convert it to a collection of GrantedAuthority
-            Collection<? extends GrantedAuthority> authorities =
-                    Collections.singletonList(
-                            new SimpleGrantedAuthority(claims.get("role", String.class))
-                    );
+            Collection<? extends GrantedAuthority> authorities = Collections.singletonList(
+                    new SimpleGrantedAuthority(claims.get("role", String.class)));
             UserDetails principal = new User(claims.getSubject(), "", authorities);
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(principal, jwt, authorities);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(principal, jwt,
+                    authorities);
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             // Set it in the Spring Security Context

@@ -1,8 +1,8 @@
 package com.fooddelivery.securitylib.interceptor;
 
-import com.fooddelivery.securitylib.service.JwtService;
-import io.jsonwebtoken.Claims;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Collections;
+
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -12,15 +12,17 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.Collections;
+import com.fooddelivery.securitylib.service.JwtService;
 
+import io.jsonwebtoken.Claims;
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
-
-    @Autowired
-    private JwtService jwtService;
+    private final JwtService jwtService;
 
     @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+    public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         // Check if it's a CONNECT command
