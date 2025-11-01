@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
@@ -20,9 +19,7 @@ import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantOrderRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
 import com.fooddelivery.shared.enumerate.OrderStatus;
-import com.fooddelivery.shared.event.OrderAcceptedEvent;
 import com.fooddelivery.shared.event.OrderPlacedEvent;
-import com.fooddelivery.shared.event.OrderStatusUpdateEvent;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -31,10 +28,9 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class RestaurantService {
+    private static final String RESTAURANT_NOT_FOUND_MESSAGE = "Restaurant not found";
     private final RestaurantRepository restaurantRepository;
     private final MenuItemRepository menuItemRepository;
-    private final KafkaTemplate<String, OrderStatusUpdateEvent> orderStatusUpdateKafkaTemplate;
-    private final KafkaTemplate<String, OrderAcceptedEvent> orderAcceptedKafkaTemplate;
     private final RestaurantOrderRepository restaurantOrderRepository;
     private final OrderEventPublisher orderEventPublisher;
 
@@ -53,7 +49,7 @@ public class RestaurantService {
 
     public Restaurant updateRestaurant(Long restaurantId, RestaurantRequestDto requestDto, Long ownerId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
 
         // **CRITICAL** Authorization check
         if (!restaurant.getOwnerId().equals(ownerId)) {
@@ -69,7 +65,7 @@ public class RestaurantService {
 
     public MenuItem addMenuItem(Long restaurantId, MenuItemRequestDto requestDto, Long ownerId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
 
         // **CRITICAL** Authorization check
         if (!restaurant.getOwnerId().equals(ownerId)) {
@@ -87,7 +83,7 @@ public class RestaurantService {
 
     public MenuItem updateMenuItem(Long restaurantId, Long itemId, MenuItemRequestDto dto, Long ownerId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
 
         // **CRITICAL** Authorization check
         if (!restaurant.getOwnerId().equals(ownerId)) {
@@ -106,7 +102,7 @@ public class RestaurantService {
 
     public void deleteMenuItem(Long restaurantId, Long itemId, Long ownerId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
 
         // **CRITICAL** Authorization check
         if (!restaurant.getOwnerId().equals(ownerId)) {
@@ -125,26 +121,26 @@ public class RestaurantService {
 
     public Restaurant getRestaurantById(Long id) {
         return restaurantRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
     }
 
     public Restaurant getRestaurantByOwnerId(Long ownerId) {
         return restaurantRepository.findByOwnerId(ownerId)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
     }
 
     @Transactional
     public List<MenuItem> getRestaurantMenu(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
         return new ArrayList<>(restaurant.getMenu());
     }
 
     public List<RestaurantOrder> getRestaurantOrders(Long ownerId) {
         Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
 
-        return restaurantOrderRepository.findByRestaurantId(restaurant.getId());
+        return restaurantOrderRepository.findByRestaurantIdOrderByReceivedAtDesc(restaurant.getId());
     }
 
     public void createRestaurantOrder(OrderPlacedEvent event) {
@@ -170,7 +166,7 @@ public class RestaurantService {
 
     public RestaurantOrder updateRestaurantOrder(Long orderId, RestaurantOrderRequestDto requestDto, Long ownerId) {
         Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
-                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
 
         RestaurantOrder orderToUpdate = restaurantOrderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
@@ -178,6 +174,12 @@ public class RestaurantService {
         // **CRITICAL** Authorization check
         if (!restaurant.getId().equals(orderToUpdate.getRestaurantId())) {
             throw new SecurityException("User is not authorized to modify this order");
+        }
+
+        // Check request status is in (ACCEPTED, REJECTED, PREPARING, READY_FOR_PICKUP)
+        if (!List.of(OrderStatus.ACCEPTED, OrderStatus.REJECTED, OrderStatus.PREPARING, OrderStatus.READY_FOR_PICKUP)
+                .contains(requestDto.status())) {
+            throw new IllegalArgumentException("Invalid order status");
         }
 
         orderToUpdate.setLocalStatus(requestDto.status());

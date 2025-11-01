@@ -28,6 +28,6 @@ public class OrderEventListener {
         String ownerId = String.valueOf(restaurant.getOwnerId());
 
         // Push the real-time notification
-        webSocketNotificationService.sendNewOrderPlaced(ownerId, event);
+        webSocketNotificationService.sendNewOrderPlaced(ownerId);
     }
 }

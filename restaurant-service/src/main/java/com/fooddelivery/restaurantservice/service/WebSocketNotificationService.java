@@ -3,8 +3,6 @@ package com.fooddelivery.restaurantservice.service;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import com.fooddelivery.shared.event.OrderPlacedEvent;
-
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -12,10 +10,10 @@ import lombok.AllArgsConstructor;
 public class WebSocketNotificationService {
     private SimpMessagingTemplate messagingTemplate;
 
-    public void sendNewOrderPlaced(String ownerId, OrderPlacedEvent event) {
+    public void sendNewOrderPlaced(String ownerId) {
         messagingTemplate.convertAndSendToUser(
                 ownerId,
                 "/queue/order-placed",
-                event);
+                "New order placed");
     }
 }
