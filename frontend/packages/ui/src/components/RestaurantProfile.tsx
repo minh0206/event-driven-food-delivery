@@ -9,8 +9,8 @@ import {
 import {
   RestaurantFormValues,
   useRestaurantProfile,
-  useUpdateRestaurant,
   useUpdateRestaurantForm,
+  useUpdateRestaurantProfile,
 } from "@repo/shared/hooks";
 import { Restaurant } from "@repo/shared/models";
 import { useEffect, useState } from "react";
@@ -19,7 +19,7 @@ import { toaster } from "./ui/toaster";
 const RestaurantProfile = () => {
   const { data: restaurant, isLoading } = useRestaurantProfile();
 
-  const updateRestaurant = useUpdateRestaurant();
+  const updateRestaurant = useUpdateRestaurantProfile();
   const [originalRestaurant, setOriginalRestaurant] = useState<Restaurant>(
     {} as Restaurant
   );

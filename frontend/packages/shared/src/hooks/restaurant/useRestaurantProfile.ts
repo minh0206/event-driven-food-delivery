@@ -5,7 +5,7 @@ import { restaurantService } from "../../services/RestaurantService";
 
 export const useRestaurantProfile = () => {
   return useQuery<Restaurant, Error>({
-    queryKey: [CACHE_KEYS.RESTAURANT_PROFILE],
+    queryKey: CACHE_KEYS.RESTAURANT_PROFILE,
     queryFn: restaurantService.getRestaurantProfile,
   });
 };

@@ -1,6 +1,9 @@
 // auth
 export * from "./useAuthStore";
 
+// notification
+export * from "./useNotification";
+
 // websocket
 export * from "./useWebSocket";
 
@@ -8,8 +11,8 @@ export * from "./useWebSocket";
 export * from "./restaurant/useRestaurant";
 export * from "./restaurant/useRestaurantProfile";
 export * from "./restaurant/useRestaurants";
-export * from "./restaurant/useUpdateRestaurant";
 export * from "./restaurant/useUpdateRestaurantForm";
+export * from "./restaurant/useUpdateRestaurantProfile";
 
 // menu-item
 export * from "./menu-item/useAddMenuItem";
