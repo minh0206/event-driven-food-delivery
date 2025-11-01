@@ -4,7 +4,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.orderservice.dto.DriverLocationDto;
-import com.fooddelivery.orderservice.dto.OrderStatusUpdateDto;
 import com.fooddelivery.orderservice.model.Order;
 import com.fooddelivery.orderservice.repository.OrderRepository;
 import com.fooddelivery.shared.enumerate.OrderStatus;
@@ -34,12 +33,8 @@ public class DriverEventListener {
         orderRepository.save(order);
 
         // Notify the customer via WebSocket
-        OrderStatusUpdateDto orderStatusUpdate = new OrderStatusUpdateDto(
-                order.getId(),
-                order.getStatus());
-
         String customerId = String.valueOf(order.getCustomerId());
-        webSocketNotificationService.sendOrderStatusUpdate(customerId, orderStatusUpdate);
+        webSocketNotificationService.sendOrderUpdate(customerId);
     }
 
     @KafkaListener(topics = "driver_location_updates", groupId = "order-service-group")

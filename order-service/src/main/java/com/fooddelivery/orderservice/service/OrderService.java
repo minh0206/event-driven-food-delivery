@@ -57,9 +57,7 @@ public class OrderService {
         order.setItems(orderItems);
 
         // Calculate total price
-        BigDecimal totalPrice = orderItems.stream()
-                .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPrice = getTotalPrice(orderItems);
         order.setTotalPrice(totalPrice);
 
         Order savedOrder = orderRepository.save(order);
@@ -67,5 +65,14 @@ public class OrderService {
         orderEventPublisher.publishOrderPlacedEvent(savedOrder);
 
         return savedOrder;
+    }
+
+    private BigDecimal getTotalPrice(List<OrderItem> orderItems) {
+        // TODO: Fetch menu item details (especially price) from the restaurant-service
+        // to prevent client-side tampering.
+
+        return orderItems.stream()
+                .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

@@ -4,7 +4,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.orderservice.dto.DriverLocationDto;
-import com.fooddelivery.orderservice.dto.OrderStatusUpdateDto;
 
 import lombok.AllArgsConstructor;
 
@@ -13,14 +12,11 @@ import lombok.AllArgsConstructor;
 public class WebSocketNotificationService {
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void sendOrderStatusUpdate(String userId, OrderStatusUpdateDto statusUpdateDto) {
-        // The destination is "/queue/order-updates". The "/user" prefix is handled by
-        // Spring
-        // to ensure this message is routed only to the specified user's session.
+    public void sendOrderUpdate(String userId) {
         messagingTemplate.convertAndSendToUser(
                 userId,
                 "/queue/order-updates",
-                statusUpdateDto);
+                "Order updated");
     }
 
     public void sendDriverLocation(String userId, DriverLocationDto locationDto) {
