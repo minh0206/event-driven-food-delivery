@@ -1,6 +1,7 @@
 import apiClient from "api-client";
 import { MenuItem } from "../models/MenuItem";
 import { Restaurant } from "../models/Restaurant";
+import { RestaurantOrder } from "../models/RestaurantOrder";
 
 interface FetchRestaurantsResponse {
   content: Restaurant[];
@@ -65,6 +66,18 @@ class RestaurantService {
     await apiClient.delete(
       `/restaurants/manage/${restaurantId}/menu/${menuItemId}`
     );
+  }
+
+  async getRestaurantOrders(): Promise<RestaurantOrder[]> {
+    return (
+      await apiClient.get<RestaurantOrder[]>("/restaurants/manage/orders")
+    ).data;
+  }
+
+  async updateRestaurantOrder(order: RestaurantOrder) {
+    return (
+      await apiClient.put(`/restaurants/manage/orders/${order.orderId}`, order)
+    ).data;
   }
 }
 

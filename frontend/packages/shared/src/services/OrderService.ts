@@ -16,11 +16,6 @@ class OrderService {
   async getCustomerOrders(): Promise<Order[]> {
     return (await apiClient.get<Order[]>("/orders")).data;
   }
-
-  async getRestaurantOrders(restaurantId: number): Promise<Order[]> {
-    return (await apiClient.get<Order[]>("/orders/restaurants/" + restaurantId))
-      .data;
-  }
 }
 
 export const orderService = new OrderService();
