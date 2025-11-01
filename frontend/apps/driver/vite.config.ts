@@ -5,6 +5,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
+  define: {
+    global: "window",
+  },
   server: {
     port: 5175,
   },

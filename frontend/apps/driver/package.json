@@ -9,6 +9,11 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "api-client": "workspace:*",
+    "@repo/shared": "workspace:*",
+    "@repo/ui": "workspace:*"
+  },
   "peerDependencies": {
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
