@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class JwtService {
     @Value("${spring.jwt.expiration}")
     private long tokenExpiration;
@@ -37,8 +39,9 @@ public class JwtService {
         try {
             Claims claims = extractAllClaims(token); // This will throw an exception if the token is invalid
             return !claims.getExpiration().before(new Date());
-        } catch (Exception e) {
+        } catch (Exception ex) {
             // Log the exception (e.g., MalformedJwtException, ExpiredJwtException)
+            log.error("Invalid JWT token: {}", ex.getMessage());
             return false;
         }
     }

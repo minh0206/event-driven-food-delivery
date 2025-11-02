@@ -24,29 +24,32 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
         // Check if it's a CONNECT command
-        if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-            // Get the "Authorization" header from the STOMP frame
-            String authHeader = accessor.getFirstNativeHeader("Authorization");
+        if (accessor == null || !StompCommand.CONNECT.equals(accessor.getCommand()))
+            return message;
 
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String jwt = authHeader.substring(7);
+        // Get the "Authorization" header from the STOMP frame
+        String authHeader = accessor.getFirstNativeHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer "))
+            return message;
 
-                if (jwtService.validateToken(jwt)) {
-                    Claims claims = jwtService.extractAllClaims(jwt);
-                    String userId = claims.getSubject();
-                    String role = claims.get("role", String.class);
-                    // Create a Spring Security Principal
-                    UsernamePasswordAuthenticationToken user = new UsernamePasswordAuthenticationToken(
-                            userId, // This becomes the Principal's name
-                            jwt,
-                            Collections.singleton(new SimpleGrantedAuthority(role)));
-                    // Associate the Principal with the WebSocket session
-                    accessor.setUser(user);
-                }
-            }
-        }
+        String jwt = authHeader.substring(7);
+        if (!jwtService.validateToken(jwt))
+            return message;
+
+        Claims claims = jwtService.extractAllClaims(jwt);
+        String userId = claims.getSubject();
+        String role = claims.get("role", String.class);
+
+        // Create a Spring Security Principal
+        UsernamePasswordAuthenticationToken user = new UsernamePasswordAuthenticationToken(
+                userId, // This becomes the Principal's name
+                jwt,
+                Collections.singleton(new SimpleGrantedAuthority(role)));
+
+        // Associate the Principal with the WebSocket session
+        accessor.setUser(user);
+
         return message;
     }
 }

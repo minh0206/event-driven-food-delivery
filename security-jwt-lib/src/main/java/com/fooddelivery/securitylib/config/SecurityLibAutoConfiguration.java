@@ -13,17 +13,17 @@ import com.fooddelivery.securitylib.service.JwtService;
 public class SecurityLibAutoConfiguration {
 
     @Bean
-    public JwtService jwtService() {
+    JwtService jwtService() {
         return new JwtService();
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService) {
+    JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService) {
         return new JwtAuthenticationFilter(jwtService);
     }
 
     @Bean
-    public WebSocketAuthInterceptor webSocketAuthInterceptor(JwtService jwtService) {
+    WebSocketAuthInterceptor webSocketAuthInterceptor(JwtService jwtService) {
         return new WebSocketAuthInterceptor(jwtService);
     }
 }
