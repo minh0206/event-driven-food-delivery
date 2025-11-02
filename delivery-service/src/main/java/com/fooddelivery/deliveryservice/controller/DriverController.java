@@ -1,9 +1,9 @@
 package com.fooddelivery.deliveryservice.controller;
 
+import java.security.Principal;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,20 +30,20 @@ public class DriverController {
     @PutMapping("/status")
     @PreAuthorize("hasRole('DELIVERY_DRIVER')")
     public DriverDto updateStatus(
-            @RequestBody @Valid UpdateStatusRequestDto request,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
-        Driver updatedDriver = driverService.updateDriverStatus(userId, request.newStatus());
+            @RequestBody @Valid UpdateStatusRequestDto requestDto,
+            Principal principal) {
+        Long userId = Long.parseLong(principal.getName());
+        Driver updatedDriver = driverService.updateDriverStatus(userId, requestDto.status());
         return driverMapper.toDto(updatedDriver);
     }
 
     @PostMapping("/location")
     @PreAuthorize("hasRole('DELIVERY_DRIVER')")
     public ResponseEntity<Void> updateLocation(
-            @RequestBody @Valid LocationUpdateRequestDto request,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
-        driverService.updateDriverLocation(userId, request.latitude(), request.longitude());
+            @RequestBody @Valid LocationUpdateRequestDto requestDto,
+            Principal principal) {
+        Long userId = Long.parseLong(principal.getName());
+        driverService.updateDriverLocation(userId, requestDto.latitude(), requestDto.longitude());
         return ResponseEntity.ok().build();
     }
 }
