@@ -36,4 +36,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    private Long restaurantId; // Only for RESTAURANT_ADMIN role
+
+    private Long driverId; // Only for DELIVERY_DRIVER role
 }

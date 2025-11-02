@@ -1,9 +1,8 @@
 package com.fooddelivery.userservice.controller;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import java.security.Principal;
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fooddelivery.securitylib.service.JwtService;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
-import com.fooddelivery.userservice.dto.LoginResponseDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
+import com.fooddelivery.userservice.dto.RestaurantRegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
@@ -27,48 +26,55 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/users")
 @AllArgsConstructor
 public class UserController {
+    private static final String TOKEN_KEY = "token";
     private final UserService userService;
     private final JwtService jwtService;
     private final UserMapper userMapper;
 
     @PostMapping("/register/customer")
-    public ResponseEntity<LoginResponseDto> registerCustomer(@Valid @RequestBody RegisterRequestDto request) {
-        User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.CUSTOMER);
-        String token = jwtService.generateToken(
+    public Map<String, String> registerCustomer(@Valid @RequestBody RegisterRequestDto requestDto) {
+        User registeredUser = userService.registerCustomer(requestDto);
+        return Map.of(TOKEN_KEY, jwtService.generateToken(
                 registeredUser.getId().toString(),
-                Role.CUSTOMER.toString());
-        return new ResponseEntity<>(new LoginResponseDto(token, userMapper.toDto(registeredUser)), HttpStatus.CREATED);
+                registeredUser.getRole().toString()));
     }
 
     @PostMapping("/register/restaurant")
-    public ResponseEntity<LoginResponseDto> registerRestaurantAdmin(@Valid @RequestBody RegisterRequestDto request) {
-        User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.RESTAURANT_ADMIN);
-        String token = jwtService.generateToken(
+    public Map<String, String> registerRestaurantAdmin(
+            @Valid @RequestBody RestaurantRegisterRequestDto requestDto) {
+        User registeredUser = userService.registerRestaurantAdmin(requestDto);
+        return Map.of(TOKEN_KEY, jwtService.generateToken(
                 registeredUser.getId().toString(),
-                Role.RESTAURANT_ADMIN.toString());
-        return new ResponseEntity<>(new LoginResponseDto(token, userMapper.toDto(registeredUser)), HttpStatus.CREATED);
+                registeredUser.getRole().toString()));
     }
 
     @PostMapping("/register/driver")
-    public ResponseEntity<LoginResponseDto> registerDriver(@Valid @RequestBody RegisterRequestDto request) {
-        User registeredUser = userService.registerNewUser(userMapper.toUser(request), Role.DELIVERY_DRIVER);
-        String token = jwtService.generateToken(
+    public Map<String, String> registerDriver(@Valid @RequestBody RegisterRequestDto requestDto) {
+        User registeredUser = userService.registerDriver(requestDto);
+        return Map.of(TOKEN_KEY, jwtService.generateToken(
                 registeredUser.getId().toString(),
-                Role.DELIVERY_DRIVER.toString());
-        return new ResponseEntity<>(new LoginResponseDto(token, userMapper.toDto(registeredUser)), HttpStatus.CREATED);
+                registeredUser.getRole().toString()));
     }
 
     @PostMapping("/login")
-    public LoginResponseDto login(@RequestBody LoginRequestDto requestDto) {
+    public Map<String, String> login(@RequestBody LoginRequestDto requestDto) {
         User user = userService.loginUser(requestDto.email(), requestDto.password());
-        String token = jwtService.generateToken(user.getId().toString(), user.getRole().toString());
-        return new LoginResponseDto(token, userMapper.toDto(user));
+        return Map.of(TOKEN_KEY, jwtService.generateToken(
+                user.getId().toString(),
+                user.getRole().toString()));
     }
 
     @GetMapping("/profile")
-    public UserDto getUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
+    public UserDto getUserProfile(Principal principal) {
+        Long userId = Long.parseLong(principal.getName());
         User user = userService.getUserById(userId);
-        return userMapper.toDto(user);
+
+        if (user.getRole() == Role.RESTAURANT_ADMIN) {
+            return userMapper.toRestaurantAdminDto(user);
+        } else if (user.getRole() == Role.DELIVERY_DRIVER) {
+            return userMapper.toDriverDto(user);
+        } else {
+            return userMapper.toCustomerDto(user);
+        }
     }
 }
