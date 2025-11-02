@@ -39,7 +39,7 @@ public class RestaurantService {
             throw new IllegalStateException("User already owns a restaurant.");
         }
         Restaurant restaurant = new Restaurant();
-        restaurant.setName(requestDto.name());
+        restaurant.setName(requestDto.restaurantName());
         restaurant.setAddress(requestDto.address());
         restaurant.setCuisineType(requestDto.cuisineType());
         restaurant.setOwnerId(ownerId);
@@ -56,7 +56,7 @@ public class RestaurantService {
             throw new SecurityException("User is not authorized to update this restaurant");
         }
 
-        restaurant.setName(requestDto.name());
+        restaurant.setName(requestDto.restaurantName());
         restaurant.setAddress(requestDto.address());
         restaurant.setCuisineType(requestDto.cuisineType());
 

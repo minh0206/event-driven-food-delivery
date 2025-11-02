@@ -27,11 +27,11 @@ public class Restaurant {
     private String name;
 
     private String address;
+
     private String cuisineType;
 
-    // Links this restaurant to the user who owns it
-    @Column(nullable = false)
-    private Long ownerId;
+    @Column(unique = true, nullable = false)
+    private Long ownerId; // Links this restaurant to the user who owns it
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuItem> menu = new ArrayList<>();
