@@ -1,9 +1,10 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import { ErrorPage, LoginPage, ProfilePage, SignUpPage } from "@repo/ui/pages";
+import { ErrorPage, LoginPage, SignUpPage } from "@repo/ui/pages";
 import PrivateRoutes from "./components/PrivateRoutes";
 import CartPage from "./pages/CartPage";
 import OrderListPage from "./pages/OrderListPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { RestaurantListPage } from "./pages/RestaurantListPage";
 

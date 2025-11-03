@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { ErrorPage, LoginPage, ProfilePage, SignUpPage } from "@repo/ui/pages";
+import { ErrorPage, LoginPage, SignUpPage } from "@repo/ui/pages";
+import { ProfilePage } from "./pages/ProfilePage";
 import PrivateRoutes from "./components/PrivateRoutes";
 import { HistoryPage } from "./pages/HistoryPage";
 import { HomePage } from "./pages/HomePage";
