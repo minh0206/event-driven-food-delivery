@@ -1,19 +1,19 @@
 package com.fooddelivery.deliveryservice.controller;
 
 import java.security.Principal;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fooddelivery.deliveryservice.dto.DriverDto;
 import com.fooddelivery.deliveryservice.dto.LocationUpdateRequestDto;
 import com.fooddelivery.deliveryservice.dto.UpdateStatusRequestDto;
-import com.fooddelivery.deliveryservice.mapper.DriverMapper;
 import com.fooddelivery.deliveryservice.model.Driver;
 import com.fooddelivery.deliveryservice.service.DriverService;
 
@@ -25,16 +25,21 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class DriverController {
     private DriverService driverService;
-    private DriverMapper driverMapper;
+
+    @GetMapping("/status")
+    public Map<String, String> getDriverStatus(Principal principal) {
+        Long userId = Long.parseLong(principal.getName());
+        return Map.of("status", driverService.getDriverStatus(userId));
+    }
 
     @PutMapping("/status")
     @PreAuthorize("hasRole('DELIVERY_DRIVER')")
-    public DriverDto updateStatus(
+    public Map<String, String> updateStatus(
             @RequestBody @Valid UpdateStatusRequestDto requestDto,
             Principal principal) {
         Long userId = Long.parseLong(principal.getName());
         Driver updatedDriver = driverService.updateDriverStatus(userId, requestDto.status());
-        return driverMapper.toDto(updatedDriver);
+        return Map.of("status", updatedDriver.getStatus().toString());
     }
 
     @PostMapping("/location")
