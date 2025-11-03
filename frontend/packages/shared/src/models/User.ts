@@ -3,5 +3,6 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  restaurantId: number | null;
+  driverId: number | null;
 }

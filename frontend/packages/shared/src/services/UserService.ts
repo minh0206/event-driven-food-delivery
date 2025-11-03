@@ -3,7 +3,6 @@ import { User } from "../models/User";
 
 interface LoginResponse {
   token: string;
-  user: User;
 }
 
 class UserService {

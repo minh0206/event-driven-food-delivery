@@ -1,14 +1,14 @@
+import { mountStoreDevtool } from "simple-zustand-devtools";
 import { create } from "zustand";
 import { User } from "../models/User";
-import { restaurantService, userService } from "../services";
+import { userService } from "../services";
 
 type AuthState = {
   token: string | null;
   user: User | null;
-  restaurantId: number | null;
   isLoading: boolean;
   isInitialized: boolean;
-  initialize: () => void;
+  initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
@@ -16,7 +16,6 @@ type AuthState = {
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
-  restaurantId: null,
   isLoading: false,
   isInitialized: false,
 
@@ -30,13 +29,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       // If token is present, get the user
       if (token) {
         const user = await userService.getProfile();
-        set({ user, token });
-
-        // If the user is a restaurant admin, get the restaurant id
-        if (user.role === "RESTAURANT_ADMIN") {
-          const restaurant = await restaurantService.getRestaurantProfile();
-          set({ restaurantId: restaurant.id });
-        }
+        set({ token, user });
       }
     } catch (error) {
       console.error("Failed to initialize auth store:", error);
@@ -48,18 +41,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     set({ isLoading: true });
 
-    const response = await userService.loginUser(email, password);
-    const { token, user } = response;
-    set(() => ({ token, user }));
-    localStorage.setItem("authToken", token!);
+    const { token } = await userService.loginUser(email, password);
+    localStorage.setItem("authToken", token);
 
-    // If the user is a restaurant admin, get the restaurant id
-    if (user.role === "RESTAURANT_ADMIN") {
-      const restaurant = await restaurantService.getRestaurantProfile();
-      set({ restaurantId: restaurant.id });
-    }
-
-    set({ isLoading: false });
+    const user = await userService.getProfile();
+    set(() => ({ token, user, isLoading: false }));
   },
 
   logout: () => {
@@ -67,3 +53,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem("authToken");
   },
 }));
+
+if (process.env.NODE_ENV === "development") {
+  mountStoreDevtool("authStore", useAuthStore);
+}
