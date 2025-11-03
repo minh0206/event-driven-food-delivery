@@ -7,41 +7,57 @@ import {
   SimpleGrid,
   Table,
 } from "@chakra-ui/react";
-import {
-  useAuthStore,
-  useDeleteMenuItem,
-  useMenuItems,
-} from "@repo/shared/hooks";
+import { useAuthStore, useMenuItems } from "@repo/shared/hooks";
+import { MenuItem } from "@repo/shared/models";
 import { Toaster, toaster } from "@repo/ui/components";
 import AddMenuItemDialog from "../components/AddMenuItemDialog";
 import UpdateMenuItemDialog from "../components/UpdateMenuItemDialog";
+import { useAddMenuItem } from "../hooks/useAddMenuItem";
+import { useDeleteMenuItem } from "../hooks/useDeleteMenuItem";
+import { useUpdateMenuItem } from "../hooks/useUpdateMenuItem";
 
 const MenuManagementPage = () => {
-  const { restaurantId } = useAuthStore();
-  const { data: menuItems, error } = useMenuItems(restaurantId!);
-  const deleteMenuItem = useDeleteMenuItem();
+  const { user } = useAuthStore();
+  const { data: menuItems, error } = useMenuItems(user!.restaurantId!);
 
-  const handleAddMenuItem = (error?: Error) => {
-    if (!error) {
+  // Mutations
+  const addMenuItem = useAddMenuItem(user!.restaurantId!);
+  const updateMenuItem = useUpdateMenuItem(user!.restaurantId!);
+  const deleteMenuItem = useDeleteMenuItem(user!.restaurantId!);
+
+  const handleAddMenuItem = async (
+    item: MenuItem,
+    successCallback: () => void
+  ) => {
+    try {
+      await addMenuItem.mutateAsync(item);
       toaster.success({
         title: "Menu item added",
       });
-    } else {
+      successCallback();
+    } catch {
       toaster.error({
         title: "Error adding menu item",
       });
     }
   };
 
-  const handleUpdateMenuItem = (error?: Error) => {
-    if (!error) {
+  const handleUpdateMenuItem = async (
+    item: MenuItem,
+    successCallback: () => void,
+    errorCallback: () => void
+  ) => {
+    try {
+      await updateMenuItem.mutateAsync(item);
       toaster.success({
         title: "Menu item updated",
       });
-    } else {
+      successCallback();
+    } catch {
       toaster.error({
         title: "Error updating menu item",
       });
+      errorCallback();
     }
   };
 
@@ -51,7 +67,7 @@ const MenuManagementPage = () => {
       toaster.success({
         title: "Menu item deleted",
       });
-    } catch (error) {
+    } catch {
       toaster.error({
         title: "Error deleting menu item",
       });
@@ -68,10 +84,7 @@ const MenuManagementPage = () => {
         <Heading size="3xl">Menu</Heading>
 
         <HStack justifyContent="space-between">
-          <AddMenuItemDialog
-            onSuccess={handleAddMenuItem}
-            onError={handleAddMenuItem}
-          />
+          <AddMenuItemDialog onAddMenuItem={handleAddMenuItem} />
           <Input width="1/4" placeholder="Search" />
         </HStack>
 
@@ -95,8 +108,7 @@ const MenuManagementPage = () => {
                     <HStack justify="end">
                       <UpdateMenuItemDialog
                         menuItem={item}
-                        onSuccess={handleUpdateMenuItem}
-                        onError={handleUpdateMenuItem}
+                        onUpdateMenuItem={handleUpdateMenuItem}
                       />
                       <Button
                         colorPalette="red"

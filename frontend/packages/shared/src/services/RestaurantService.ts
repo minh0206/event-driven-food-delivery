@@ -31,10 +31,6 @@ class RestaurantService {
   }
 
   // Private endpoints
-  async getRestaurantProfile() {
-    return (await apiClient.get<Restaurant>("/restaurants/manage")).data;
-  }
-
   async updateRestaurant(restaurant: Restaurant) {
     return (
       await apiClient.put<Restaurant>(
@@ -53,10 +49,10 @@ class RestaurantService {
     ).data;
   }
 
-  async updateMenuItem(menuItem: MenuItem) {
+  async updateMenuItem(restaurantId: number, menuItem: MenuItem) {
     return (
       await apiClient.put<MenuItem>(
-        `/restaurants/manage/${menuItem.restaurantId}/menu/${menuItem.id}`,
+        `/restaurants/manage/${restaurantId}/menu/${menuItem.id}`,
         menuItem
       )
     ).data;

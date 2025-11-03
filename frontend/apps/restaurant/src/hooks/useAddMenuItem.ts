@@ -1,11 +1,9 @@
+import { CACHE_KEYS } from "@repo/shared/constants";
+import { MenuItem } from "@repo/shared/models";
+import { restaurantService } from "@repo/shared/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CACHE_KEYS } from "../../constants";
-import { MenuItem } from "../../models";
-import { restaurantService } from "../../services/RestaurantService";
-import { useAuthStore } from "../useAuthStore";
 
-export const useAddMenuItem = () => {
-  const { restaurantId } = useAuthStore();
+export const useAddMenuItem = (restaurantId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -15,15 +13,15 @@ export const useAddMenuItem = () => {
     { previousMenuItems: MenuItem[] }
   >({
     mutationFn: (menuItem: MenuItem) =>
-      restaurantService.addMenuItem(restaurantId!, menuItem),
+      restaurantService.addMenuItem(restaurantId, menuItem),
     onMutate: (menuItem) => {
       const previousMenuItems =
         queryClient.getQueryData<MenuItem[]>(
-          CACHE_KEYS.MENU_ITEMS(restaurantId!)
+          CACHE_KEYS.MENU_ITEMS(restaurantId)
         ) || [];
 
       queryClient.setQueryData<MenuItem[]>(
-        CACHE_KEYS.MENU_ITEMS(restaurantId!),
+        CACHE_KEYS.MENU_ITEMS(restaurantId),
         (menuItems) => [...(menuItems || []), menuItem]
       );
 
@@ -31,7 +29,7 @@ export const useAddMenuItem = () => {
     },
     onSuccess: (savedMenuItem, oldMenuItem) => {
       queryClient.setQueryData<MenuItem[]>(
-        CACHE_KEYS.MENU_ITEMS(savedMenuItem.restaurantId),
+        CACHE_KEYS.MENU_ITEMS(restaurantId),
         (menuItems) =>
           menuItems?.map((item) =>
             item === oldMenuItem ? savedMenuItem : item
@@ -41,7 +39,7 @@ export const useAddMenuItem = () => {
     onError: (_error, _variables, context) => {
       if (context) {
         queryClient.setQueryData<MenuItem[]>(
-          CACHE_KEYS.MENU_ITEMS(restaurantId!),
+          CACHE_KEYS.MENU_ITEMS(restaurantId),
           context.previousMenuItems
         );
       }

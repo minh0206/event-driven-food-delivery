@@ -6,7 +6,7 @@ import { restaurantService } from "../../services/";
 export const useRestaurant = (restaurantId: number) => {
   return useQuery<Restaurant, Error>({
     enabled: !!restaurantId,
-    queryKey: [CACHE_KEYS.RESTAURANTS, restaurantId],
+    queryKey: CACHE_KEYS.RESTAURANT(restaurantId),
     queryFn: () => restaurantService.getRestaurant(restaurantId),
   });
 };

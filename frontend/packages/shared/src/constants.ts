@@ -1,6 +1,9 @@
 export const CACHE_KEYS = {
   RESTAURANTS: ["restaurants"],
-  RESTAURANT_PROFILE: ["restaurant-profile"],
+  RESTAURANT: (restaurantId: number) => [
+    ...CACHE_KEYS.RESTAURANTS,
+    restaurantId,
+  ],
   MENU_ITEMS: (restaurantId: number) => [
     ...CACHE_KEYS.RESTAURANTS,
     restaurantId,

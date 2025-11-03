@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { MenuItem } from "@repo/shared/models";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { MenuItem } from "../../models";
 import { menuItemFormSchema } from "./useAddMenuItemForm";
 
 const createMenuItemSchema = (originalMenuItem: MenuItem) => {

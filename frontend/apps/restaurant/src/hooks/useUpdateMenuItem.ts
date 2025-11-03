@@ -1,11 +1,9 @@
+import { CACHE_KEYS } from "@repo/shared/constants";
+import { MenuItem } from "@repo/shared/models";
+import { restaurantService } from "@repo/shared/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CACHE_KEYS } from "../../constants";
-import { MenuItem } from "../../models";
-import { restaurantService } from "../../services/RestaurantService";
-import { useAuthStore } from "../useAuthStore";
 
-export const useUpdateMenuItem = () => {
-  const { restaurantId } = useAuthStore();
+export const useUpdateMenuItem = (restaurantId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -14,15 +12,16 @@ export const useUpdateMenuItem = () => {
     MenuItem,
     { previousMenuItems: MenuItem[] }
   >({
-    mutationFn: (menuItem) => restaurantService.updateMenuItem(menuItem),
+    mutationFn: (menuItem) =>
+      restaurantService.updateMenuItem(restaurantId, menuItem),
     onMutate: (menuItem) => {
       const previousMenuItems =
         queryClient.getQueryData<MenuItem[]>(
-          CACHE_KEYS.MENU_ITEMS(restaurantId!)
+          CACHE_KEYS.MENU_ITEMS(restaurantId)
         ) || [];
 
       queryClient.setQueryData<MenuItem[]>(
-        CACHE_KEYS.MENU_ITEMS(restaurantId!),
+        CACHE_KEYS.MENU_ITEMS(restaurantId),
         (menuItems) =>
           menuItems?.map((item) => (item.id === menuItem.id ? menuItem : item))
       );
@@ -32,7 +31,7 @@ export const useUpdateMenuItem = () => {
     onError: (_error, _variables, context) => {
       if (context) {
         queryClient.setQueryData<MenuItem[]>(
-          CACHE_KEYS.MENU_ITEMS(restaurantId!),
+          CACHE_KEYS.MENU_ITEMS(restaurantId),
           context.previousMenuItems
         );
       }

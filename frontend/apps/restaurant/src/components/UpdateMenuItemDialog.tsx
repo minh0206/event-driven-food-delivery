@@ -8,20 +8,24 @@ import {
   Stack,
   useDialog,
 } from "@chakra-ui/react";
-import { useUpdateMenuItem, useUpdateMenuItemForm } from "@repo/shared/hooks";
 import { MenuItem } from "@repo/shared/models";
+import { useEffect, useState } from "react";
 import { FieldValues } from "react-hook-form";
+import { useUpdateMenuItemForm } from "../hooks/useUpdateMenuItemForm";
 
 const UpdateMenuItemDialog = ({
   menuItem,
-  onSuccess,
-  onError,
+  onUpdateMenuItem,
 }: {
   menuItem: MenuItem;
-  onSuccess?: () => void;
-  onError?: (error: Error) => void;
+  onUpdateMenuItem: (
+    item: MenuItem,
+    successCallback: () => void,
+    errorCallback: () => void
+  ) => void;
 }) => {
   const dialog = useDialog();
+  const [originalMenuItem, setOriginalMenuItem] = useState<MenuItem>(menuItem);
 
   // Form
   const {
@@ -29,26 +33,30 @@ const UpdateMenuItemDialog = ({
     reset,
     handleSubmit,
     formState: { errors, isDirty, isValid },
-  } = useUpdateMenuItemForm(menuItem);
+  } = useUpdateMenuItemForm(originalMenuItem);
 
-  // Mutation
-  const updateMenuItem = useUpdateMenuItem();
+  useEffect(() => {
+    setOriginalMenuItem(menuItem);
+    reset({
+      name: menuItem.name,
+      description: menuItem.description,
+      price: menuItem.price.toString(),
+    });
+  }, [menuItem]);
 
   const onSubmit = async (data: FieldValues) => {
-    try {
-      await updateMenuItem.mutateAsync({
-        id: menuItem.id,
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        restaurantId: menuItem.restaurantId,
-      });
+    const updatedMenuItem = {
+      ...originalMenuItem,
+      name: data.name,
+      description: data.description,
+      price: Number(data.price),
+    };
 
-      onSuccess?.();
-      dialog.setOpen(false);
-    } catch (error) {
-      onError?.(error as Error);
-    }
+    onUpdateMenuItem(
+      updatedMenuItem,
+      () => dialog.setOpen(false),
+      () => reset()
+    );
   };
 
   return (

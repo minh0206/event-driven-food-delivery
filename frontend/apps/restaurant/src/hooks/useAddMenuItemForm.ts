@@ -8,7 +8,7 @@ export const menuItemFormSchema = z.object({
   price: z
     .string()
     .min(1, { message: "Price is required" })
-    .refine((data) => parseFloat(data) > 0, {
+    .refine((data) => Number.parseFloat(data) > 0, {
       message: "Price must be greater than 0",
     }),
 });

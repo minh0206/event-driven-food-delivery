@@ -1,7 +1,7 @@
 export interface Restaurant {
   id: number;
-  name: string;
-  address: string;
-  cuisineType: string;
+  restaurantName: string;
+  address: string | undefined;
+  cuisineType: string | undefined;
   ownerId: number;
 }

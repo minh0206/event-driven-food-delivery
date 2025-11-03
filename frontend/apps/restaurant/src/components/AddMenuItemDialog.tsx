@@ -7,15 +7,15 @@ import {
   Portal,
   Stack,
 } from "@chakra-ui/react";
-import { useAddMenuItem, useAddMenuItemForm } from "@repo/shared/hooks";
+
+import { MenuItem } from "@repo/shared/models";
 import { FieldValues } from "react-hook-form";
+import { useAddMenuItemForm } from "../hooks/useAddMenuItemForm";
 
 const AddMenuItemDialog = ({
-  onSuccess,
-  onError,
+  onAddMenuItem,
 }: {
-  onSuccess?: () => void;
-  onError?: (error: Error) => void;
+  onAddMenuItem: (menuItem: MenuItem, successCallback: () => void) => void;
 }) => {
   // Form
   const {
@@ -25,23 +25,16 @@ const AddMenuItemDialog = ({
     formState: { errors, isValid },
   } = useAddMenuItemForm();
 
-  // Mutation
-  const addMenuItem = useAddMenuItem();
-
   const onSubmit = async (data: FieldValues) => {
-    try {
-      await addMenuItem.mutateAsync({
+    onAddMenuItem(
+      {
         id: 0,
         name: data.name,
         description: data.description,
         price: data.price,
-        restaurantId: 0,
-      });
-      onSuccess?.();
-      reset();
-    } catch (error) {
-      onError?.(error as Error);
-    }
+      },
+      () => reset()
+    );
   };
 
   return (

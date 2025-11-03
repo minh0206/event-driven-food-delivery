@@ -1,19 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Restaurant } from "@repo/shared/models";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Restaurant } from "../../models";
 
 const createRestaurantSchema = (originalRestaurant: Restaurant) => {
   return z
     .object({
-      name: z.string().min(1, { message: "Name is required" }),
-      address: z.string().min(1, { message: "Address is required" }),
-      cuisineType: z.string().min(1, { message: "Cuisine Type is required" }),
+      restaurantName: z.string().min(1, { message: "Name is required" }),
+      address: z.string().optional(),
+      cuisineType: z.string().optional(),
     })
     .superRefine((data, ctx) => {
       // Compare the submitted data to the original data
       if (
-        data.name === originalRestaurant.name &&
+        data.restaurantName === originalRestaurant.restaurantName &&
         data.address === originalRestaurant.address &&
         data.cuisineType === originalRestaurant.cuisineType
       ) {

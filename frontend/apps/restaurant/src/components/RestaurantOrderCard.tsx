@@ -6,8 +6,8 @@ import { OrderStatus } from "../../../../packages/shared/src/models/OrderStatus"
 import { useUpdateRestaurantOrder } from "../hooks/useUpdateRestaurantOrder";
 
 const RestaurantOrderCard = ({ order }: { order: RestaurantOrder }) => {
-  const { restaurantId } = useAuthStore();
-  const { data: menuItems } = useMenuItems(restaurantId!);
+  const { user } = useAuthStore();
+  const { data: menuItems } = useMenuItems(user!.restaurantId!);
   const updateOrder = useUpdateRestaurantOrder();
 
   const handleUpdateStatus = async (status: OrderStatus) => {
