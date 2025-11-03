@@ -11,6 +11,7 @@ export const CACHE_KEYS = {
   ],
   CUSTOMER_ORDERS: ["customer-orders"],
   RESTAURANT_ORDERS: ["restaurant-orders"],
+  DRIVER_STATUS: ["driver-status"],
 };
 
 export const STORAGE_KEYS = {
