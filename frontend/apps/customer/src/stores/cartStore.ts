@@ -1,5 +1,6 @@
 import { STORAGE_KEYS } from "@repo/shared/constants";
 import { MenuItem } from "@repo/shared/models";
+import { mountStoreDevtool } from "simple-zustand-devtools";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -8,8 +9,9 @@ export interface CartItem extends MenuItem {
 }
 
 interface CartState {
+  restaurantId: number | null;
   items: CartItem[];
-  addItem: (item: MenuItem) => void;
+  addItem: (restaurantId: number, menuItem: MenuItem) => void;
   updateQuantity: (id: number, quantity: number) => void;
   removeItem: (id: number) => void;
   clearCart: () => void;
@@ -18,15 +20,16 @@ interface CartState {
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
+      restaurantId: null,
       items: [],
-      addItem: (menuItem: MenuItem) =>
+      addItem: (restaurantId: number, menuItem: MenuItem) =>
         set((state) => {
           // If adding item from a different restaurant, clear the cart first
-          if (
-            state.items.length > 0 &&
-            state.items[0].restaurantId !== menuItem.restaurantId
-          ) {
-            return { items: [{ ...menuItem, quantity: 1 }] };
+          if (state.items.length > 0 && state.restaurantId !== restaurantId) {
+            return {
+              restaurantId,
+              items: [{ ...menuItem, quantity: 1 }],
+            };
           }
 
           // Increment quantity if item already exists
@@ -54,10 +57,15 @@ export const useCartStore = create<CartState>()(
           ),
         })),
       removeItem: (id) =>
-        set((state) => ({
-          items: state.items.filter((item) => item.id !== id),
-        })),
-      clearCart: () => set(() => ({ items: [] })),
+        set((state) => {
+          const items = state.items.filter((item) => item.id !== id);
+          return items.length > 0
+            ? {
+                items: items,
+              }
+            : { restaurantId: null, items: [] };
+        }),
+      clearCart: () => set(() => ({ restaurantId: null, items: [] })),
     }),
     {
       name: STORAGE_KEYS.CART,
@@ -65,3 +73,7 @@ export const useCartStore = create<CartState>()(
     }
   )
 );
+
+if (process.env.NODE_ENV === "development") {
+  mountStoreDevtool("Cart Store", useCartStore);
+}

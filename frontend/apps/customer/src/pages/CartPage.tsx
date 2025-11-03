@@ -20,9 +20,15 @@ import CartItemCard from "../components/CartItemCard";
 import { useCartStore } from "../stores/cartStore";
 
 const CartPage = () => {
-  const { items: cartItems, clearCart } = useCartStore();
-  const restaurantId = cartItems[0]?.restaurantId;
-  const { data: restaurant } = useRestaurant(restaurantId);
+  const {
+    restaurantId,
+    items: cartItems,
+    updateQuantity,
+    removeItem,
+    clearCart,
+  } = useCartStore();
+
+  const { data: restaurant } = useRestaurant(restaurantId!);
 
   const subtotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -34,20 +40,20 @@ const CartPage = () => {
   const handlePlaceOrder = () => {
     // Place order logic
     orderService
-      .createOrder({
-        restaurantId,
-        items: cartItems.map((item) => ({
+      .createOrder(
+        restaurantId!,
+        cartItems.map((item) => ({
           menuItemId: item.id,
           quantity: item.quantity,
           price: item.price,
-        })),
-      })
+        }))
+      )
       .then((response) => {
         toaster.success({
           title: "Order placed successfully!",
         });
         console.log("Order placed successfully:", response);
-        clearCart();
+        // clearCart();
       })
       .catch((error) => {
         toaster.error({
@@ -96,13 +102,17 @@ const CartPage = () => {
             }
           >
             <Heading as="h2" fontSize="xl" mb={5}>
-              {restaurant?.name}
+              {restaurant?.restaurantName}
             </Heading>
             {cartItems.map((item) => (
               <Box key={item.id}>
-                <CartItemCard item={item} />
+                <CartItemCard
+                  item={item}
+                  onUpdateQuantity={updateQuantity}
+                  onRemoveItem={removeItem}
+                />
 
-                <Show when={item.id !== cartItems[cartItems.length - 1].id}>
+                <Show when={item.id !== cartItems.at(-1)?.id}>
                   <Separator my={4} />
                 </Show>
               </Box>

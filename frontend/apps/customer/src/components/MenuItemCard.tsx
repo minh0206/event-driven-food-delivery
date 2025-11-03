@@ -1,11 +1,14 @@
 import { Flex, HStack, IconButton, Image, Stack, Text } from "@chakra-ui/react";
 import { MenuItem } from "@repo/shared/models";
 import { RiAddLargeFill } from "react-icons/ri";
-import { useCartStore } from "../stores/cartStore";
 
-const MenuItemCard = ({ menuItem }: { menuItem: MenuItem }) => {
-  const { addItem: addItemToCart } = useCartStore();
-
+const MenuItemCard = ({
+  menuItem,
+  onAddToCart,
+}: {
+  menuItem: MenuItem;
+  onAddToCart: (item: MenuItem) => void;
+}) => {
   return (
     <Flex gap={3} direction={{ base: "column", sm: "row" }} align="stretch">
       <Image
@@ -45,7 +48,7 @@ const MenuItemCard = ({ menuItem }: { menuItem: MenuItem }) => {
           variant="solid"
           size="sm"
           colorPalette="green"
-          onClick={() => addItemToCart(menuItem)}
+          onClick={() => onAddToCart(menuItem)}
         >
           <RiAddLargeFill />
         </IconButton>

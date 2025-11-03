@@ -5,7 +5,7 @@ import { restaurantService } from "../../services";
 
 export const useRestaurants = () => {
   return useQuery<Restaurant[], Error>({
-    queryKey: [CACHE_KEYS.RESTAURANTS],
+    queryKey: CACHE_KEYS.RESTAURANTS,
     queryFn: restaurantService.getAllRestaurants,
   });
 };

@@ -21,7 +21,7 @@ export const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => {
           <Card.Title mb="1">
             <LinkOverlay asChild>
               <Link to={`/restaurants/${restaurant.id}`}>
-                {restaurant.name}
+                {restaurant.restaurantName}
               </Link>
             </LinkOverlay>
           </Card.Title>

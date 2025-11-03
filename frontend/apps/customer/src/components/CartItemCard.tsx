@@ -9,11 +9,17 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { LuMinus, LuPlus } from "react-icons/lu";
-import { CartItem, useCartStore } from "../stores/cartStore";
+import { CartItem } from "../stores/cartStore";
 
-const CartItemCard = ({ item }: { item: CartItem }) => {
-  const { updateQuantity, removeItem } = useCartStore();
-
+const CartItemCard = ({
+  item,
+  onUpdateQuantity,
+  onRemoveItem,
+}: {
+  item: CartItem;
+  onUpdateQuantity: (id: number, quantity: number) => void;
+  onRemoveItem: (id: number) => void;
+}) => {
   return (
     <Flex gap={3} direction={{ base: "column", md: "row" }} align="stretch">
       <Image
@@ -39,7 +45,7 @@ const CartItemCard = ({ item }: { item: CartItem }) => {
         <Stack>
           <NumberInput.Root
             onValueChange={(quantity) =>
-              updateQuantity(item.id, quantity.valueAsNumber)
+              onUpdateQuantity(item.id, quantity.valueAsNumber)
             }
             defaultValue={item.quantity.toString()}
             min={1}
@@ -69,7 +75,7 @@ const CartItemCard = ({ item }: { item: CartItem }) => {
             variant="subtle"
             colorPalette="red"
             size="sm"
-            onClick={() => removeItem(item.id)}
+            onClick={() => onRemoveItem(item.id)}
           >
             Remove
           </Button>
