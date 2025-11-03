@@ -6,6 +6,5 @@ public record MenuItemDto(
         Long id,
         String name,
         String description,
-        BigDecimal price,
-        Long restaurantId) {
+        BigDecimal price) {
 }

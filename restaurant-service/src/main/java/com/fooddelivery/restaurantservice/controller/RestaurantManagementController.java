@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,7 +48,7 @@ public class RestaurantManagementController {
     public RestaurantDto updateRestaurant(
             @PathVariable Long id,
             @RequestBody RestaurantRequestDto requestDto,
-            @AuthenticationPrincipal Principal principal) {
+            Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
         return restaurantMapper.toDto(restaurantService.updateRestaurant(id, requestDto, ownerId));
     }
@@ -59,7 +58,7 @@ public class RestaurantManagementController {
     public ResponseEntity<MenuItemDto> addMenuItem(
             @PathVariable Long restaurantId,
             @RequestBody MenuItemRequestDto requestDto,
-            @AuthenticationPrincipal Principal principal) {
+            Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
         MenuItem newItem = restaurantService.addMenuItem(restaurantId, requestDto, ownerId);
         return new ResponseEntity<>(menuItemMapper.toDto(newItem), HttpStatus.CREATED);
@@ -71,7 +70,7 @@ public class RestaurantManagementController {
             @PathVariable Long restaurantId,
             @PathVariable Long itemId,
             @RequestBody MenuItemRequestDto requestDto,
-            @AuthenticationPrincipal Principal principal) {
+            Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
         MenuItem updatedItem = restaurantService.updateMenuItem(restaurantId, itemId, requestDto, ownerId);
         return menuItemMapper.toDto(updatedItem);
@@ -82,7 +81,7 @@ public class RestaurantManagementController {
     public ResponseEntity<Void> deleteMenuItem(
             @PathVariable Long restaurantId,
             @PathVariable Long itemId,
-            @AuthenticationPrincipal Principal principal) {
+            Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
         restaurantService.deleteMenuItem(restaurantId, itemId, ownerId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -90,7 +89,7 @@ public class RestaurantManagementController {
 
     @GetMapping("/orders")
     @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
-    public List<RestaurantOrderDto> getRestaurantOrders(@AuthenticationPrincipal Principal principal) {
+    public List<RestaurantOrderDto> getRestaurantOrders(Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
         List<RestaurantOrder> orders = restaurantService.getRestaurantOrders(ownerId);
         return orders.stream().map(restaurantOrderMapper::toDto).toList();
@@ -101,7 +100,7 @@ public class RestaurantManagementController {
     public RestaurantOrderDto updateRestaurantOrder(
             @PathVariable Long orderId,
             @RequestBody RestaurantOrderRequestDto requestDto,
-            @AuthenticationPrincipal Principal principal) {
+            Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
         RestaurantOrder updatedOrder = restaurantService.updateRestaurantOrder(orderId, requestDto, ownerId);
         return restaurantOrderMapper.toDto(updatedOrder);
