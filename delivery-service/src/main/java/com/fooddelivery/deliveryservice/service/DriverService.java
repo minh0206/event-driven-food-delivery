@@ -5,10 +5,12 @@ import org.springframework.stereotype.Service;
 import com.fooddelivery.deliveryservice.model.Driver;
 import com.fooddelivery.deliveryservice.model.DriverStatus;
 import com.fooddelivery.deliveryservice.repository.DriverRepository;
+import com.fooddelivery.shared.dto.DriverOrderDto;
 import com.fooddelivery.shared.event.DriverLocationUpdateEvent;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
@@ -17,6 +19,7 @@ public class DriverService {
     private static final String DRIVER_NOT_FOUND = "Driver not found.";
     private static final String ORDER_NOT_FOUND = "Driver is not assigned to an active order.";
     private DriverRepository driverRepository;
+    private OrderServiceClient orderServiceClient;
     private DriverEventPublisher driverEventPublisher;
 
     public Driver createDriver(Long userId) {
@@ -56,5 +59,18 @@ public class DriverService {
                 latitude,
                 longitude);
         driverEventPublisher.publishDriverLocationUpdateEvent(event);
+    }
+
+    public DriverOrderDto getDriverOrder(Long userId) {
+        Driver driver = driverRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException(DRIVER_NOT_FOUND));
+
+        // CRITICAL CHECK: Ensure the driver has an active order.
+        Long orderId = driver.getCurrentOrderId();
+        if (orderId == null) {
+            throw new EntityNotFoundException(ORDER_NOT_FOUND);
+        }
+
+        return orderServiceClient.getOrderById(orderId);
     }
 }

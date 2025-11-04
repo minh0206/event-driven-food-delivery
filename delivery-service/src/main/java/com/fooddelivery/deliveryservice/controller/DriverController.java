@@ -16,6 +16,7 @@ import com.fooddelivery.deliveryservice.dto.LocationUpdateRequestDto;
 import com.fooddelivery.deliveryservice.dto.UpdateStatusRequestDto;
 import com.fooddelivery.deliveryservice.model.Driver;
 import com.fooddelivery.deliveryservice.service.DriverService;
+import com.fooddelivery.shared.dto.DriverOrderDto;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,13 @@ public class DriverController {
         Driver updatedDriver = driverService.updateDriverStatus(userId, requestDto.status());
         return Map.of("status", updatedDriver.getStatus().toString());
     }
+
+    @GetMapping("/order")
+    public DriverOrderDto getDriverOrder(Principal principal) {
+        Long userId = Long.parseLong(principal.getName());
+        return driverService.getDriverOrder(userId);
+    }
+
 
     @PostMapping("/location")
     @PreAuthorize("hasRole('DELIVERY_DRIVER')")
