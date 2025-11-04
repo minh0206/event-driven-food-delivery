@@ -12,6 +12,7 @@ import com.fooddelivery.orderservice.model.OrderItem;
 import com.fooddelivery.orderservice.repository.OrderRepository;
 import com.fooddelivery.shared.enumerate.OrderStatus;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
@@ -25,6 +26,11 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderEventPublisher orderEventPublisher;
+
+    public Order getOrderById(Long orderId) {
+        return orderRepository.findByIdWithItems(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + orderId));
+    }
 
     public List<Order> getOrdersByCustomerId(Long customerId) {
         return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
@@ -75,4 +81,5 @@ public class OrderService {
                 .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
 }
