@@ -1,6 +1,5 @@
 package com.fooddelivery.deliveryservice.service;
 
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.deliveryservice.model.Driver;
@@ -13,11 +12,12 @@ import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class DriverService {
-    private static final String DRIVER_NOT_FOUND = "Driver not found";
-    private static final String TOPIC_DRIVER_LOCATION_UPDATE = "driver_location_updates";
+    private static final String DRIVER_NOT_FOUND = "Driver not found.";
+    private static final String ORDER_NOT_FOUND = "Driver is not assigned to an active order.";
     private DriverRepository driverRepository;
-    private KafkaTemplate<String, DriverLocationUpdateEvent> kafkaTemplate;
+    private DriverEventPublisher driverEventPublisher;
 
     public Driver createDriver(Long userId) {
         Driver driver = new Driver();
@@ -55,7 +55,6 @@ public class DriverService {
                 driver.getId(),
                 latitude,
                 longitude);
-        kafkaTemplate.send(TOPIC_DRIVER_LOCATION_UPDATE, event);
+        driverEventPublisher.publishDriverLocationUpdateEvent(event);
     }
-
 }

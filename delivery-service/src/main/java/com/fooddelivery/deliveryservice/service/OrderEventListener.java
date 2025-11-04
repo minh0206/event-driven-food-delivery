@@ -3,7 +3,6 @@ package com.fooddelivery.deliveryservice.service;
 import java.util.List;
 
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class DeliveryAssignmentService {
-    private static final String TOPIC_DRIVER_ASSIGNED = "driver_assigned";
+public class OrderEventListener {
     private DriverRepository driverRepository;
-    private KafkaTemplate<String, DriverAssignedEvent> kafkaTemplate;
+    private DriverEventPublisher driverEventPublisher;
 
-    @KafkaListener(topics = "order_accepted", groupId = "delivery-group")
+    @KafkaListener(topics = "order_accepted", groupId = "delivery-service-group")
     @Transactional
     public void handleOrderAccepted(OrderAcceptedEvent event) {
         log.info("Order #{} accepted, finding available driver.", event.orderId());
@@ -56,6 +54,7 @@ public class DeliveryAssignmentService {
                 event.orderId(),
                 assignedDriver.getId(),
                 assignedDriver.getUserId());
-        kafkaTemplate.send(TOPIC_DRIVER_ASSIGNED, assignedEvent);
+        driverEventPublisher.publishDriverAssignedEvent(assignedEvent);
     }
+
 }
