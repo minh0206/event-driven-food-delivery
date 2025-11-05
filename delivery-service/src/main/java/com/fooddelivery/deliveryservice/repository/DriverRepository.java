@@ -13,4 +13,6 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 
     // Find all drivers who are online and not on a delivery
     List<Driver> findAllByStatus(DriverStatus status);
+
+    Optional<Driver> findByCurrentOrderId(Long orderId);
 }
