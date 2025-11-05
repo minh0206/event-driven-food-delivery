@@ -33,6 +33,11 @@ public class SharedModuleAutoConfiguration {
     }
 
     @Bean
+    SharedWebConfig sharedWebConfig() {
+        return new SharedWebConfig();
+    }
+
+    @Bean
     OrderPlacedEventPublisher orderPlacedEventPublisher(KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate) {
         return new OrderPlacedEventPublisher(kafkaTemplate);
     }
