@@ -49,6 +49,21 @@ public class DriverController {
         return driverService.getDriverOrder(userId);
     }
 
+    @PostMapping("/order/pickup")
+    @PreAuthorize("hasRole('DELIVERY_DRIVER')")
+    public ResponseEntity<Void> markOrderAsInTransit(Principal principal) {
+        Long userId = Long.parseLong(principal.getName());
+        driverService.markOrderAsInTransit(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/order/complete")
+    @PreAuthorize("hasRole('DELIVERY_DRIVER')")
+    public ResponseEntity<Void> markOrderAsCompleted(Principal principal) {
+        Long userId = Long.parseLong(principal.getName());
+        driverService.markOrderAsDelivered(userId);
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/location")
     @PreAuthorize("hasRole('DELIVERY_DRIVER')")
