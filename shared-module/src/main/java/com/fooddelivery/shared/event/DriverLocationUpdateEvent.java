@@ -4,6 +4,5 @@ public record DriverLocationUpdateEvent(
         Long orderId,
         Long driverId,
         double latitude,
-        double longitude
-) {
+        double longitude) {
 }
