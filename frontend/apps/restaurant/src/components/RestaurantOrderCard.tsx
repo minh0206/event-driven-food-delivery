@@ -13,7 +13,7 @@ const RestaurantOrderCard = ({ order }: { order: RestaurantOrder }) => {
   const handleUpdateStatus = async (status: OrderStatus) => {
     try {
       await updateOrder.mutateAsync({ ...order, status });
-      toaster.success({ title: "Order status updated!" });
+      toaster.success({ title: `Order status updated to ${status}` });
     } catch (error) {
       console.error("Error updating order status:", error);
       toaster.error({ title: "Error updating order status" });
@@ -67,15 +67,6 @@ const RestaurantOrderCard = ({ order }: { order: RestaurantOrder }) => {
             </>
           )}
           {order.status === OrderStatus.ACCEPTED && (
-            <Button
-              variant="solid"
-              colorPalette="blue"
-              onClick={() => handleUpdateStatus(OrderStatus.PREPARING)}
-            >
-              Prepare
-            </Button>
-          )}
-          {order.status === OrderStatus.PREPARING && (
             <Button
               variant="solid"
               colorPalette="green"
