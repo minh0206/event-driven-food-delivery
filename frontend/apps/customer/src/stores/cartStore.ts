@@ -25,7 +25,7 @@ export const useCartStore = create<CartState>()(
       addItem: (restaurantId: number, menuItem: MenuItem) =>
         set((state) => {
           // If adding item from a different restaurant, clear the cart first
-          if (state.items.length > 0 && state.restaurantId !== restaurantId) {
+          if (state.restaurantId !== restaurantId) {
             return {
               restaurantId,
               items: [{ ...menuItem, quantity: 1 }],

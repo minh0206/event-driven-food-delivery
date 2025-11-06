@@ -16,6 +16,7 @@ import { LuShoppingCart } from "react-icons/lu";
 
 import { useRestaurant } from "@repo/shared/hooks";
 import { orderService } from "@repo/shared/services";
+import { useNavigate } from "react-router-dom";
 import CartItemCard from "../components/CartItemCard";
 import { useCartStore } from "../stores/cartStore";
 
@@ -27,6 +28,7 @@ const CartPage = () => {
     removeItem,
     clearCart,
   } = useCartStore();
+  const navigate = useNavigate();
 
   const { data: restaurant } = useRestaurant(restaurantId!);
 
@@ -54,6 +56,7 @@ const CartPage = () => {
         });
         console.log("Order placed successfully:", response);
         // clearCart();
+        navigate("/orders");
       })
       .catch((error) => {
         toaster.error({
