@@ -19,7 +19,13 @@ import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantOrderRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
 import com.fooddelivery.shared.enumerate.OrderStatus;
+import com.fooddelivery.shared.event.OrderAcceptedEvent;
 import com.fooddelivery.shared.event.OrderPlacedEvent;
+import com.fooddelivery.shared.event.OrderReadyEvent;
+import com.fooddelivery.shared.event.OrderRejectedEvent;
+import com.fooddelivery.shared.publisher.OrderAcceptedEventPublisher;
+import com.fooddelivery.shared.publisher.OrderReadyEventPublisher;
+import com.fooddelivery.shared.publisher.OrderRejectedEventPublisher;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -29,10 +35,13 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class RestaurantService {
     private static final String RESTAURANT_NOT_FOUND_MESSAGE = "Restaurant not found";
+    private static final String RESTAURANT_ORDER_NOT_FOUND_MESSAGE = "Restaurant order not found";
     private final RestaurantRepository restaurantRepository;
     private final MenuItemRepository menuItemRepository;
     private final RestaurantOrderRepository restaurantOrderRepository;
-    private final OrderEventPublisher orderEventPublisher;
+    private final OrderAcceptedEventPublisher orderAcceptedEventPublisher;
+    private final OrderReadyEventPublisher orderReadyEventPublisher;
+    private final OrderRejectedEventPublisher orderRejectedEventPublisher;
 
     public Restaurant createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
         if (restaurantRepository.findByOwnerId(ownerId).isPresent()) {
@@ -168,6 +177,9 @@ public class RestaurantService {
         Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
 
+        if (orderId == null) {
+            throw new IllegalArgumentException("orderId must not be null");
+        }
         RestaurantOrder orderToUpdate = restaurantOrderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
 
@@ -176,8 +188,8 @@ public class RestaurantService {
             throw new SecurityException("User is not authorized to modify this order");
         }
 
-        // Check request status is in (ACCEPTED, REJECTED, PREPARING, READY_FOR_PICKUP)
-        if (!List.of(OrderStatus.ACCEPTED, OrderStatus.REJECTED, OrderStatus.PREPARING, OrderStatus.READY_FOR_PICKUP)
+        // Check request status is in (ACCEPTED, REJECTED, READY_FOR_PICKUP)
+        if (!List.of(OrderStatus.ACCEPTED, OrderStatus.REJECTED, OrderStatus.READY_FOR_PICKUP)
                 .contains(requestDto.status())) {
             throw new IllegalArgumentException("Invalid order status");
         }
@@ -188,13 +200,30 @@ public class RestaurantService {
 
         var updatedOrder = restaurantOrderRepository.save(orderToUpdate);
 
-        // Publish order status update event
-        orderEventPublisher.publishOrderStatusUpdate(updatedOrder);
-
         if (updatedOrder.getLocalStatus() == OrderStatus.ACCEPTED) {
-            orderEventPublisher.publishOrderAccepted(updatedOrder, restaurant);
+            // Publish order accepted event
+            OrderAcceptedEvent acceptedEvent = new OrderAcceptedEvent(
+                    orderId,
+                    restaurant.getId());
+            orderAcceptedEventPublisher.publish(acceptedEvent);
+        } else if (updatedOrder.getLocalStatus() == OrderStatus.READY_FOR_PICKUP) {
+            // Publish order ready event
+            OrderReadyEvent readyEvent = new OrderReadyEvent(orderId);
+            orderReadyEventPublisher.publish(readyEvent);
+        } else if (updatedOrder.getLocalStatus() == OrderStatus.REJECTED) {
+            // Publish order rejected event
+            OrderRejectedEvent rejectedEvent = new OrderRejectedEvent(orderId);
+            orderRejectedEventPublisher.publish(rejectedEvent);
         }
 
         return updatedOrder;
+    }
+
+    public RestaurantOrder getRestaurantOrder(Long orderId) {
+        if (orderId == null) {
+            throw new IllegalArgumentException("orderId must not be null");
+        }
+        return restaurantOrderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_ORDER_NOT_FOUND_MESSAGE));
     }
 }
