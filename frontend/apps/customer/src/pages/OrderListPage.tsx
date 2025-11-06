@@ -1,87 +1,145 @@
-import { Alert, Box, Heading, Spinner, Text, VStack } from "@chakra-ui/react";
-import { useNotification, useWebSocket } from "@repo/shared/hooks";
+import {
+  Alert,
+  Box,
+  Heading,
+  Spinner,
+  Tabs,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { useWebSocket } from "@repo/shared/hooks";
+import { OrderStatus } from "@repo/shared/models";
 import { Toaster, toaster } from "@repo/ui/components";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import OrderCard from "../components/OrderCard";
 import { useCustomerOrders } from "../hooks/useCustomerOrders";
 
 const ORDER_UPDATES_ENDPOINT = "/user/queue/order-updates";
 
 const OrderListPage = () => {
-  const { data: orders, isLoading, error, refetch } = useCustomerOrders();
   const { isConnected, subscribe } = useWebSocket("http://localhost:8083/ws");
-  const { permissionStatus, requestPermission, notify, isSupported } =
-    useNotification();
+  const [activeTab, setActiveTab] = useState<string>("ongoing");
+  const { data: orders, isLoading, error, refetch } = useCustomerOrders();
+
+  const ongoingOrders = useMemo(
+    () =>
+      orders?.filter(
+        (o) =>
+          ![
+            OrderStatus.DELIVERED,
+            OrderStatus.CANCELLED,
+            OrderStatus.REJECTED,
+          ].includes(o.status)
+      ) ?? [],
+    [orders]
+  );
+
+  const historyOrders = useMemo(() => {
+    if (activeTab !== "history") return [];
+    return (
+      orders?.filter((o) =>
+        [
+          OrderStatus.DELIVERED,
+          OrderStatus.CANCELLED,
+          OrderStatus.REJECTED,
+        ].includes(o.status)
+      ) ?? []
+    );
+  }, [orders, activeTab]);
+
+  const renderHistoryContent = () => {
+    if (isLoading) {
+      return (
+        <>
+          <Spinner size="lg" />
+          <Text mt={2}>Loading history...</Text>
+        </>
+      );
+    }
+    if (error) {
+      return (
+        <Alert.Root status="error">
+          <Alert.Indicator />
+          <Alert.Content>Error loading order history</Alert.Content>
+        </Alert.Root>
+      );
+    }
+    if (historyOrders && historyOrders.length > 0) {
+      return (
+        <VStack align="stretch">
+          {historyOrders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+        </VStack>
+      );
+    }
+    return <Text>No orders history.</Text>;
+  };
+
+  const renderOngoingContent = () => {
+    if (isLoading) {
+      return (
+        <>
+          <Spinner size="lg" />
+          <Text mt={2}>Loading orders...</Text>
+        </>
+      );
+    }
+    if (error) {
+      return (
+        <Alert.Root status="error">
+          <Alert.Indicator />
+          <Alert.Content>Error loading orders</Alert.Content>
+        </Alert.Root>
+      );
+    }
+    if (ongoingOrders && ongoingOrders.length > 0) {
+      return (
+        <VStack align="stretch">
+          {ongoingOrders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+        </VStack>
+      );
+    }
+    return <Text>No ongoing orders.</Text>;
+  };
 
   useEffect(() => {
-    if (permissionStatus === "default") requestPermission();
-
     if (!isConnected) return;
 
     const subscription = subscribe(ORDER_UPDATES_ENDPOINT, async () => {
       // Refetch orders to update the list
       await refetch();
+      console.log("Order updated event received");
 
-      // Only attempt to notify if permission is granted
-      if (permissionStatus === "granted") {
-        notify("Order updated!", {
-          body: `Your order has been updated`,
-        });
-        toaster.success({
-          title: "Order updated!",
-        });
-      } else {
-        // Prompt user to grant permission first
-        alert("Please enable notification permission.");
-      }
+      toaster.success({
+        title: "Order updated!",
+      });
     });
     // Return a cleanup function to unsubscribe
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-    };
+    return () => subscription?.unsubscribe();
   }, [isConnected, subscribe]);
-
-  // Only render notification controls if the browser supports the API
-  if (!isSupported) {
-    return <p>Your browser does not support notifications.</p>;
-  }
-
-  if (isLoading) {
-    return (
-      <Box p={4}>
-        <Spinner size="xl" />
-        <Text mt={4}>Loading orders...</Text>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box p={4}>
-        <Alert.Root status="error">
-          <Alert.Indicator />
-          <Alert.Content>Error loading orders: {error?.message}</Alert.Content>
-        </Alert.Root>
-      </Box>
-    );
-  }
 
   return (
     <Box p={4}>
       <Heading as="h1" size="xl" mb={4}>
         Your Orders
       </Heading>
-      {orders ? (
-        <VStack align="stretch">
-          {orders.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
-        </VStack>
-      ) : (
-        <Text>No orders found.</Text>
-      )}
+
+      <Tabs.Root
+        lazyMount
+        defaultValue="ongoing"
+        onValueChange={(details) => setActiveTab(details.value)}
+      >
+        <Tabs.List>
+          <Tabs.Trigger value="ongoing">Ongoing</Tabs.Trigger>
+          <Tabs.Trigger value="history">History</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="ongoing">{renderOngoingContent()}</Tabs.Content>
+        <Tabs.Content value="history">{renderHistoryContent()}</Tabs.Content>
+      </Tabs.Root>
+
       <Toaster />
     </Box>
   );
