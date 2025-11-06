@@ -9,5 +9,5 @@ import jakarta.validation.constraints.NotNull;
 // DTO for the overall order creation request
 public record CreateOrderRequestDto(
         @NotNull Long restaurantId,
-        @Valid @NotEmpty List<OrderItemDto> items) {
+        @Valid @NotEmpty List<OrderItemRequestDto> items) {
 }

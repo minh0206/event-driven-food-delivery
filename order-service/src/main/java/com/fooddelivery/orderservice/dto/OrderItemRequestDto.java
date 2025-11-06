@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 // DTO representing a single item in the order request
-public record OrderItemDto(
+public record OrderItemRequestDto(
         @NotNull Long menuItemId,
         @Min(1) int quantity,
         @NotNull BigDecimal price) {
