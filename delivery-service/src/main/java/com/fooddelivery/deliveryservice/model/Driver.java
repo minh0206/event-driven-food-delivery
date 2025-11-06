@@ -27,8 +27,8 @@ public class Driver {
     private DriverStatus status;
 
     private Double currentLatitude;
+
     private Double currentLongitude;
 
-    // This will be set when a driver is assigned an order
-    private Long currentOrderId;
+    private Long currentOrderId; // This will be set when a driver is assigned an order
 }

@@ -64,7 +64,7 @@ public class OrderEventListener {
         driverAssignedEventPublisher.publish(assignedEvent);
 
         // Step 5: Send WS notification to the driver
-        webSocketNotificationService.sendOrderStatusUpdate(
+        webSocketNotificationService.sendOrderStatusUpdateNotification(
                 assignedDriver.getUserId().toString(),
                 OrderStatus.DRIVER_ASSIGNED);
     }
@@ -76,7 +76,7 @@ public class OrderEventListener {
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found for order ID: " + event.orderId()));
 
         // Send WS notification to the driver
-        webSocketNotificationService.sendOrderStatusUpdate(
+        webSocketNotificationService.sendOrderStatusUpdateNotification(
                 driver.getUserId().toString(),
                 OrderStatus.READY_FOR_PICKUP);
     }

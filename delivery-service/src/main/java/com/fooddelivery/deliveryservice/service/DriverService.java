@@ -107,11 +107,11 @@ public class DriverService {
     @Transactional // Ensure DB update and event publish are atomic
     public void markOrderAsDelivered(Long userId) {
         Driver driver = driverRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+                .orElseThrow(() -> new EntityNotFoundException(DRIVER_NOT_FOUND));
 
         Long orderId = driver.getCurrentOrderId();
         if (orderId == null) {
-            throw new IllegalStateException("Driver is not assigned to an active order.");
+            throw new EntityNotFoundException(ORDER_NOT_FOUND);
         }
 
         // IMPORTANT: Reset the driver's state so they are available for the next

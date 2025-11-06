@@ -12,10 +12,11 @@ import lombok.AllArgsConstructor;
 public class WebSocketNotificationService {
     private SimpMessagingTemplate messagingTemplate;
 
-    public void sendOrderStatusUpdate(String userId, OrderStatus status) {
+    public void sendOrderStatusUpdateNotification(String userId, OrderStatus status) {
         messagingTemplate.convertAndSendToUser(
                 userId,
                 "/queue/order-updates",
                 status);
     }
+
 }
