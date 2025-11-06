@@ -9,6 +9,7 @@ import com.fooddelivery.orderservice.repository.OrderRepository;
 import com.fooddelivery.shared.enumerate.OrderStatus;
 import com.fooddelivery.shared.event.DriverAssignedEvent;
 import com.fooddelivery.shared.event.DriverLocationUpdateEvent;
+import com.fooddelivery.shared.publisher.DriverAssignedEventPublisher;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,7 @@ public class DriverEventListener {
     private final OrderRepository orderRepository;
     private final WebSocketNotificationService webSocketNotificationService;
 
-    @KafkaListener(topics = "driver_assigned", groupId = "order-service-group")
+    @KafkaListener(topics = DriverAssignedEventPublisher.TOPIC, groupId = "order-service-group")
     public void handleDriverAssignedEvent(DriverAssignedEvent event) {
         log.info("Driver assigned to order #{}. Updating status.", event.orderId());
 
@@ -29,7 +30,7 @@ public class DriverEventListener {
                 .orElseThrow(() -> new EntityNotFoundException("Order not found: " + event.orderId()));
 
         // Add a new status to track this stage
-        order.setStatus(OrderStatus.READY_FOR_PICKUP);
+        order.setStatus(OrderStatus.DRIVER_ASSIGNED);
         orderRepository.save(order);
 
         // Notify the customer via WebSocket

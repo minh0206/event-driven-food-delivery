@@ -5,7 +5,15 @@ import org.springframework.stereotype.Service;
 
 import com.fooddelivery.orderservice.model.Order;
 import com.fooddelivery.orderservice.repository.OrderRepository;
-import com.fooddelivery.shared.event.OrderStatusUpdateEvent;
+import com.fooddelivery.shared.enumerate.OrderStatus;
+import com.fooddelivery.shared.event.OrderAcceptedEvent;
+import com.fooddelivery.shared.event.OrderDeliveredEvent;
+import com.fooddelivery.shared.event.OrderInTransitEvent;
+import com.fooddelivery.shared.event.OrderReadyEvent;
+import com.fooddelivery.shared.publisher.OrderAcceptedEventPublisher;
+import com.fooddelivery.shared.publisher.OrderDeliveredEventPublisher;
+import com.fooddelivery.shared.publisher.OrderInTransitEventPublisher;
+import com.fooddelivery.shared.publisher.OrderReadyEventPublisher;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -18,15 +26,34 @@ public class OrderEventListener {
     private final OrderRepository orderRepository;
     private final WebSocketNotificationService webSocketNotificationService;
 
-    @KafkaListener(topics = "order_status_updates", groupId = "order-service-group")
-    public void handleOrderStatusUpdateEvent(OrderStatusUpdateEvent event) {
-        log.info("Updating status for order #{} to {}", event.orderId(), event.newStatus());
+    @KafkaListener(topics = OrderAcceptedEventPublisher.TOPIC, groupId = "order-service-group")
+    public void handleOrderAcceptedEvent(OrderAcceptedEvent event) {
+        handleOrderStatusUpdate(event.orderId(), OrderStatus.ACCEPTED);
+    }
 
-        Order order = orderRepository.findById(event.orderId())
+    @KafkaListener(topics = OrderReadyEventPublisher.TOPIC, groupId = "order-service-group")
+    public void handleOrderReadyEvent(OrderReadyEvent event) {
+        handleOrderStatusUpdate(event.orderId(), OrderStatus.READY_FOR_PICKUP);
+    }
+
+    @KafkaListener(topics = OrderInTransitEventPublisher.TOPIC, groupId = "order-service-group")
+    public void handleOrderInTransitEvent(OrderInTransitEvent event) {
+        handleOrderStatusUpdate(event.orderId(), OrderStatus.IN_TRANSIT);
+    }
+
+    @KafkaListener(topics = OrderDeliveredEventPublisher.TOPIC, groupId = "order-service-group")
+    public void handleOrderDeliveredEvent(OrderDeliveredEvent event) {
+        handleOrderStatusUpdate(event.orderId(), OrderStatus.DELIVERED);
+    }
+
+    private void handleOrderStatusUpdate(Long orderId, OrderStatus newStatus) {
+        log.info("Updating status for order #{} to {}", orderId, newStatus);
+
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found!"));
 
         // Update the database
-        order.setStatus(event.newStatus());
+        order.setStatus(newStatus);
         orderRepository.save(order);
 
         // Push the update via WebSocket to the specific customer

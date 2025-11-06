@@ -34,6 +34,8 @@ public class Order {
     @Column(nullable = false)
     private Long restaurantId;
 
+    private Long driverUserId; // User ID of the assigned driver
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 

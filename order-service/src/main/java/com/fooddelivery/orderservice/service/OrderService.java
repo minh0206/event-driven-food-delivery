@@ -11,21 +11,25 @@ import com.fooddelivery.orderservice.model.Order;
 import com.fooddelivery.orderservice.model.OrderItem;
 import com.fooddelivery.orderservice.repository.OrderRepository;
 import com.fooddelivery.shared.enumerate.OrderStatus;
+import com.fooddelivery.shared.event.OrderItemDetails;
+import com.fooddelivery.shared.event.OrderPlacedEvent;
+import com.fooddelivery.shared.publisher.OrderPlacedEventPublisher;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class OrderService {
     private final List<OrderStatus> activeStatuses = List.of(
             OrderStatus.PENDING,
-            OrderStatus.ACCEPTED,
-            OrderStatus.PREPARING);
+            OrderStatus.ACCEPTED);
 
     private final OrderRepository orderRepository;
-    private final OrderEventPublisher orderEventPublisher;
+    private final OrderPlacedEventPublisher orderPlacedEventPublisher;
 
     public Order getOrderById(Long orderId) {
         return orderRepository.findByIdWithItems(orderId)
@@ -68,8 +72,19 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        orderEventPublisher.publishOrderPlacedEvent(savedOrder);
+        // --- KAFKA EVENT PUBLISHING ---
+        // Create the event payload
+        List<OrderItemDetails> itemDetails = savedOrder.getItems().stream()
+                .map(item -> new OrderItemDetails(item.getId(), item.getMenuItemId(), item.getQuantity()))
+                .toList();
 
+        OrderPlacedEvent event = new OrderPlacedEvent(
+                savedOrder.getId(),
+                savedOrder.getRestaurantId(),
+                itemDetails);
+
+        // Send to Kafka
+        orderPlacedEventPublisher.publish(event);
         return savedOrder;
     }
 
@@ -81,5 +96,4 @@ public class OrderService {
                 .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
 }
