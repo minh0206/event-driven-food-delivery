@@ -9,6 +9,6 @@ import com.fooddelivery.securitylib.config.FeignClientConfiguration;
 
 @FeignClient(name = "delivery-service", url = "${delivery-service.url}", configuration = FeignClientConfiguration.class)
 public interface DeliveryServiceClient {
-    @PostMapping(consumes = "application/json", produces = "application/json")
+    @PostMapping(path = "/internal/drivers", consumes = "application/json", produces = "application/json")
     Map<String, Long> createDriver();
 }
