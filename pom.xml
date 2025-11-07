@@ -30,7 +30,6 @@
         <module>restaurant-service</module>
         <module>order-service</module>
         <module>delivery-service</module>
-        <module>notification-service</module>
         <module>api-gateway</module>
         <module>security-jwt-lib</module>
         <module>shared-module</module>
