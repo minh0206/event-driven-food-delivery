@@ -11,7 +11,7 @@ spring:
           # Enable CORS for all routes
           globalcors:
             corsConfigurations:
-              '[/**]':
+              "[/**]":
                 allowedOrigins:
                   - "http://localhost:5173"
                   - "http://localhost:5174"
@@ -46,9 +46,4 @@ spring:
             - id: delivery-service-route
               uri: http://localhost:8084
               predicates:
-                - Path=/api/delivery/**
-
-            - id: notification-service-route
-              uri: http://localhost:8085
-              predicates:
-                - Path=/api/notification/**
+                - Path=/api/drivers/**
