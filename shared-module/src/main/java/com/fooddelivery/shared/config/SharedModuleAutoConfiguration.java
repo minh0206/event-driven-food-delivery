@@ -26,15 +26,9 @@ import com.fooddelivery.shared.publisher.OrderRejectedEventPublisher;
 @Configuration
 @ConditionalOnWebApplication
 public class SharedModuleAutoConfiguration {
-
     @Bean
     GlobalExceptionHandler globalExceptionHandler() {
         return new GlobalExceptionHandler();
-    }
-
-    @Bean
-    SharedWebConfig sharedWebConfig() {
-        return new SharedWebConfig();
     }
 
     @Bean

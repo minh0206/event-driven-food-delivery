@@ -1,1 +1,2 @@
 com.fooddelivery.shared.config.SharedModuleAutoConfiguration
+com.fooddelivery.shared.config.SharedWebConfig
