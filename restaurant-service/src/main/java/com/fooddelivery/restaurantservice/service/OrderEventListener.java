@@ -1,19 +1,17 @@
 package com.fooddelivery.restaurantservice.service;
 
-import java.util.Objects;
-
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.model.RestaurantOrder;
 import com.fooddelivery.shared.enumerate.OrderStatus;
-import com.fooddelivery.shared.event.OrderPlacedEvent;
-import com.fooddelivery.shared.publisher.OrderPlacedEventPublisher;
-import com.fooddelivery.shared.event.OrderInTransitEvent;
 import com.fooddelivery.shared.event.OrderDeliveredEvent;
-import com.fooddelivery.shared.publisher.OrderInTransitEventPublisher;
+import com.fooddelivery.shared.event.OrderInTransitEvent;
+import com.fooddelivery.shared.event.OrderPlacedEvent;
 import com.fooddelivery.shared.publisher.OrderDeliveredEventPublisher;
+import com.fooddelivery.shared.publisher.OrderInTransitEventPublisher;
+import com.fooddelivery.shared.publisher.OrderPlacedEventPublisher;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
