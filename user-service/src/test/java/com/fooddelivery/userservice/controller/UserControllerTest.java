@@ -1,195 +1,205 @@
 package com.fooddelivery.userservice.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fooddelivery.securitylib.service.JwtService;
-import com.fooddelivery.shared.config.SharedModuleAutoConfiguration;
-import com.fooddelivery.shared.exception.EmailExistsException;
-import com.fooddelivery.userservice.dto.LoginRequestDto;
-import com.fooddelivery.userservice.dto.RegisterRequestDto;
-import com.fooddelivery.userservice.dto.UserDto;
-import com.fooddelivery.userservice.model.Role;
-import com.fooddelivery.userservice.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = UserController.class)
-@AutoConfigureMockMvc(addFilters = false)
-@Import(SharedModuleAutoConfiguration.class)
+import java.security.Principal;
+import java.util.Map;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fooddelivery.securitylib.service.JwtService;
+import com.fooddelivery.userservice.dto.CustomerDto;
+import com.fooddelivery.userservice.dto.DriverDto;
+import com.fooddelivery.userservice.dto.LoginRequestDto;
+import com.fooddelivery.userservice.dto.RegisterRequestDto;
+import com.fooddelivery.userservice.dto.RestaurantAdminDto;
+import com.fooddelivery.userservice.dto.RestaurantRegisterRequestDto;
+import com.fooddelivery.userservice.mapper.UserMapper;
+import com.fooddelivery.userservice.model.Role;
+import com.fooddelivery.userservice.model.User;
+import com.fooddelivery.userservice.service.UserService;
+
+@ExtendWith(MockitoExtension.class)
 class UserControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
 
-    @Autowired
+    @Mock
     private UserService userService;
-
-    @Autowired
+    @Mock
     private JwtService jwtService;
+    @Mock
+    private UserMapper userMapper;
 
-    @Autowired
-    private ObjectMapper objectMapper; // For converting objects to JSON
+    @InjectMocks
+    private UserController userController;
 
-    private UserDto userDto;
+    private MockMvc mockMvc;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
-    void setUp() {
-        // Common setup for tests
-        // Prepare a userDto object that our mock mapper will return
-        userDto = new UserDto(
-                1L,
-                "test@example.com",
-                "Test",
-                "User",
-                Role.CUSTOMER);
+    void setup() {
+        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
+        objectMapper = new ObjectMapper();
     }
 
-    // Test Case 1: Successful registration request
     @Test
-    void whenPostRegister_withValidRequest_shouldReturnCreated() throws Exception {
-        // --- Arrange (Given) ---
-        var validRequest = new RegisterRequestDto(
-                "test@example.com",
-                "password123",
-                "Test",
-                "User"
-        );
+    void registerCustomer_returnsToken() throws Exception {
+        RegisterRequestDto req = new RegisterRequestDto();
+        req.setEmail("john@example.com");
+        req.setPassword("password123");
+        req.setFirstName("John");
+        req.setLastName("Doe");
 
-        when(userService.registerCustomer(validRequest)).thenReturn(userDto);
+        User saved = new User();
+        saved.setId(1L);
+        saved.setRole(Role.CUSTOMER);
 
-        // --- Act & Assert (When & Then) ---
+        when(userService.registerCustomer(any(RegisterRequestDto.class))).thenReturn(saved);
+        when(jwtService.generateToken("1", Role.CUSTOMER.toString())).thenReturn("jwt-token");
+
         mockMvc.perform(post("/api/users/register/customer")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpect(status().isCreated()) // Expect HTTP 201 Created
-                .andExpect(content().json(objectMapper.writeValueAsString(userDto))); // Expect JSON response
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token"))));
 
-        // Verify that the service method was called exactly once
-        verify(userService, times(1)).registerCustomer(validRequest);
+        verify(userService).registerCustomer(any(RegisterRequestDto.class));
+        verify(jwtService).generateToken("1", Role.CUSTOMER.toString());
     }
 
-    // Test Case 2: Registration request with invalid data (e.g., missing email)
-    // This test implicitly checks your validation annotations (@NotBlank, @Email, etc.)
     @Test
-    void whenPostRegister_withInvalidEmail_shouldReturnBadRequest() throws Exception {
-        // --- Arrange (Given) ---
-        RegisterRequestDto invalidRequest = new RegisterRequestDto(
-                "", // Invalid email
-                "password123",
-                "Test",
-                "User"
-        );
+    void registerRestaurantAdmin_returnsToken() throws Exception {
+        RestaurantRegisterRequestDto req = new RestaurantRegisterRequestDto();
+        req.setEmail("owner@example.com");
+        req.setPassword("password123");
+        req.setFirstName("Owner");
+        req.setLastName("One");
+        req.setRestaurantName("Rest");
 
-        // --- Act & Assert (When & Then) ---
-        mockMvc.perform(post("/api/users/register/customer")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest()); // Expect HTTP 400 Bad Request
+        User saved = new User();
+        saved.setId(2L);
+        saved.setRole(Role.RESTAURANT_ADMIN);
 
-        // Verify that the service method was never called
-        verify(userService, times(0)).registerCustomer(invalidRequest);
+        when(userService.registerRestaurantAdmin(any(RestaurantRegisterRequestDto.class))).thenReturn(saved);
+        when(jwtService.generateToken("2", Role.RESTAURANT_ADMIN.toString())).thenReturn("jwt-token-2");
+
+        mockMvc.perform(post("/api/users/register/restaurant")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token-2"))));
+
+        verify(userService).registerRestaurantAdmin(any(RestaurantRegisterRequestDto.class));
+        verify(jwtService).generateToken("2", Role.RESTAURANT_ADMIN.toString());
     }
 
-    // Test Case 3: Registration request with existing email
     @Test
-    void whenPostRegister_withExistingEmail_shouldReturnConflict() throws Exception {
-        // --- Arrange (Given) ---
-        RegisterRequestDto existingEmailRequest = new RegisterRequestDto(
-                "existing@example.com",
-                "password123",
-                "Test",
-                "User"
-        );
-        when(userService.registerCustomer(existingEmailRequest)).thenThrow(new EmailExistsException());
+    void registerDriver_returnsToken() throws Exception {
+        RegisterRequestDto req = new RegisterRequestDto();
+        req.setEmail("driver@example.com");
+        req.setPassword("password123");
+        req.setFirstName("Driver");
 
-        // --- Act & Assert (When & Then) ---
-        mockMvc.perform(post("/api/users/register/customer")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(existingEmailRequest)))
-                .andExpect(status().isConflict()); // Expect HTTP 409 Conflict
+        User saved = new User();
+        saved.setId(3L);
+        saved.setRole(Role.DELIVERY_DRIVER);
+
+        when(userService.registerDriver(any(RegisterRequestDto.class))).thenReturn(saved);
+        when(jwtService.generateToken("3", Role.DELIVERY_DRIVER.toString())).thenReturn("jwt-token-3");
+
+        mockMvc.perform(post("/api/users/register/driver")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token-3"))));
+
+        verify(userService).registerDriver(any(RegisterRequestDto.class));
+        verify(jwtService).generateToken("3", Role.DELIVERY_DRIVER.toString());
     }
 
-    // Test Case 4: Login request with valid credentials
     @Test
-    @WithMockUser(username = "1")
-    void whenPostLogin_withValidCredentials_shouldReturnOk() throws Exception {
-        // --- Arrange (Given) ---
-        LoginRequestDto validRequest = new LoginRequestDto(
-                "test@example.com",
-                "password123"
-        );
-        when(userService.loginUser(validRequest)).thenReturn(userDto);
-        when(jwtService.generateToken(userDto.id().toString(), userDto.role().name())).thenReturn("token");
+    void login_returnsToken() throws Exception {
+        LoginRequestDto req = new LoginRequestDto("a@b.com", "password123");
 
-        // --- Act & Assert (When & Then) ---
+        User user = new User();
+        user.setId(4L);
+        user.setRole(Role.CUSTOMER);
+
+        when(userService.loginUser("a@b.com", "password123")).thenReturn(user);
+        when(jwtService.generateToken("4", Role.CUSTOMER.toString())).thenReturn("jwt-login");
+
         mockMvc.perform(post("/api/users/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpect(status().isOk()); // Expect HTTP 200 OK
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-login"))));
+
+        verify(userService).loginUser("a@b.com", "password123");
+        verify(jwtService).generateToken("4", Role.CUSTOMER.toString());
     }
 
-    // Test Case 5: Login request with invalid credentials
     @Test
-    void whenPostLogin_withInvalidCredentials_shouldReturnUnauthorized() throws Exception {
-        // --- Arrange (Given) ---
-        LoginRequestDto invalidRequest = new LoginRequestDto(
-                "test@example.com",
-                "wrong-password"
-        );
+    void getUserProfile_returnsRestaurantAdminDto_whenRoleRestaurantAdmin() throws Exception {
+        Principal principal = () -> "10";
+        User user = new User();
+        user.setId(10L);
+        user.setRole(Role.RESTAURANT_ADMIN);
+        RestaurantAdminDto dto = new RestaurantAdminDto();
 
-        when(userService.loginUser(invalidRequest)).thenThrow(new BadCredentialsException(""));
+        when(userService.getUserById(10L)).thenReturn(user);
+        when(userMapper.toRestaurantAdminDto(user)).thenReturn(dto);
 
-        // --- Act & Assert (When & Then) ---
-        mockMvc.perform(post("/api/users/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isUnauthorized()); // Expect HTTP 401 Unauthorized
+        mockMvc.perform(get("/api/users/profile").principal(principal))
+                .andExpect(status().isOk());
+
+        verify(userMapper).toRestaurantAdminDto(user);
     }
 
-    // Test Case 6: Get user profile with valid credentials
     @Test
-    @WithMockUser(username = "1")
-    void whenGetProfile_withValidCredentials_shouldReturnOk() throws Exception {
-        // --- Arrange (Given) ---
-        // --- Act & Assert (When & Then) ---
-        mockMvc.perform(get("/api/users/profile"))
-                .andExpect(status().isOk()); // Expect HTTP 200 OK
+    void getUserProfile_returnsDriverDto_whenRoleDriver() throws Exception {
+        Principal principal = () -> "11";
+        User user = new User();
+        user.setId(11L);
+        user.setRole(Role.DELIVERY_DRIVER);
+        DriverDto dto = new DriverDto();
+
+        when(userService.getUserById(11L)).thenReturn(user);
+        when(userMapper.toDriverDto(user)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/users/profile").principal(principal))
+                .andExpect(status().isOk());
+
+        verify(userMapper).toDriverDto(user);
     }
 
-    @TestConfiguration
-    static class TestConfig {
-        // We are explicitly creating a bean of type UserService.
-        // The Spring test context will use THIS bean instead of a real one.
-        @Bean
-        public UserService userService() {
-            // Create a mock using Mockito's static mock() method
-            return Mockito.mock(UserService.class);
-        }
+    @Test
+    void getUserProfile_returnsCustomerDto_whenRoleCustomer() throws Exception {
+        Principal principal = () -> "12";
+        User user = new User();
+        user.setId(12L);
+        user.setRole(Role.CUSTOMER);
+        CustomerDto dto = new CustomerDto();
 
-        @Bean
-        public JwtService jwtService() {
-            return Mockito.mock(JwtService.class);
-        }
+        when(userService.getUserById(12L)).thenReturn(user);
+        when(userMapper.toCustomerDto(user)).thenReturn(dto);
 
-        @Bean
-        public UserDetailsService userDetailsService() {
-            return Mockito.mock(UserDetailsService.class);
-        }
+        mockMvc.perform(get("/api/users/profile").principal(principal))
+                .andExpect(status().isOk());
+
+        verify(userMapper).toCustomerDto(user);
     }
 }

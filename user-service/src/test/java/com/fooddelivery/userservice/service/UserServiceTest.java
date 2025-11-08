@@ -1,13 +1,18 @@
 package com.fooddelivery.userservice.service;
 
-import com.fooddelivery.shared.exception.EmailExistsException;
-import com.fooddelivery.userservice.dto.LoginRequestDto;
-import com.fooddelivery.userservice.dto.RegisterRequestDto;
-import com.fooddelivery.userservice.dto.UserDto;
-import com.fooddelivery.userservice.mapper.UserMapper;
-import com.fooddelivery.userservice.model.Role;
-import com.fooddelivery.userservice.model.User;
-import com.fooddelivery.userservice.repository.UserRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Map;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,126 +20,159 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import com.fooddelivery.shared.exception.EmailExistsException;
+import com.fooddelivery.userservice.dto.RegisterRequestDto;
+import com.fooddelivery.userservice.dto.RestaurantRegisterRequestDto;
+import com.fooddelivery.userservice.model.Role;
+import com.fooddelivery.userservice.model.User;
+import com.fooddelivery.userservice.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private UserMapper userMapper;
-
     @Mock
     private AuthenticationManager authenticationManager;
+    @Mock
+    private RestaurantServiceClient restaurantServiceClient;
+    @Mock
+    private DeliveryServiceClient deliveryServiceClient;
 
     @InjectMocks
     private UserService userService;
 
-    private RegisterRequestDto registerRequest;
-    private UserDto userDto;
-
     @BeforeEach
-    void setUp() {
-        // Common setup for tests
-        registerRequest = new RegisterRequestDto(
-                "test@example.com",
-                "password123",
-                "Test",
-                "User"
-        );
-
-        // Prepare a userDto object that our mock mapper will return
-        userDto = new UserDto(
-                1L,
-                "test@example.com",
-                "Test",
-                "User",
-                Role.CUSTOMER);
+    void setup() {
+        SecurityContextHolder.clearContext();
     }
 
-    // Test Case 1: The "Happy Path" for successful registration
-    @Test
-    void whenRegisterUser_withNewEmail_shouldSaveAndReturnUser() {
-        // --- Arrange (Given) ---
-        // 1. Define the behavior of the mocks
-        when(userRepository.findByEmail(registerRequest.email())).thenReturn(Optional.empty());
-        when(userMapper.toDto(any(User.class))).thenReturn(userDto);
-
-        // --- Act (When) ---
-        // 2. Call the method we are testing
-        UserDto savedUser = userService.registerCustomer(registerRequest);
-
-        // --- Assert (Then) ---
-        // 3. Verify the results and interactions
-        assertNotNull(savedUser);
-        // Verify that the save method on the repository was called exactly once
-        verify(userRepository, times(1)).save(any(User.class));
+    private RegisterRequestDto buildRegisterReq() {
+        RegisterRequestDto dto = new RegisterRequestDto();
+        dto.setEmail("john@example.com");
+        dto.setPassword("password123");
+        dto.setFirstName("John");
+        dto.setLastName("Doe");
+        return dto;
     }
 
-    // Test Case 2: The "Unhappy Path" where the user email already exists
-    @Test
-    void whenRegisterUser_withExistingEmail_shouldThrowException() {
-        // --- Arrange (Given) ---
-        // 1. Make the mock repository return a user, simulating that the email is already taken
-        when(userRepository.findByEmail(registerRequest.email())).thenReturn(Optional.of(new User()));
+    private RestaurantRegisterRequestDto buildRestaurantReq() {
+        RestaurantRegisterRequestDto dto = new RestaurantRegisterRequestDto();
+        dto.setEmail("owner@example.com");
+        dto.setPassword("password123");
+        dto.setFirstName("Owner");
+        dto.setLastName("One");
+        dto.setRestaurantName("Testaurant");
+        dto.setAddress("123 St");
+        dto.setCuisineType("Asian");
+        return dto;
+    }
 
-        // --- Act & Assert (When & Then) ---
-        // 2. Assert that calling the method throws the expected exception
-        EmailExistsException exception = assertThrows(EmailExistsException.class, () -> {
-            userService.registerCustomer(registerRequest);
+    @Test
+    void registerCustomer_savesWithCustomerRole() throws Exception {
+        RegisterRequestDto req = buildRegisterReq();
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("password123")).thenReturn("ENC");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId(10L);
+            return u;
         });
 
-        // 3. Verify that the save method was never called because of the exception
-        verify(userRepository, never()).save(any(User.class));
+        User saved = userService.registerCustomer(req);
+
+        assertNotNull(saved.getId());
+        assertEquals(Role.CUSTOMER, saved.getRole());
+        assertEquals("ENC", saved.getPassword());
+        verify(userRepository).save(any(User.class));
     }
 
-    // Test Case 3: Login user with valid credentials
     @Test
-    void whenLoginUser_withValidCredentials_shouldReturnUser() {
-        // --- Arrange (Given) ---
-        // 1. Make the mock repository return a user
-        var loginRequest = new LoginRequestDto(registerRequest.email(), registerRequest.password());
+    void registerCustomer_throwsWhenEmailExists() {
+        RegisterRequestDto req = buildRegisterReq();
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(new User()));
 
-        when(userRepository.findByEmail(registerRequest.email())).thenReturn(Optional.of(new User()));
-        when(userMapper.toDto(any(User.class))).thenReturn(userDto);
-
-        // --- Act (When) ---
-        // 2. Call the method we are testing
-        UserDto returnedUserDto = userService.loginUser(loginRequest);
-
-        // --- Assert (Then) ---
-        // 3. Verify the results and interactions
-        assertEquals(returnedUserDto, userDto);
+        assertThrows(EmailExistsException.class, () -> userService.registerCustomer(req));
+        verify(userRepository, never()).save(any());
     }
 
-    // Test Case 4: Get user by id
     @Test
-    void whenGetUserById_shouldReturnUser() {
-        // --- Arrange (Given) ---
-        // 1. Make the mock repository return a user
-        when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
-        when(userMapper.toDto(any(User.class))).thenReturn(userDto);
+    void registerRestaurantAdmin_callsRestaurantServiceAndSavesRestaurantId() throws Exception {
+        RestaurantRegisterRequestDto req = buildRestaurantReq();
+        when(userRepository.findByEmail(req.getEmail())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(req.getPassword())).thenReturn("ENC");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            if (u.getId() == null)
+                u.setId(20L);
+            return u;
+        });
+        when(restaurantServiceClient.createRestaurant(req)).thenReturn(Map.of("restaurantId", 77L));
 
-        // --- Act (When) ---
-        // 2. Call the method we are testing
-        UserDto returnedUserDto = userService.getUserById(1L);
+        User saved = userService.registerRestaurantAdmin(req);
 
-        // --- Assert (Then) ---
-        // 3. Verify the results and interactions
-        assertEquals(returnedUserDto, userDto);
+        assertEquals(77L, saved.getRestaurantId());
+        assertEquals(Role.RESTAURANT_ADMIN, saved.getRole());
+        assertEquals(20L, saved.getId());
+        // Security context should be set with principal as user id
+        assertTrue(
+                SecurityContextHolder.getContext().getAuthentication() instanceof UsernamePasswordAuthenticationToken);
+        assertEquals("20", SecurityContextHolder.getContext().getAuthentication().getName());
+        verify(userRepository, atLeastOnce()).save(any(User.class));
+        verify(restaurantServiceClient).createRestaurant(req);
+    }
 
-        // Verify that the repository's `findById` method was called exactly once
-        verify(userRepository, times(1)).findById(1L);
+    @Test
+    void registerDriver_callsDeliveryServiceAndSavesDriverId() throws Exception {
+        RegisterRequestDto req = buildRegisterReq();
+        when(userRepository.findByEmail(req.getEmail())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(req.getPassword())).thenReturn("ENC");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            if (u.getId() == null)
+                u.setId(30L);
+            return u;
+        });
+        when(deliveryServiceClient.createDriver()).thenReturn(Map.of("driverId", 88L));
+
+        User saved = userService.registerDriver(req);
+
+        assertEquals(88L, saved.getDriverId());
+        assertEquals(Role.DELIVERY_DRIVER, saved.getRole());
+        assertEquals(30L, saved.getId());
+        assertTrue(
+                SecurityContextHolder.getContext().getAuthentication() instanceof UsernamePasswordAuthenticationToken);
+        assertEquals("30", SecurityContextHolder.getContext().getAuthentication().getName());
+        verify(userRepository, atLeastOnce()).save(any(User.class));
+        verify(deliveryServiceClient).createDriver();
+    }
+
+    @Test
+    void loginUser_authenticatesAndReturnsUser() {
+        when(userRepository.findByEmail("a@b.com")).thenReturn(Optional.of(new User()));
+
+        User u = userService.loginUser("a@b.com", "passw0rd");
+
+        assertNotNull(u);
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(userRepository).findByEmail("a@b.com");
+    }
+
+    @Test
+    void getUserById_returnsUser() {
+        User user = new User();
+        user.setId(5L);
+        when(userRepository.findById(5L)).thenReturn(Optional.of(user));
+
+        User result = userService.getUserById(5L);
+
+        assertEquals(5L, result.getId());
+        verify(userRepository).findById(5L);
     }
 }
