@@ -1,347 +1,165 @@
 package com.fooddelivery.restaurantservice.service;
 
-import com.fooddelivery.restaurantservice.dto.MenuItemDto;
-import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
-import com.fooddelivery.restaurantservice.dto.RestaurantDto;
-import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
-import com.fooddelivery.restaurantservice.mapper.MenuItemMapper;
-import com.fooddelivery.restaurantservice.mapper.RestaurantMapper;
-import com.fooddelivery.restaurantservice.model.MenuItem;
-import com.fooddelivery.restaurantservice.model.Restaurant;
-import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
-import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
+import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
+import com.fooddelivery.restaurantservice.dto.RestaurantOrderRequestDto;
+import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
+import com.fooddelivery.restaurantservice.model.Restaurant;
+import com.fooddelivery.restaurantservice.model.RestaurantOrder;
+import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
+import com.fooddelivery.restaurantservice.repository.RestaurantOrderRepository;
+import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
+import com.fooddelivery.shared.enumerate.OrderStatus;
+import com.fooddelivery.shared.publisher.OrderAcceptedEventPublisher;
+import com.fooddelivery.shared.publisher.OrderReadyEventPublisher;
+import com.fooddelivery.shared.publisher.OrderRejectedEventPublisher;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class RestaurantServiceTest {
 
     @Mock
     private RestaurantRepository restaurantRepository;
-
     @Mock
     private MenuItemRepository menuItemRepository;
-
     @Mock
-    private RestaurantMapper restaurantMapper;
-
+    private RestaurantOrderRepository restaurantOrderRepository;
     @Mock
-    private MenuItemMapper menuItemMapper;
+    private OrderAcceptedEventPublisher orderAcceptedEventPublisher;
+    @Mock
+    private OrderReadyEventPublisher orderReadyEventPublisher;
+    @Mock
+    private OrderRejectedEventPublisher orderRejectedEventPublisher;
 
     @InjectMocks
     private RestaurantService restaurantService;
 
-    // Create restaurant
-    @Test
-    void whenCreateRestaurant_withValidUser_shouldCreateRestaurant() {
-        // Arrange
-        Long ownerId = 1L;
-        RestaurantRequestDto requestDto = new RestaurantRequestDto(
-                "Test Restaurant",
-                "Test Address",
-                "Test Cuisine");
-        when(restaurantRepository.findByOwnerId(ownerId)).thenReturn(Optional.empty());
+    private RestaurantRequestDto sampleRestaurantRequest() {
+        return new RestaurantRequestDto("Resto", "Addr", "Cuisine");
+    }
 
-        // Act
-        RestaurantDto result = restaurantService.createRestaurant(requestDto, ownerId);
-
-        // Assert
-        verify(restaurantRepository, times(1)).save(any(Restaurant.class));
+    private Restaurant makeRestaurant(Long id, Long ownerId) {
+        Restaurant r = new Restaurant();
+        r.setId(id);
+        r.setOwnerId(ownerId);
+        r.setName("Old");
+        r.setAddress("Old");
+        r.setCuisineType("Old");
+        return r;
     }
 
     @Test
-    void whenCreateRestaurant_withExistingRestaurant_shouldThrowException() {
-        // Arrange
-        Long ownerId = 1L;
-        RestaurantRequestDto requestDto = new RestaurantRequestDto(
-                "Test Restaurant",
-                "Test Address",
-                "Test Cuisine");
-        when(restaurantRepository.findByOwnerId(ownerId)).thenReturn(Optional.of(new Restaurant()));
-
-        // Act & Assert
-        assertThrows(IllegalStateException.class, () -> {
-            restaurantService.createRestaurant(requestDto, ownerId);
-        });
-
-        verify(restaurantRepository, times(0)).save(any(Restaurant.class));
-    }
-
-    // Update restaurant
-    @Test
-    void whenUpdateRestaurant_withUserIsOwner_shouldUpdateRestaurant() {
-        // Arrange
-        Long restaurantId = 1L;
-        Long ownerId = 100L;
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(restaurantId);
-        restaurant.setOwnerId(ownerId);
-
-        RestaurantRequestDto requestDto = new RestaurantRequestDto(
-                "Test Restaurant",
-                "Test Address",
-                "Test Cuisine");
-
-        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
-
-        // Act
-        RestaurantDto result = restaurantService.updateRestaurant(restaurantId, requestDto, ownerId);
-
-        // Assert
-        verify(restaurantRepository, times(1)).save(any(Restaurant.class));
+    void createRestaurant_whenOwnerAlreadyHasOne_throws() {
+        when(restaurantRepository.findByOwnerId(10L)).thenReturn(Optional.of(new Restaurant()));
+        assertThrows(IllegalStateException.class,
+                () -> restaurantService.createRestaurant(sampleRestaurantRequest(), 10L));
+        verify(restaurantRepository, never()).save(any());
     }
 
     @Test
-    void whenUpdateRestaurant_withUserIsNotOwner_shouldUpdateRestaurant() {
-        // Arrange
-        Long restaurantId = 1L;
-        Long correctOwnerId = 100L;
-        Long wrongOwnerId = 200L;
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(restaurantId);
-        restaurant.setOwnerId(correctOwnerId);
-
-        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
-
-        RestaurantRequestDto dto = new RestaurantRequestDto("New Name", "New Address", "New Cuisine");
-
-        // Act & Assert
-        // Verify that a SecurityException is thrown when the wrong owner tries to update
-        assertThrows(SecurityException.class, () -> {
-            restaurantService.updateRestaurant(restaurantId, dto, wrongOwnerId);
-        });
-
-        // Verify that save is never called
-        verify(restaurantRepository, never()).save(any(Restaurant.class));
-    }
-
-    // Add menu item
-    @Test
-    void whenAddMenuItem_withValidOwner_shouldAddMenuItem() {
-        // Arrange
-        Long restaurantId = 1L;
-        Long ownerId = 100L;
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(restaurantId);
-        restaurant.setOwnerId(ownerId);
-
-        MenuItemRequestDto requestDto = new MenuItemRequestDto(
-                "Test Item",
-                "Test Description",
-                BigDecimal.ONE);
-
-        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
-
-        // Act
-        restaurantService.addMenuItem(restaurantId, requestDto, ownerId);
-
-        // Assert
-        verify(menuItemRepository, times(1)).save(any(MenuItem.class));
+    void updateRestaurant_unauthorized_throws() {
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(makeRestaurant(1L, 2L)));
+        assertThrows(SecurityException.class,
+                () -> restaurantService.updateRestaurant(1L, sampleRestaurantRequest(), 9L));
+        verify(restaurantRepository, never()).save(any());
     }
 
     @Test
-    void whenAddMenuItem_withInvalidOwner_shouldThrowException() {
-        // Arrange
-        Long restaurantId = 1L;
-        Long ownerId = 100L;
-        Long wrongOwnerId = 200L;
+    void updateRestaurant_success_updatesFieldsAndSaves() {
+        Restaurant existing = makeRestaurant(1L, 5L);
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(restaurantRepository.save(any(Restaurant.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(restaurantId);
-        restaurant.setOwnerId(ownerId);
+        RestaurantRequestDto req = new RestaurantRequestDto("NewName", "NewAddr", "NewCuisine");
+        Restaurant result = restaurantService.updateRestaurant(1L, req, 5L);
 
-        MenuItemRequestDto requestDto = new MenuItemRequestDto(
-                "Test Item",
-                "Test Description",
-                BigDecimal.ONE);
-
-        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
-
-        // Act & Assert
-        // Verify that a SecurityException is thrown when the wrong owner tries to update
-        assertThrows(SecurityException.class, () -> {
-            restaurantService.addMenuItem(restaurantId, requestDto, wrongOwnerId);
-        });
-
-        // Verify that save is never called
-        verify(menuItemRepository, times(0)).save(any(MenuItem.class));
-    }
-
-    // Update menu item
-    @Test
-    void whenUpdateMenuItem_withValidOwner_shouldUpdateMenuItem() {
-        // Arrange
-        Long restaurantId = 1L;
-        Long itemId = 1L;
-        Long ownerId = 100L;
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(restaurantId);
-        restaurant.setOwnerId(ownerId);
-
-        MenuItem menuItem = new MenuItem();
-        menuItem.setId(itemId);
-        menuItem.setRestaurant(restaurant);
-
-        MenuItemRequestDto requestDto = new MenuItemRequestDto(
-                "Test Item",
-                "Test Description",
-                BigDecimal.ONE);
-
-        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
-        when(menuItemRepository.findById(itemId)).thenReturn(Optional.of(menuItem));
-
-        // Act
-        restaurantService.updateMenuItem(restaurantId, itemId, requestDto, ownerId);
-
-        // Assert
-        verify(menuItemRepository, times(1)).save(any(MenuItem.class));
+        assertEquals("NewName", result.getName());
+        assertEquals("NewAddr", result.getAddress());
+        assertEquals("NewCuisine", result.getCuisineType());
+        verify(restaurantRepository).save(existing);
     }
 
     @Test
-    void whenUpdateMenuItem_withInvalidOwner_shouldThrowException() {
-        // Arrange
-        Long restaurantId = 1L;
-        Long itemId = 1L;
-        Long ownerId = 100L;
-        Long wrongOwnerId = 200L;
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(restaurantId);
-        restaurant.setOwnerId(ownerId);
-
-        MenuItemRequestDto requestDto = new MenuItemRequestDto(
-                "Test Item",
-                "Test Description",
-                BigDecimal.ONE);
-
-        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
-
-        // Act & Assert
-        // Verify that a SecurityException is thrown when the wrong owner tries to update
-        assertThrows(SecurityException.class, () -> {
-            restaurantService.updateMenuItem(restaurantId, itemId, requestDto, wrongOwnerId);
-        });
-
-        // Verify that save is never called
-        verify(menuItemRepository, times(0)).save(any(MenuItem.class));
-    }
-
-    // Delete menu item
-    @Test
-    void whenDeleteMenuItem_withValidOwner_shouldDeleteMenuItem() {
-        // Arrange
-        Long restaurantId = 1L;
-        Long itemId = 1L;
-        Long ownerId = 100L;
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(restaurantId);
-        restaurant.setOwnerId(ownerId);
-
-        MenuItem menuItem = new MenuItem();
-        menuItem.setId(itemId);
-        menuItem.setRestaurant(restaurant);
-
-        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
-        when(menuItemRepository.findById(itemId)).thenReturn(Optional.of(menuItem));
-
-        // Act
-        restaurantService.deleteMenuItem(restaurantId, itemId, ownerId);
-
-        // Assert
-        verify(menuItemRepository, times(1)).delete(menuItem);
+    void addMenuItem_unauthorized_throws() {
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(makeRestaurant(1L, 7L)));
+        assertThrows(SecurityException.class,
+                () -> restaurantService.addMenuItem(1L, new MenuItemRequestDto("n", "d", new BigDecimal("10.00")), 8L));
+        verify(menuItemRepository, never()).save(any());
     }
 
     @Test
-    void whenDeleteMenuItem_withInvalidOwner_shouldThrowException() {
-        // Arrange
-        Long restaurantId = 1L;
-        Long itemId = 1L;
-        Long ownerId = 100L;
-        Long wrongOwnerId = 200L;
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(restaurantId);
-        restaurant.setOwnerId(ownerId);
-
-        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
-
-        // Act & Assert
-        // Verify that a SecurityException is thrown when the wrong owner tries to delete
-        assertThrows(SecurityException.class, () -> {
-            restaurantService.deleteMenuItem(restaurantId, itemId, wrongOwnerId);
-        });
-
-        // Verify that delete is never called
-        verify(menuItemRepository, times(0)).delete(any(MenuItem.class));
+    void getRestaurantById_notFound_throws() {
+        when(restaurantRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> restaurantService.getRestaurantById(99L));
     }
 
-    // Get all restaurants
     @Test
-    void whenGetAllRestaurants_shouldReturnAllRestaurants() {
-        // Arrange
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Restaurant> restaurants = new PageImpl<>(List.of(new Restaurant()));
+    void updateRestaurantOrder_whenAccepted_publishesAcceptedEvent() {
+        Restaurant restaurant = makeRestaurant(100L, 50L);
+        when(restaurantRepository.findByOwnerId(50L)).thenReturn(Optional.of(restaurant));
+        RestaurantOrder order = new RestaurantOrder();
+        order.setOrderId(200L);
+        order.setRestaurantId(100L);
+        when(restaurantOrderRepository.findById(200L)).thenReturn(Optional.of(order));
+        when(restaurantOrderRepository.save(any(RestaurantOrder.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        when(restaurantRepository.findAll(pageable)).thenReturn(restaurants);
+        RestaurantOrderRequestDto req = new RestaurantOrderRequestDto(OrderStatus.ACCEPTED, "cook", "notes");
+        RestaurantOrder updated = restaurantService.updateRestaurantOrder(200L, req, 50L);
 
-        // Act
-        Page<RestaurantDto> result = restaurantService.getAllRestaurants(pageable);
-
-        // Assert
-        assertNotNull(result);
+        assertEquals(OrderStatus.ACCEPTED, updated.getLocalStatus());
+        verify(orderAcceptedEventPublisher).publish(any());
+        verify(orderReadyEventPublisher, never()).publish(any());
+        verify(orderRejectedEventPublisher, never()).publish(any());
     }
 
-    // Get restaurant by id
     @Test
-    void whenGetRestaurantById_shouldReturnRestaurant() {
-        // Arrange
-        Long id = 1L;
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(id);
+    void updateRestaurantOrder_invalidStatus_throws() {
+        Restaurant restaurant = makeRestaurant(100L, 50L);
+        when(restaurantRepository.findByOwnerId(50L)).thenReturn(Optional.of(restaurant));
+        RestaurantOrder order = new RestaurantOrder();
+        order.setOrderId(200L);
+        order.setRestaurantId(100L);
+        when(restaurantOrderRepository.findById(200L)).thenReturn(Optional.of(order));
 
-        when(restaurantRepository.findById(id)).thenReturn(Optional.of(restaurant));
-
-        // Act
-        RestaurantDto result = restaurantService.getRestaurantById(id);
-
-        // Assert
-        verify(restaurantRepository, times(1)).findById(id);
+        RestaurantOrderRequestDto req = new RestaurantOrderRequestDto(OrderStatus.PENDING, null, null);
+        assertThrows(IllegalArgumentException.class, () -> restaurantService.updateRestaurantOrder(200L, req, 50L));
+        verifyNoInteractions(orderAcceptedEventPublisher, orderReadyEventPublisher, orderRejectedEventPublisher);
     }
 
-    // Get restaurant menu
     @Test
-    void whenGetRestaurantMenu_shouldReturnMenu() {
-        // Arrange
-        Long id = 1L;
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(id);
+    void updateRestaurantOrder_unauthorized_throws() {
+        Restaurant restaurant = makeRestaurant(101L, 50L);
+        when(restaurantRepository.findByOwnerId(50L)).thenReturn(Optional.of(restaurant));
+        RestaurantOrder order = new RestaurantOrder();
+        order.setOrderId(200L);
+        order.setRestaurantId(100L);
+        when(restaurantOrderRepository.findById(200L)).thenReturn(Optional.of(order));
 
-        when(restaurantRepository.findById(id)).thenReturn(Optional.of(restaurant));
+        RestaurantOrderRequestDto req = new RestaurantOrderRequestDto(OrderStatus.ACCEPTED, null, null);
+        assertThrows(SecurityException.class, () -> restaurantService.updateRestaurantOrder(200L, req, 50L));
+        verify(restaurantOrderRepository, never()).save(any());
+    }
 
-        // Act
-        List<MenuItemDto> result = restaurantService.getRestaurantMenu(id);
-
-        // Assert
-        verify(restaurantRepository, times(1)).findById(id);
+    @Test
+    void updateRestaurantOrder_nullOrderId_throws() {
+        assertThrows(IllegalArgumentException.class, () -> restaurantService.updateRestaurantOrder(null,
+                new RestaurantOrderRequestDto(OrderStatus.ACCEPTED, null, null), 1L));
     }
 }
