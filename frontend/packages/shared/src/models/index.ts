@@ -1,6 +1,7 @@
 export * from "./MenuItem";
 export * from "./Order";
 export * from "./OrderItem";
+export * from "./OrderStatus";
 export * from "./Restaurant";
 export * from "./RestaurantOrder";
 export * from "./RestaurantOrderItem";
