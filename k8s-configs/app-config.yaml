@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  kafka-bootstrap-servers: food-delivery-kafka-cluster-kafka-bootstrap.kafka:9092
+  jwt-expiration: "864000"

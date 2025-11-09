@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delivery-service-deployment
+  labels:
+    app: delivery-service
+spec:
+  replicas: 1 # Start with two instances for high availability
+  selector:
+    matchLabels:
+      app: delivery-service
+  template:
+    metadata:
+      labels:
+        app: delivery-service
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: delivery-service
+          image: minh020698/event-driven-food-delivery-delivery-service:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 8081
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "256m"
+              ephemeral-storage: "1Gi"
+            limits:
+              memory: "2Gi"
+              cpu: "512m"
+          
+          env:
+          - name: SPRING_DATASOURCE_URL
+            valueFrom:
+              secretKeyRef:
+                name: food-delivery-db-cluster-app
+                key: jdbc-uri
+          
+          - name: KAFKA_BOOTSTRAP_SERVERS
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: kafka-bootstrap-servers
+          
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: jwt-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: delivery-service-service
+spec:
+  selector:
+    app: delivery-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8081

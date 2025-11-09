@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-service-deployment
+  namespace: default
+  labels:
+    app: restaurant-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: restaurant-service
+  template:
+    metadata:
+      labels:
+        app: restaurant-service
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: restaurant-service
+          image: minh020698/event-driven-food-delivery-restaurant-service:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 8081
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "512m"
+              ephemeral-storage: "1Gi"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          
+          env:
+          - name: SPRING_DATASOURCE_URL
+            valueFrom:
+              secretKeyRef:
+                name: food-delivery-db-cluster-app
+                key: jdbc-uri
+          
+          - name: KAFKA_BOOTSTRAP_SERVERS
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: kafka-bootstrap-servers
+          
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: jwt-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-service-service
+spec:
+  selector:
+    app: restaurant-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8081
