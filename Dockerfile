@@ -1,7 +1,7 @@
 # --- STAGE 1: Shared Builder ---
 FROM eclipse-temurin:25-jdk-jammy AS builder
+ARG VERSION
 WORKDIR /app
-# Copy the entire project context into the container.
 COPY .mvn .mvn
 COPY mvnw .
 COPY pom.xml .
@@ -51,10 +51,21 @@ CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 
 # --- STAGE 5: Target Delivery Service ---
 FROM eclipse-temurin:25-jre-jammy AS delivery-service
+
 WORKDIR /app
 RUN mkdir -p /app/lib
 COPY --from=builder /app/delivery-service/target/*.jar app.jar
 COPY --from=builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
 COPY --from=builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
 EXPOSE 8084
+CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
+
+# --- STAGE 6: Target API Gateway ---
+FROM eclipse-temurin:25-jre-jammy AS api-gateway
+WORKDIR /app
+RUN mkdir -p /app/lib
+COPY --from=builder /app/api-gateway/target/*.jar app.jar
+COPY --from=builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
+COPY --from=builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
+EXPOSE 8080
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]

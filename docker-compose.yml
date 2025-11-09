@@ -41,6 +41,9 @@ services:
       context: .
       dockerfile: Dockerfile
       target: user-service
+      args:
+        - VERSION=${VERSION}
+    image: minh020698/event-driven-food-delivery-user-service:${VERSION}
     depends_on:
       - postgres-db
     ports:
@@ -56,6 +59,9 @@ services:
       context: . 
       dockerfile: Dockerfile
       target: restaurant-service
+      args:
+        - VERSION=${VERSION}
+    image: minh020698/event-driven-food-delivery-restaurant-service:${VERSION}
     depends_on:
       - postgres-db
       - kafka-broker
@@ -73,6 +79,9 @@ services:
       context: . 
       dockerfile: Dockerfile 
       target: order-service
+      args:
+        - VERSION=${VERSION}
+    image: minh020698/event-driven-food-delivery-order-service:${VERSION}
     depends_on:
       - postgres-db
       - kafka-broker
@@ -88,13 +97,36 @@ services:
   delivery-service:
     build:
       context: . 
-      dockerfile: Dockerfile 
+      dockerfile: Dockerfile
       target: delivery-service
+      args:
+        VERSION: ${VERSION}
+    image: minh020698/event-driven-food-delivery-delivery-service:${VERSION}
     depends_on:
       - postgres-db
       - kafka-broker
     ports:
       - "8084:8084"
+    environment:
+      JWT_SECRET: QyHu78l6L9ieD/yAehE+3gPzVDsGT9Mq8NQOQveQfXngZJz14dKNyAhFK3Rsiccl
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/food_delivery_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api-gateway
+      args:
+        - VERSION=${VERSION}
+    image: minh020698/event-driven-food-delivery-api-gateway:${VERSION}
+    depends_on:
+      - postgres-db
+      - kafka-broker
+    ports:
+      - "8080:8080"
     environment:
       JWT_SECRET: QyHu78l6L9ieD/yAehE+3gPzVDsGT9Mq8NQOQveQfXngZJz14dKNyAhFK3Rsiccl
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/food_delivery_db
