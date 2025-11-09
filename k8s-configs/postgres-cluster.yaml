@@ -1,0 +1,47 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: food-delivery-db-cluster # The name for your PostgreSQL cluster
+  namespace: default
+spec:
+  # --- High Availability ---
+  instances: 1 # Creates one primary and two read-only replicas
+
+  # --- Database Version ---
+  imageName: ghcr.io/cloudnative-pg/postgresql:15.1 # Specify the Postgres version
+
+  # --- Initial Database Setup (only runs once at creation) ---
+  bootstrap:
+    initdb:
+      database: food_delivery_db # The primary database for your app
+      owner: user
+
+  # --- Storage Configuration ---
+  storage:
+    size: "1Gi" # Each instance gets a 1Gi Persistent Volume
+
+  # # --- Connection Pooling Configuration ---
+  # pgaurora:
+  #   # This enables a built-in PgBouncer instance, highly recommended
+  #   pooler:
+  #     minInstances: 2
+  #     maxInstances: 2
+
+  # # --- Backup Configuration ---
+  # # This section is critical for production
+  # backup:
+  #   barmanObjectStore:
+  #     # You need to create a secret 'aws-credentials' with your S3 key and secret
+  #     # The operator will use this to connect to your S3 bucket
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: aws-credentials
+  #         key: ACCESS_KEY_ID
+  #       secretAccessKey:
+  #         name: aws-credentials
+  #         key: ACCESS_SECRET_KEY
+
+  #     destinationPath: "s3://your-postgres-backups-bucket/food-delivery-db/"
+  #     endpointURL: "https://s3.us-east-2.amazonaws.com" # Change to your region
+  #   retentionPolicy: "30d" # Keep backups for 30 days
+
