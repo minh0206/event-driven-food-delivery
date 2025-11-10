@@ -24,9 +24,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.fooddelivery.shared.dto.RestaurantRequestDto;
 import com.fooddelivery.shared.exception.EmailExistsException;
+import com.fooddelivery.shared.feignclient.DeliveryServiceClient;
+import com.fooddelivery.shared.feignclient.RestaurantServiceClient;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
-import com.fooddelivery.userservice.dto.RestaurantRegisterRequestDto;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.repository.UserRepository;
@@ -54,24 +56,25 @@ class UserServiceTest {
     }
 
     private RegisterRequestDto buildRegisterReq() {
-        RegisterRequestDto dto = new RegisterRequestDto();
-        dto.setEmail("john@example.com");
-        dto.setPassword("password123");
-        dto.setFirstName("John");
-        dto.setLastName("Doe");
-        return dto;
+        return new RegisterRequestDto(
+                "john@example.com",
+                "password123",
+                "John",
+                "Doe",
+                "",
+                "",
+                "");
     }
 
-    private RestaurantRegisterRequestDto buildRestaurantReq() {
-        RestaurantRegisterRequestDto dto = new RestaurantRegisterRequestDto();
-        dto.setEmail("owner@example.com");
-        dto.setPassword("password123");
-        dto.setFirstName("Owner");
-        dto.setLastName("One");
-        dto.setRestaurantName("Testaurant");
-        dto.setAddress("123 St");
-        dto.setCuisineType("Asian");
-        return dto;
+    private RegisterRequestDto buildRestaurantReq() {
+        return new RegisterRequestDto(
+                "owner@example.com",
+                "password123",
+                "Owner",
+                "One",
+                "Testaurant",
+                "123 St",
+                "Asian");
     }
 
     @Test
@@ -104,16 +107,21 @@ class UserServiceTest {
 
     @Test
     void registerRestaurantAdmin_callsRestaurantServiceAndSavesRestaurantId() throws Exception {
-        RestaurantRegisterRequestDto req = buildRestaurantReq();
-        when(userRepository.findByEmail(req.getEmail())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(req.getPassword())).thenReturn("ENC");
+        RegisterRequestDto req = buildRestaurantReq();
+        RestaurantRequestDto restaurantReq = new RestaurantRequestDto(
+                req.restaurantName(),
+                req.address(),
+                req.cuisineType());
+
+        when(userRepository.findByEmail(req.email())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(req.password())).thenReturn("ENC");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> {
             User u = inv.getArgument(0);
             if (u.getId() == null)
                 u.setId(20L);
             return u;
         });
-        when(restaurantServiceClient.createRestaurant(req)).thenReturn(Map.of("restaurantId", 77L));
+        when(restaurantServiceClient.createRestaurant(restaurantReq)).thenReturn(Map.of("restaurantId", 77L));
 
         User saved = userService.registerRestaurantAdmin(req);
 
@@ -125,14 +133,14 @@ class UserServiceTest {
                 SecurityContextHolder.getContext().getAuthentication() instanceof UsernamePasswordAuthenticationToken);
         assertEquals("20", SecurityContextHolder.getContext().getAuthentication().getName());
         verify(userRepository, atLeastOnce()).save(any(User.class));
-        verify(restaurantServiceClient).createRestaurant(req);
+        verify(restaurantServiceClient).createRestaurant(restaurantReq);
     }
 
     @Test
     void registerDriver_callsDeliveryServiceAndSavesDriverId() throws Exception {
         RegisterRequestDto req = buildRegisterReq();
-        when(userRepository.findByEmail(req.getEmail())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(req.getPassword())).thenReturn("ENC");
+        when(userRepository.findByEmail(req.email())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(req.password())).thenReturn("ENC");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> {
             User u = inv.getArgument(0);
             if (u.getId() == null)

@@ -19,12 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantOrderRequestDto;
-import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.model.RestaurantOrder;
 import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantOrderRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
+import com.fooddelivery.shared.dto.RestaurantRequestDto;
 import com.fooddelivery.shared.enumerate.OrderStatus;
 import com.fooddelivery.shared.publisher.OrderAcceptedEventPublisher;
 import com.fooddelivery.shared.publisher.OrderReadyEventPublisher;
@@ -159,7 +159,7 @@ class RestaurantServiceTest {
 
     @Test
     void updateRestaurantOrder_nullOrderId_throws() {
-        assertThrows(IllegalArgumentException.class, () -> restaurantService.updateRestaurantOrder(null,
+        assertThrows(EntityNotFoundException.class, () -> restaurantService.updateRestaurantOrder(null,
                 new RestaurantOrderRequestDto(OrderStatus.ACCEPTED, null, null), 1L));
     }
 }
