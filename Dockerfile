@@ -1,5 +1,5 @@
-# --- STAGE 1: Shared Builder ---
-FROM eclipse-temurin:25-jdk-jammy AS builder
+# --- STAGE 1.1: Backend Builder ---
+FROM eclipse-temurin:25-jdk-jammy AS backend-builder
 ARG VERSION
 WORKDIR /app
 COPY .mvn .mvn
@@ -15,14 +15,20 @@ COPY delivery-service /app/delivery-service
 # Build the entire project
 RUN ./mvnw clean package -DskipTests
 
+# --- STAGE 1.2: Frontend Builder ---
+FROM node:22-alpine AS frontend-builder
+WORKDIR /app
+COPY frontend /app
+RUN npm install -g pnpm && pnpm install && pnpm build
+
 
 # --- STAGE 2: Target User Service ---
 FROM eclipse-temurin:25-jre-jammy AS user-service
 WORKDIR /app
 RUN mkdir -p /app/lib
-COPY --from=builder /app/user-service/target/*.jar app.jar
-COPY --from=builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
-COPY --from=builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
+COPY --from=backend-builder /app/user-service/target/*.jar app.jar
+COPY --from=backend-builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
+COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
 EXPOSE 8081
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 
@@ -31,9 +37,9 @@ CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 FROM eclipse-temurin:25-jre-jammy AS restaurant-service
 WORKDIR /app
 RUN mkdir -p /app/lib
-COPY --from=builder /app/restaurant-service/target/*.jar app.jar
-COPY --from=builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
-COPY --from=builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
+COPY --from=backend-builder /app/restaurant-service/target/*.jar app.jar
+COPY --from=backend-builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
+COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
 EXPOSE 8082
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 
@@ -42,9 +48,9 @@ CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 FROM eclipse-temurin:25-jre-jammy AS order-service
 WORKDIR /app
 RUN mkdir -p /app/lib
-COPY --from=builder /app/order-service/target/*.jar app.jar
-COPY --from=builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
-COPY --from=builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
+COPY --from=backend-builder /app/order-service/target/*.jar app.jar
+COPY --from=backend-builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
+COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
 EXPOSE 8083
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 
@@ -54,9 +60,9 @@ FROM eclipse-temurin:25-jre-jammy AS delivery-service
 
 WORKDIR /app
 RUN mkdir -p /app/lib
-COPY --from=builder /app/delivery-service/target/*.jar app.jar
-COPY --from=builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
-COPY --from=builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
+COPY --from=backend-builder /app/delivery-service/target/*.jar app.jar
+COPY --from=backend-builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
+COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
 EXPOSE 8084
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 
@@ -64,8 +70,19 @@ CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 FROM eclipse-temurin:25-jre-jammy AS api-gateway
 WORKDIR /app
 RUN mkdir -p /app/lib
-COPY --from=builder /app/api-gateway/target/*.jar app.jar
-COPY --from=builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
-COPY --from=builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
+COPY --from=backend-builder /app/api-gateway/target/*.jar app.jar
+COPY --from=backend-builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
+COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
 EXPOSE 8080
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
+
+# --- STAGE 7: Target Frontend ---
+FROM nginx:alpine AS frontend
+COPY --from=frontend-builder /app/apps/customer/dist /usr/share/nginx/html/customer
+COPY --from=frontend-builder /app/apps/restaurant/dist /usr/share/nginx/html/restaurant
+COPY --from=frontend-builder /app/apps/driver/dist /usr/share/nginx/html/driver
+COPY frontend/nginx/sites-available/*.conf /etc/nginx/conf.d/
+RUN nginx -t && nginx -s reload
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

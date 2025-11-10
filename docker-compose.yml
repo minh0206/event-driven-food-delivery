@@ -13,13 +13,14 @@ services:
     depends_on:
       - zookeeper
     ports:
-      # Map the container port 9092 to your host machine's port 9092 (for local testing/tools)
-      - "9092:9092"
+      - "29092:29092" # Kafka host port
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      # Advertised listeners configuration is crucial for Docker networking
-      KAFKA_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://localhost:29092
+      # Bind both listeners on all interfaces inside the container
+      # KAFKA_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      # Advertise correct addresses for each network
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -72,7 +73,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/food_delivery_db
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      # KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      KAFKA_BOOTSTRAP_SERVERS: localhost:9092
   
   order-service:
     build:
@@ -124,15 +126,20 @@ services:
     image: minh020698/event-driven-food-delivery-api-gateway:${VERSION}
     depends_on:
       - postgres-db
-      - kafka-broker
     ports:
-      - "8080:8080"
-    environment:
-      JWT_SECRET: QyHu78l6L9ieD/yAehE+3gPzVDsGT9Mq8NQOQveQfXngZJz14dKNyAhFK3Rsiccl
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/food_delivery_db
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
-      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      - "8761:8761"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+      args:
+        - VERSION=${VERSION}
+    image: minh020698/event-driven-food-delivery-frontend:${VERSION}
+    ports:
+      - "80:80"
+     
 
 volumes:
   postgres_data:
