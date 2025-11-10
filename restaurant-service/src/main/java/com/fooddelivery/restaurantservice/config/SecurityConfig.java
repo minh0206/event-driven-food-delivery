@@ -26,7 +26,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/restaurants",
+                        .requestMatchers("/actuator/**",
+                                "/api/restaurants",
                                 "/api/restaurants/{id}",
                                 "/api/restaurants/{id}/menu",
                                 "/ws/**")
