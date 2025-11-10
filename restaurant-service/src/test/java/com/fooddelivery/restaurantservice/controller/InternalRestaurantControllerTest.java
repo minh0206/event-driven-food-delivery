@@ -19,9 +19,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.service.RestaurantService;
+import com.fooddelivery.shared.dto.RestaurantRequestDto;
 
 @ExtendWith(MockitoExtension.class)
 class InternalRestaurantControllerTest {
