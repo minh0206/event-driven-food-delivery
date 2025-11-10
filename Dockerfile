@@ -12,6 +12,7 @@ COPY user-service /app/user-service
 COPY restaurant-service /app/restaurant-service
 COPY order-service /app/order-service
 COPY delivery-service /app/delivery-service
+COPY service-discovery /app/service-discovery
 # Build the entire project
 RUN ./mvnw clean package -DskipTests
 
