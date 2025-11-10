@@ -19,8 +19,9 @@
     <packaging>pom</packaging>
 
     <properties>
-        <project.version>${env.VERSION}</project.version>
+        <project.version>0.0.1-SNAPSHOT</project.version>
         <java.version>25</java.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
         <org.mapstruct.version>1.6.2</org.mapstruct.version>
         <org.projectlombok.version>1.18.42</org.projectlombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,6 +34,7 @@
         <module>order-service</module>
         <module>delivery-service</module>
         <module>api-gateway</module>
+        <module>service-discovery</module>
         <module>security-jwt-lib</module>
         <module>shared-module</module>
     </modules>
@@ -49,6 +51,15 @@
     <!-- This section manages dependency versions for all child modules -->
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Cloud Dependencies -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- Your Project Modules -->
             <dependency>
                 <groupId>com.fooddelivery</groupId>
