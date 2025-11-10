@@ -77,13 +77,23 @@ COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security
 EXPOSE 8080
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 
-# --- STAGE 7: Target Frontend ---
+# --- STAGE 7: Target Service Discovery ---
+FROM eclipse-temurin:25-jre-jammy AS service-discovery
+WORKDIR /app
+RUN mkdir -p /app/lib
+COPY --from=backend-builder /app/service-discovery/target/*.jar app.jar
+COPY --from=backend-builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
+COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
+EXPOSE 8761
+CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
+
+# --- STAGE 8: Target Frontend ---
 FROM nginx:alpine AS frontend
 COPY --from=frontend-builder /app/apps/customer/dist /usr/share/nginx/html/customer
 COPY --from=frontend-builder /app/apps/restaurant/dist /usr/share/nginx/html/restaurant
 COPY --from=frontend-builder /app/apps/driver/dist /usr/share/nginx/html/driver
 COPY frontend/nginx/sites-available/*.conf /etc/nginx/conf.d/
-RUN nginx -t && nginx -s reload
+RUN nginx -t
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
