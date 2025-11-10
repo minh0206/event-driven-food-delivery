@@ -20,13 +20,13 @@ import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantOrderDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantOrderRequestDto;
-import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.mapper.MenuItemMapper;
 import com.fooddelivery.restaurantservice.mapper.RestaurantMapper;
 import com.fooddelivery.restaurantservice.mapper.RestaurantOrderMapper;
 import com.fooddelivery.restaurantservice.model.MenuItem;
 import com.fooddelivery.restaurantservice.model.RestaurantOrder;
 import com.fooddelivery.restaurantservice.service.RestaurantService;
+import com.fooddelivery.shared.dto.RestaurantRequestDto;
 
 import lombok.AllArgsConstructor;
 

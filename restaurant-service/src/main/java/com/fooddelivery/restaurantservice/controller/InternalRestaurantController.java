@@ -9,10 +9,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.service.RestaurantService;
+import com.fooddelivery.shared.dto.RestaurantRequestDto;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -24,7 +25,7 @@ public class InternalRestaurantController {
     @PostMapping()
     @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public Map<String, Long> createRestaurant(
-            @RequestBody RestaurantRequestDto requestDto,
+            @RequestBody @Valid RestaurantRequestDto requestDto,
             Principal principal) {
         Long ownerId = Long.parseLong(principal.getName());
         Restaurant createdRestaurant = restaurantService.createRestaurant(requestDto, ownerId);

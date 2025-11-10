@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantOrderRequestDto;
-import com.fooddelivery.restaurantservice.dto.RestaurantRequestDto;
 import com.fooddelivery.restaurantservice.model.MenuItem;
 import com.fooddelivery.restaurantservice.model.Restaurant;
 import com.fooddelivery.restaurantservice.model.RestaurantOrder;
@@ -18,6 +17,7 @@ import com.fooddelivery.restaurantservice.model.RestaurantOrderItem;
 import com.fooddelivery.restaurantservice.repository.MenuItemRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantOrderRepository;
 import com.fooddelivery.restaurantservice.repository.RestaurantRepository;
+import com.fooddelivery.shared.dto.RestaurantRequestDto;
 import com.fooddelivery.shared.enumerate.OrderStatus;
 import com.fooddelivery.shared.event.OrderAcceptedEvent;
 import com.fooddelivery.shared.event.OrderPlacedEvent;
