@@ -26,7 +26,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
+                        .requestMatchers("/actuator/**", "/ws/**").permitAll() // Allow WebSocket connections
                         .anyRequest().authenticated() // Secure all other endpoints
                 )
                 .sessionManagement(session -> session
