@@ -55,7 +55,8 @@ const CartPage = () => {
           title: "Order placed successfully!",
         });
         console.log("Order placed successfully:", response);
-        // clearCart();
+
+        clearCart();
         navigate("/orders");
       })
       .catch((error) => {
