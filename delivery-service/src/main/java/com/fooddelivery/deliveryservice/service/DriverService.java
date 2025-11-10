@@ -9,6 +9,7 @@ import com.fooddelivery.shared.dto.DriverOrderDto;
 import com.fooddelivery.shared.event.DriverLocationUpdateEvent;
 import com.fooddelivery.shared.event.OrderDeliveredEvent;
 import com.fooddelivery.shared.event.OrderInTransitEvent;
+import com.fooddelivery.shared.feignclient.OrderServiceClient;
 import com.fooddelivery.shared.publisher.DriverLocationUpdateEventPublisher;
 import com.fooddelivery.shared.publisher.OrderDeliveredEventPublisher;
 import com.fooddelivery.shared.publisher.OrderInTransitEventPublisher;

@@ -31,10 +31,6 @@
         <!-- Dependency on the shared module for this microservice -->
         <dependency>
             <groupId>com.fooddelivery</groupId>
-            <artifactId>security-jwt-lib</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fooddelivery</groupId>
             <artifactId>shared-module</artifactId>
         </dependency>
 
