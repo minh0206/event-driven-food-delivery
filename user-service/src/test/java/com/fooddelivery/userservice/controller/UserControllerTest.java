@@ -28,7 +28,6 @@ import com.fooddelivery.userservice.dto.DriverDto;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.RestaurantAdminDto;
-import com.fooddelivery.userservice.dto.RestaurantRegisterRequestDto;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
@@ -58,11 +57,14 @@ class UserControllerTest {
 
     @Test
     void registerCustomer_returnsToken() throws Exception {
-        RegisterRequestDto req = new RegisterRequestDto();
-        req.setEmail("john@example.com");
-        req.setPassword("password123");
-        req.setFirstName("John");
-        req.setLastName("Doe");
+        RegisterRequestDto req = new RegisterRequestDto(
+                "john@example.com",
+                "password123",
+                "John",
+                "Doe",
+                "",
+                "",
+                "");
 
         User saved = new User();
         saved.setId(1L);
@@ -83,18 +85,20 @@ class UserControllerTest {
 
     @Test
     void registerRestaurantAdmin_returnsToken() throws Exception {
-        RestaurantRegisterRequestDto req = new RestaurantRegisterRequestDto();
-        req.setEmail("owner@example.com");
-        req.setPassword("password123");
-        req.setFirstName("Owner");
-        req.setLastName("One");
-        req.setRestaurantName("Rest");
+        RegisterRequestDto req = new RegisterRequestDto(
+                "owner@example.com",
+                "password123",
+                "Owner",
+                "One",
+                "Rest",
+                "",
+                "");
 
         User saved = new User();
         saved.setId(2L);
         saved.setRole(Role.RESTAURANT_ADMIN);
 
-        when(userService.registerRestaurantAdmin(any(RestaurantRegisterRequestDto.class))).thenReturn(saved);
+        when(userService.registerRestaurantAdmin(any(RegisterRequestDto.class))).thenReturn(saved);
         when(jwtService.generateToken("2", Role.RESTAURANT_ADMIN.toString())).thenReturn("jwt-token-2");
 
         mockMvc.perform(post("/api/users/register/restaurant")
@@ -103,16 +107,20 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token-2"))));
 
-        verify(userService).registerRestaurantAdmin(any(RestaurantRegisterRequestDto.class));
+        verify(userService).registerRestaurantAdmin(any(RegisterRequestDto.class));
         verify(jwtService).generateToken("2", Role.RESTAURANT_ADMIN.toString());
     }
 
     @Test
     void registerDriver_returnsToken() throws Exception {
-        RegisterRequestDto req = new RegisterRequestDto();
-        req.setEmail("driver@example.com");
-        req.setPassword("password123");
-        req.setFirstName("Driver");
+        RegisterRequestDto req = new RegisterRequestDto(
+                "driver@example.com",
+                "password123",
+                "Driver",
+                "",
+                "",
+                "",
+                "");
 
         User saved = new User();
         saved.setId(3L);
