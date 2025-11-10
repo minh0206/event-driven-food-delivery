@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useAuthStore } from "@repo/shared/hooks";
 import { useEffect } from "react";
-import { useForm, type FieldValues } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { PasswordInput } from "../components/ui/password-input";
 
@@ -25,11 +25,10 @@ export const LoginPage = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>();
-
   const { user, isLoading, isInitialized, login, initialize } = useAuthStore();
   const navigate = useNavigate();
 
-  const onSubmit = async (data: FieldValues) => {
+  const onSubmit = async (data: FormValues) => {
     try {
       await login(data.email, data.password);
       navigate("/"); // Redirect to home on successful login

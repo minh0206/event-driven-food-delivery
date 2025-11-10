@@ -1,10 +1,11 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
+import { Role } from "@repo/shared/models";
 import { ErrorPage, LoginPage, SignUpPage } from "@repo/ui/pages";
-import { ProfilePage } from "./pages/ProfilePage";
 import PrivateRoutes from "./components/PrivateRoutes";
 import { HistoryPage } from "./pages/HistoryPage";
 import { HomePage } from "./pages/HomePage";
+import { ProfilePage } from "./pages/ProfilePage";
 
 const router = createBrowserRouter([
   {
@@ -18,7 +19,7 @@ const router = createBrowserRouter([
     ],
   },
   { path: "/login", element: <LoginPage /> },
-  { path: "/signup", element: <SignUpPage /> },
+  { path: "/signup", element: <SignUpPage role={Role.DRIVER} /> },
 ]);
 
 export const Routes = () => {

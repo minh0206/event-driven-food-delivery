@@ -10,41 +10,55 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useAuthStore } from "@repo/shared/hooks";
-import { useForm, type FieldValues } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Role } from "@repo/shared/models";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { Link, Navigate } from "react-router-dom";
 import { PasswordInput } from "../components/ui/password-input";
 
 interface FormValues {
   email: string;
   password: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
+  restaurantName?: string;
+  address?: string;
+  cuisineType?: string;
 }
 
-export const SignUpPage = () => {
+export const SignUpPage = ({ role }: { role: Role }) => {
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors },
   } = useForm<FormValues>();
-  const { login } = useAuthStore();
-  const navigate = useNavigate();
-
-  const onSubmit = async (data: FieldValues) => {
-    // try {
-    //   const response = await apiClient.post("/users/register/customer", data);
-    //   const { token } = response.data;
-    //   login(token); // Save token to context and localStorage
-    //   navigate("/"); // Redirect to home on successful login
-    // } catch (error: any) {
-    //   // Handle sign up error (e.g., show a notification)
-    //   if (error.response.status === 409) {
-    //     console.log(error.response.data);
-    //     setError("email", { type: "conflict" });
-    //   }
-    // }
+  const {
+    register: registerUser,
+    initialize,
+    isInitialized,
+    user,
+    isLoading,
+  } = useAuthStore();
+  const onSubmit = async (data: FormValues) => {
+    try {
+      await registerUser({ role, ...data });
+    } catch (error: any) {
+      if (error.response.status === 409) {
+        setError("email", { type: "conflict" });
+      }
+    }
   };
+
+  useEffect(() => {
+    if (!isInitialized) initialize();
+  }, [initialize, user]);
+
+  // If the user is loading, show a loading state
+  if (isLoading) return <div>Loading...</div>;
+
+  // If the user is authenticated, redirect to home page
+  if (user) return <Navigate to="/" replace />;
 
   return (
     <AbsoluteCenter>
@@ -61,8 +75,10 @@ export const SignUpPage = () => {
           </Card.Header>
           <Card.Body>
             <Stack gap="4">
-              <Field.Root invalid={!!errors.email}>
-                <Field.Label>Email</Field.Label>
+              <Field.Root required invalid={!!errors.email}>
+                <Field.Label>
+                  Email <Field.RequiredIndicator />
+                </Field.Label>
                 <Input
                   {...register("email", { required: true })}
                   placeholder="Email"
@@ -74,8 +90,10 @@ export const SignUpPage = () => {
                 </Field.ErrorText>
               </Field.Root>
 
-              <Field.Root invalid={!!errors.password}>
-                <Field.Label>Password</Field.Label>
+              <Field.Root required invalid={!!errors.password}>
+                <Field.Label>
+                  Password <Field.RequiredIndicator />
+                </Field.Label>
                 <PasswordInput
                   {...register("password", { required: true, minLength: 8 })}
                   placeholder="Password"
@@ -88,9 +106,14 @@ export const SignUpPage = () => {
                 </Field.ErrorText>
               </Field.Root>
 
-              <Field.Root invalid={!!errors.firstName}>
-                <Field.Label>First name</Field.Label>
-                <Input {...register("firstName", { required: true })} />
+              <Field.Root required invalid={!!errors.firstName}>
+                <Field.Label>
+                  First name <Field.RequiredIndicator />
+                </Field.Label>
+                <Input
+                  {...register("firstName", { required: true })}
+                  placeholder="First name"
+                />
                 <Field.ErrorText>
                   {errors.firstName?.type === "required" &&
                     "First name is required"}
@@ -99,12 +122,50 @@ export const SignUpPage = () => {
 
               <Field.Root invalid={!!errors.lastName}>
                 <Field.Label>Last name</Field.Label>
-                <Input {...register("lastName", { required: true })} />
-                <Field.ErrorText>
-                  {errors.lastName?.type === "required" &&
-                    "Last name is required"}
-                </Field.ErrorText>
+                <Input {...register("lastName")} placeholder="Last name" />
+                <Field.ErrorText>{errors.lastName?.message}</Field.ErrorText>
               </Field.Root>
+
+              {role === Role.RESTAURANT_ADMIN && (
+                <>
+                  <Field.Root
+                    required={role === Role.RESTAURANT_ADMIN}
+                    invalid={!!errors.restaurantName}
+                  >
+                    <Field.Label>
+                      Restaurant name
+                      <Field.RequiredIndicator />
+                    </Field.Label>
+                    <Input
+                      {...register("restaurantName", {
+                        required: role === Role.RESTAURANT_ADMIN,
+                      })}
+                      placeholder="Restaurant name"
+                    />
+                    <Field.ErrorText>
+                      {errors.restaurantName?.type === "required" &&
+                        "Restaurant name is required"}
+                    </Field.ErrorText>
+                  </Field.Root>
+
+                  <Field.Root invalid={!!errors.address}>
+                    <Field.Label>Address</Field.Label>
+                    <Input {...register("address")} placeholder="Address" />
+                    <Field.ErrorText>{errors.address?.message}</Field.ErrorText>
+                  </Field.Root>
+
+                  <Field.Root invalid={!!errors.cuisineType}>
+                    <Field.Label>Cuisine type</Field.Label>
+                    <Input
+                      {...register("cuisineType")}
+                      placeholder="Cuisine type"
+                    />
+                    <Field.ErrorText>
+                      {errors.cuisineType?.message}
+                    </Field.ErrorText>
+                  </Field.Root>
+                </>
+              )}
 
               <Button type="submit" variant="solid">
                 Sign up

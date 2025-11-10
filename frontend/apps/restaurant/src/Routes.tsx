@@ -1,10 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 
+import { Role } from "@repo/shared/models";
 import { ErrorPage, LoginPage, SignUpPage } from "@repo/ui/pages";
-import { ProfilePage } from "./pages/ProfilePage";
 import PrivateRoutes from "./components/PrivateRoutes";
 import MenuManagementPage from "./pages/MenuManagementPage";
 import OrderManagementPage from "./pages/OrderManagementPage";
+import { ProfilePage } from "./pages/ProfilePage";
 
 const router = createBrowserRouter([
   {
@@ -18,7 +19,7 @@ const router = createBrowserRouter([
     ],
   },
   { path: "/login", element: <LoginPage /> },
-  { path: "/signup", element: <SignUpPage /> },
+  { path: "/signup", element: <SignUpPage role={Role.RESTAURANT_ADMIN} /> },
 ]);
 
 export default router;

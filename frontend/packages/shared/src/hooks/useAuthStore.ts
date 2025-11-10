@@ -2,6 +2,7 @@ import { mountStoreDevtool } from "simple-zustand-devtools";
 import { create } from "zustand";
 import { User } from "../models/User";
 import { userService } from "../services";
+import { RegisterUser } from "../services/UserService";
 
 type AuthState = {
   token: string | null;
@@ -10,6 +11,7 @@ type AuthState = {
   isInitialized: boolean;
   initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  register: (registerUser: RegisterUser) => Promise<void>;
   logout: () => void;
 };
 
@@ -46,6 +48,21 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     const user = await userService.getProfile();
     set(() => ({ token, user, isLoading: false }));
+  },
+
+  register: async (registerUser: RegisterUser) => {
+    set({ isLoading: true });
+
+    try {
+      const { token } = await userService.registerUser(registerUser);
+      localStorage.setItem("authToken", token);
+
+      const user = await userService.getProfile();
+      set(() => ({ token, user, isLoading: false }));
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
   },
 
   logout: () => {

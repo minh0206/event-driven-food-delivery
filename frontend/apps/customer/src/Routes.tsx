@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 
+import { Role } from "@repo/shared/models";
 import { ErrorPage, LoginPage, SignUpPage } from "@repo/ui/pages";
 import PrivateRoutes from "./components/PrivateRoutes";
 import CartPage from "./pages/CartPage";
@@ -22,7 +23,7 @@ const router = createBrowserRouter([
     ],
   },
   { path: "/login", element: <LoginPage /> },
-  { path: "/signup", element: <SignUpPage /> },
+  { path: "/signup", element: <SignUpPage role={Role.CUSTOMER} /> },
 ]);
 
 export default router;

@@ -1,5 +1,10 @@
 // src/hooks/useWebSocket.ts
-import { Client, IMessage, StompHeaders } from "@stomp/stompjs";
+import {
+  Client,
+  IMessage,
+  StompHeaders,
+  StompSubscription,
+} from "@stomp/stompjs";
 import { useCallback, useEffect, useState } from "react";
 import SockJS from "sockjs-client";
 import { useAuthStore } from "./useAuthStore";
@@ -26,11 +31,11 @@ export const useWebSocket = (url: string) => {
   }, []);
 
   useEffect(() => {
-    if (!url) return;
+    if (!url) return () => {};
 
     if (!token) {
       console.error("JWT token is not available. Cannot connect.");
-      return;
+      return () => {};
     }
 
     const connectHeaders: StompHeaders = {
@@ -38,7 +43,7 @@ export const useWebSocket = (url: string) => {
     };
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(url) as WebSocket,
+      webSocketFactory: () => new SockJS(url),
       connectHeaders,
       onConnect: onConnect,
       onDisconnect: onDisconnect,
@@ -51,15 +56,14 @@ export const useWebSocket = (url: string) => {
     setStompClient(client);
 
     // Cleanup function to disconnect when the component unmounts
-    return () => {
-      if (client.active) {
-        client.deactivate();
-      }
-    };
+    return () => client.deactivate();
   }, [url, token, onConnect, onDisconnect, onError]);
 
   const subscribe = useCallback(
-    (destination: string, callback: (message: IMessage) => void) => {
+    (
+      destination: string,
+      callback: (message: IMessage) => void
+    ): StompSubscription | undefined => {
       if (stompClient?.active) {
         // Return the subscription object so it can be used for unsubscribing
         return stompClient.subscribe(destination, (message) => {
@@ -67,6 +71,7 @@ export const useWebSocket = (url: string) => {
           callback(message);
         });
       }
+      return undefined;
     },
     [stompClient]
   );
