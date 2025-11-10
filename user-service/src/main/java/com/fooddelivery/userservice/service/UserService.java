@@ -11,9 +11,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.fooddelivery.shared.dto.RestaurantRequestDto;
 import com.fooddelivery.shared.exception.EmailExistsException;
+import com.fooddelivery.shared.feignclient.DeliveryServiceClient;
+import com.fooddelivery.shared.feignclient.RestaurantServiceClient;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
-import com.fooddelivery.userservice.dto.RestaurantRegisterRequestDto;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.repository.UserRepository;
@@ -31,15 +33,15 @@ public class UserService {
     private final DeliveryServiceClient deliveryServiceClient;
 
     private User registerUser(RegisterRequestDto requestDto, Role role) throws EmailExistsException {
-        if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(requestDto.email()).isPresent()) {
             throw new EmailExistsException();
         }
 
         User user = new User();
-        user.setEmail(requestDto.getEmail());
-        user.setPassword(passwordEncoder.encode(requestDto.getPassword())); // Hash password
-        user.setFirstName(requestDto.getFirstName());
-        user.setLastName(requestDto.getLastName());
+        user.setEmail(requestDto.email());
+        user.setPassword(passwordEncoder.encode(requestDto.password())); // Hash password
+        user.setFirstName(requestDto.firstName());
+        user.setLastName(requestDto.lastName());
         user.setRole(role); // Set role
 
         return userRepository.save(user);
@@ -59,11 +61,16 @@ public class UserService {
     }
 
     @Transactional
-    public User registerRestaurantAdmin(RestaurantRegisterRequestDto requestDto) throws EmailExistsException {
+    public User registerRestaurantAdmin(RegisterRequestDto requestDto) throws EmailExistsException {
         User registeredUser = registerUser(requestDto, Role.RESTAURANT_ADMIN);
         setAuthentication(registeredUser); // Set authentication to generate JWT in FeignClientAuthInterceptor
 
-        Long restaurantId = restaurantServiceClient.createRestaurant(requestDto).get("restaurantId");
+        RestaurantRequestDto restaurantRequestDto = new RestaurantRequestDto(
+                requestDto.restaurantName(),
+                requestDto.address(),
+                requestDto.cuisineType());
+
+        Long restaurantId = restaurantServiceClient.createRestaurant(restaurantRequestDto).get("restaurantId");
         registeredUser.setRestaurantId(restaurantId);
 
         return userRepository.save(registeredUser);

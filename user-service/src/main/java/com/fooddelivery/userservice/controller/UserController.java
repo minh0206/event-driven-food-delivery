@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fooddelivery.securitylib.service.JwtService;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
-import com.fooddelivery.userservice.dto.RestaurantRegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
@@ -41,7 +40,7 @@ public class UserController {
 
     @PostMapping("/register/restaurant")
     public Map<String, String> registerRestaurantAdmin(
-            @Valid @RequestBody RestaurantRegisterRequestDto requestDto) {
+            @Valid @RequestBody RegisterRequestDto requestDto) {
         User registeredUser = userService.registerRestaurantAdmin(requestDto);
         return Map.of(TOKEN_KEY, jwtService.generateToken(
                 registeredUser.getId().toString(),
