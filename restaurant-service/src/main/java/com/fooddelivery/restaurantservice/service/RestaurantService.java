@@ -27,6 +27,7 @@ import com.fooddelivery.shared.publisher.OrderAcceptedEventPublisher;
 import com.fooddelivery.shared.publisher.OrderReadyEventPublisher;
 import com.fooddelivery.shared.publisher.OrderRejectedEventPublisher;
 
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -45,7 +46,7 @@ public class RestaurantService {
 
     public Restaurant createRestaurant(RestaurantRequestDto requestDto, Long ownerId) {
         if (restaurantRepository.findByOwnerId(ownerId).isPresent()) {
-            throw new IllegalStateException("User already owns a restaurant.");
+            throw new EntityExistsException("User already owns a restaurant.");
         }
         Restaurant restaurant = new Restaurant();
         restaurant.setName(requestDto.restaurantName());
