@@ -35,7 +35,6 @@ import com.fooddelivery.userservice.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
-
     @Mock
     private UserService userService;
     @Mock
@@ -209,5 +208,115 @@ class UserControllerTest {
                 .andExpect(status().isOk());
 
         verify(userMapper).toCustomerDto(user);
+    }
+
+    @Test
+    void registerCustomer_withInvalidEmail_returnsBadRequest() throws Exception {
+        RegisterRequestDto req = new RegisterRequestDto(
+                "invalid-email",
+                "password123",
+                "John",
+                "Doe",
+                "",
+                "",
+                "");
+
+        mockMvc.perform(post("/api/users/register/customer")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void login_withDifferentRoles_returnsCorrectToken() throws Exception {
+        LoginRequestDto req = new LoginRequestDto("driver@example.com", "password123");
+
+        User driver = new User();
+        driver.setId(5L);
+        driver.setRole(Role.DELIVERY_DRIVER);
+
+        when(userService.loginUser("driver@example.com", "password123")).thenReturn(driver);
+        when(jwtService.generateToken("5", Role.DELIVERY_DRIVER.toString())).thenReturn("driver-token");
+
+        mockMvc.perform(post("/api/users/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "driver-token"))));
+
+        verify(jwtService).generateToken("5", Role.DELIVERY_DRIVER.toString());
+    }
+
+    @Test
+    void getUserProfile_withSystemAdmin_returnsCustomerDto() throws Exception {
+        Principal principal = () -> "99";
+        User admin = new User();
+        admin.setId(99L);
+        admin.setRole(Role.SYSTEM_ADMIN);
+        CustomerDto dto = new CustomerDto();
+
+        when(userService.getUserById(99L)).thenReturn(admin);
+        when(userMapper.toCustomerDto(admin)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/users/profile").principal(principal))
+                .andExpect(status().isOk());
+
+        verify(userMapper).toCustomerDto(admin);
+    }
+
+    @Test
+    void registerRestaurantAdmin_withCompleteData_returnsToken() throws Exception {
+        RegisterRequestDto req = new RegisterRequestDto(
+                "complete@restaurant.com",
+                "securePass123",
+                "Restaurant",
+                "Owner",
+                "Best Restaurant",
+                "456 Main St",
+                "Italian");
+
+        User saved = new User();
+        saved.setId(7L);
+        saved.setRole(Role.RESTAURANT_ADMIN);
+        saved.setRestaurantId(100L);
+
+        when(userService.registerRestaurantAdmin(any(RegisterRequestDto.class))).thenReturn(saved);
+        when(jwtService.generateToken("7", Role.RESTAURANT_ADMIN.toString())).thenReturn("restaurant-token");
+
+        mockMvc.perform(post("/api/users/register/restaurant")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "restaurant-token"))));
+
+        verify(userService).registerRestaurantAdmin(any(RegisterRequestDto.class));
+    }
+
+    @Test
+    void registerDriver_withMinimalData_returnsToken() throws Exception {
+        RegisterRequestDto req = new RegisterRequestDto(
+                "minimal@driver.com",
+                "password123",
+                "Min",
+                "",
+                "",
+                "",
+                "");
+
+        User saved = new User();
+        saved.setId(8L);
+        saved.setRole(Role.DELIVERY_DRIVER);
+        saved.setDriverId(200L);
+
+        when(userService.registerDriver(any(RegisterRequestDto.class))).thenReturn(saved);
+        when(jwtService.generateToken("8", Role.DELIVERY_DRIVER.toString())).thenReturn("minimal-driver-token");
+
+        mockMvc.perform(post("/api/users/register/driver")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "minimal-driver-token"))));
+
+        verify(userService).registerDriver(any(RegisterRequestDto.class));
     }
 }
