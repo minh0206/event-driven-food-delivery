@@ -25,13 +25,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fooddelivery.shared.dto.RestaurantRequestDto;
-import com.fooddelivery.shared.exception.EmailExistsException;
 import com.fooddelivery.shared.feignclient.DeliveryServiceClient;
 import com.fooddelivery.shared.feignclient.RestaurantServiceClient;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.repository.UserRepository;
+
+import jakarta.persistence.EntityExistsException;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -100,7 +101,7 @@ class UserServiceTest {
         RegisterRequestDto req = buildRegisterReq();
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(new User()));
 
-        assertThrows(EmailExistsException.class, () -> userService.registerCustomer(req));
+        assertThrows(EntityExistsException.class, () -> userService.registerCustomer(req));
         verify(userRepository, never()).save(any());
     }
 
@@ -204,7 +205,7 @@ class UserServiceTest {
         RegisterRequestDto req = buildRestaurantReq();
         when(userRepository.findByEmail(req.email())).thenReturn(Optional.of(new User()));
 
-        assertThrows(EmailExistsException.class, () -> userService.registerRestaurantAdmin(req));
+        assertThrows(EntityExistsException.class, () -> userService.registerRestaurantAdmin(req));
         verify(userRepository, never()).save(any());
         verify(restaurantServiceClient, never()).createRestaurant(any());
     }
@@ -214,7 +215,7 @@ class UserServiceTest {
         RegisterRequestDto req = buildRegisterReq();
         when(userRepository.findByEmail(req.email())).thenReturn(Optional.of(new User()));
 
-        assertThrows(EmailExistsException.class, () -> userService.registerDriver(req));
+        assertThrows(EntityExistsException.class, () -> userService.registerDriver(req));
         verify(userRepository, never()).save(any());
         verify(deliveryServiceClient, never()).createDriver();
     }

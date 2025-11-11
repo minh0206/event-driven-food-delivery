@@ -27,7 +27,6 @@ import com.fooddelivery.securitylib.service.JwtService;
 import com.fooddelivery.shared.feignclient.DeliveryServiceClient;
 import com.fooddelivery.shared.feignclient.RestaurantServiceClient;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
-import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.repository.UserRepository;
@@ -55,9 +54,6 @@ class UserIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private UserMapper userMapper;
 
     @MockBean
     private RestaurantServiceClient restaurantServiceClient;
