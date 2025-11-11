@@ -4,9 +4,13 @@ import { NavLink, useLocation } from "react-router-dom";
 
 export const NavBar = () => {
   const location = useLocation();
+  const base = ((import.meta as any).env.BASE_URL as string) || "/";
+  const localPath = location.pathname.startsWith(base)
+    ? location.pathname.slice(base.length - (base.endsWith("/") ? 1 : 0))
+    : location.pathname;
   const isHomeActive =
-    location.pathname === "/" || location.pathname.startsWith("/restaurants");
-  const isMenuActive = location.pathname.startsWith("/menu");
+    localPath === "/" || localPath.startsWith("/restaurants");
+  const isMenuActive = localPath.startsWith("/menu");
 
   return (
     <HStack bg="gray.200" p="1" justifyContent="space-between">

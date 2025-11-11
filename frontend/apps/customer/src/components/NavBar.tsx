@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Circle,
+  Flex,
   Float,
   HStack,
   Icon,
@@ -13,13 +14,15 @@ import { LuShoppingCart } from "react-icons/lu";
 import { NavLink, useLocation } from "react-router-dom";
 import { useCartStore } from "../stores/cartStore";
 
-import { Flex } from "@chakra-ui/react";
-
 export const NavBar = () => {
   const location = useLocation();
+  const base = ((import.meta as any).env.BASE_URL as string) || "/";
+  const localPath = location.pathname.startsWith(base)
+    ? location.pathname.slice(base.length - (base.endsWith("/") ? 1 : 0))
+    : location.pathname;
   const isHomeActive =
-    location.pathname === "/" || location.pathname.startsWith("/restaurants");
-  const isOrdersActive = location.pathname.startsWith("/orders");
+    localPath === "/" || localPath.startsWith("/restaurants");
+  const isOrdersActive = localPath.startsWith("/orders");
 
   const cartItemCount = useCartStore((state) =>
     state.items.reduce((acc, item) => acc + item.quantity, 0)
