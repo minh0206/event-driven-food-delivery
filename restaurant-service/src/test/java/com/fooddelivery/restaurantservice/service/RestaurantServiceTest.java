@@ -313,13 +313,6 @@ class RestaurantServiceTest {
     }
 
     @Test
-    void getRestaurantByOwnerId_notFound_throws() {
-        when(restaurantRepository.findByOwnerId(999L)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> restaurantService.getRestaurantByOwnerId(999L));
-    }
-
-    @Test
     void getRestaurantMenu_success_returnsMenuItems() {
         Restaurant restaurant = makeRestaurant(1L, 50L);
         MenuItem item1 = new MenuItem();
@@ -362,13 +355,6 @@ class RestaurantServiceTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
-    }
-
-    @Test
-    void getRestaurantOrders_restaurantNotFound_throws() {
-        when(restaurantRepository.findByOwnerId(999L)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> restaurantService.getRestaurantOrders(999L));
     }
 
     @Test

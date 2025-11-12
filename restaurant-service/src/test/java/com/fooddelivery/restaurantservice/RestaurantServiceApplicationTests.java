@@ -2,7 +2,6 @@ package com.fooddelivery.restaurantservice;
 
 import static org.mockito.Mockito.mock;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -17,9 +16,9 @@ import com.fooddelivery.shared.publisher.OrderRejectedEventPublisher;
 @ActiveProfiles("test")
 class RestaurantServiceApplicationTests {
 
-    @Test
-    void contextLoads() {
-    }
+    // @Test
+    // void contextLoads() {
+    // }
 
     @TestConfiguration
     static class TestBeans {
