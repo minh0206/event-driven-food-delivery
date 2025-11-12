@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.orderservice.dto.CreateOrderRequestDto;
@@ -24,10 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @AllArgsConstructor
 public class OrderService {
-    private final List<OrderStatus> activeStatuses = List.of(
-            OrderStatus.PENDING,
-            OrderStatus.ACCEPTED);
-
     private final OrderRepository orderRepository;
     private final OrderPlacedEventPublisher orderPlacedEventPublisher;
 
@@ -38,14 +36,6 @@ public class OrderService {
 
     public List<Order> getOrdersByCustomerId(Long customerId) {
         return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
-    }
-
-    public List<Order> getActiveOrdersByRestaurantId(Long restaurantId) {
-        return orderRepository.findByRestaurantIdAndStatusIn(restaurantId, activeStatuses);
-    }
-
-    public List<Order> getHistoricalOrdersByRestaurantId(Long restaurantId) {
-        return orderRepository.findByRestaurantIdAndStatusNotIn(restaurantId, activeStatuses);
     }
 
     @Transactional // Ensures the whole operation is a single transaction
@@ -74,8 +64,8 @@ public class OrderService {
 
         // --- KAFKA EVENT PUBLISHING ---
         // Create the event payload
-        List<OrderItemDetails> itemDetails = savedOrder.getItems().stream()
-                .map(item -> new OrderItemDetails(item.getId(), item.getMenuItemId(), item.getQuantity()))
+        List<OrderItemDetails> itemDetails = requestDto.items().stream()
+                .map(item -> new OrderItemDetails(savedOrder.getId(), item.menuItemId(), item.quantity()))
                 .toList();
 
         OrderPlacedEvent event = new OrderPlacedEvent(
@@ -95,5 +85,9 @@ public class OrderService {
         return orderItems.stream()
                 .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public Page<Order> getOrdersByRestaurantId(Long restaurantId, OrderStatus status, Pageable pageable) {
+        return orderRepository.findAllByRestaurantIdAndStatus(restaurantId, status, pageable);
     }
 }

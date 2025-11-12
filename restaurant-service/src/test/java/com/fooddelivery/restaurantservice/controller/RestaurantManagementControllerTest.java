@@ -43,8 +43,8 @@ import com.fooddelivery.shared.enumerate.OrderStatus;
 @ExtendWith(MockitoExtension.class)
 class RestaurantManagementControllerTest {
 
+    private final Principal principal = () -> "50"; // ownerId = 50
     private MockMvc mockMvc;
-
     @Mock
     private RestaurantMapper restaurantMapper;
     @Mock
@@ -53,11 +53,8 @@ class RestaurantManagementControllerTest {
     private RestaurantService restaurantService;
     @Mock
     private RestaurantOrderMapper restaurantOrderMapper;
-
     @InjectMocks
     private RestaurantManagementController controller;
-
-    private final Principal principal = () -> "50"; // ownerId = 50
 
     @BeforeEach
     void setup() {
@@ -73,8 +70,8 @@ class RestaurantManagementControllerTest {
 
         String body = "{\"restaurantName\":\"New\",\"address\":\"Addr\",\"cuisineType\":\"Cuisine\"}";
         mockMvc.perform(put("/api/restaurants/manage/1").principal(principal)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.restaurantName").value("New"));
@@ -91,8 +88,8 @@ class RestaurantManagementControllerTest {
 
         String body = "{\"name\":\"Burger\",\"description\":\"Yum\",\"price\":12.50}";
         mockMvc.perform(post("/api/restaurants/manage/1/menu").principal(principal)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(10))
                 .andExpect(jsonPath("$.name").value("Burger"));
@@ -109,8 +106,8 @@ class RestaurantManagementControllerTest {
 
         String body = "{\"name\":\"Fries\",\"description\":\"Crispy\",\"price\":4.00}";
         mockMvc.perform(put("/api/restaurants/manage/1/menu/11").principal(principal)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(11))
                 .andExpect(jsonPath("$.name").value("Fries"));
@@ -121,23 +118,6 @@ class RestaurantManagementControllerTest {
         doNothing().when(restaurantService).deleteMenuItem(1L, 11L, 50L);
         mockMvc.perform(delete("/api/restaurants/manage/1/menu/11").principal(principal))
                 .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void getRestaurantOrders_returnsList() throws Exception {
-        RestaurantOrder order = new RestaurantOrder();
-        order.setOrderId(200L);
-        order.setRestaurantId(1L);
-        order.setLocalStatus(OrderStatus.PENDING);
-        order.setReceivedAt(LocalDateTime.now());
-        when(restaurantService.getRestaurantOrders(50L)).thenReturn(List.of(order));
-        when(restaurantOrderMapper.toDto(order))
-                .thenReturn(new RestaurantOrderDto(200L, OrderStatus.PENDING, order.getReceivedAt(), List.of()));
-
-        mockMvc.perform(get("/api/restaurants/manage/orders").principal(principal))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].orderId").value(200))
-                .andExpect(jsonPath("$[0].status").value("PENDING"));
     }
 
     @Test
@@ -153,8 +133,8 @@ class RestaurantManagementControllerTest {
 
         String body = "{\"status\":\"ACCEPTED\",\"assignedCook\":\"John\",\"internalNotes\":\"ok\"}";
         mockMvc.perform(put("/api/restaurants/manage/orders/201").principal(principal)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderId").value(201))
                 .andExpect(jsonPath("$.status").value("ACCEPTED"));

@@ -25,7 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fooddelivery.shared.dto.RestaurantRequestDto;
-import com.fooddelivery.shared.exception.EmailExistsException;
 import com.fooddelivery.shared.feignclient.DeliveryServiceClient;
 import com.fooddelivery.shared.feignclient.RestaurantServiceClient;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
@@ -33,9 +32,10 @@ import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.repository.UserRepository;
 
+import jakarta.persistence.EntityExistsException;
+
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
-
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -101,7 +101,7 @@ class UserServiceTest {
         RegisterRequestDto req = buildRegisterReq();
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(new User()));
 
-        assertThrows(EmailExistsException.class, () -> userService.registerCustomer(req));
+        assertThrows(EntityExistsException.class, () -> userService.registerCustomer(req));
         verify(userRepository, never()).save(any());
     }
 
@@ -182,5 +182,68 @@ class UserServiceTest {
 
         assertEquals(5L, result.getId());
         verify(userRepository).findById(5L);
+    }
+
+    @Test
+    void getUserById_throwsException_whenUserNotFound() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(Exception.class, () -> userService.getUserById(999L));
+        verify(userRepository).findById(999L);
+    }
+
+    @Test
+    void loginUser_throwsException_whenUserNotFound() {
+        when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
+
+        assertThrows(Exception.class, () -> userService.loginUser("notfound@example.com", "password"));
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+    }
+
+    @Test
+    void registerRestaurantAdmin_throwsWhenEmailExists() {
+        RegisterRequestDto req = buildRestaurantReq();
+        when(userRepository.findByEmail(req.email())).thenReturn(Optional.of(new User()));
+
+        assertThrows(EntityExistsException.class, () -> userService.registerRestaurantAdmin(req));
+        verify(userRepository, never()).save(any());
+        verify(restaurantServiceClient, never()).createRestaurant(any());
+    }
+
+    @Test
+    void registerDriver_throwsWhenEmailExists() {
+        RegisterRequestDto req = buildRegisterReq();
+        when(userRepository.findByEmail(req.email())).thenReturn(Optional.of(new User()));
+
+        assertThrows(EntityExistsException.class, () -> userService.registerDriver(req));
+        verify(userRepository, never()).save(any());
+        verify(deliveryServiceClient, never()).createDriver();
+    }
+
+    @Test
+    void registerCustomer_setsCorrectFields() throws Exception {
+        RegisterRequestDto req = new RegisterRequestDto(
+                "customer@example.com",
+                "mypassword",
+                "Jane",
+                "Smith",
+                "",
+                "",
+                "");
+        when(userRepository.findByEmail("customer@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("mypassword")).thenReturn("ENCODED_PASS");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId(100L);
+            return u;
+        });
+
+        User saved = userService.registerCustomer(req);
+
+        assertEquals("customer@example.com", saved.getEmail());
+        assertEquals("ENCODED_PASS", saved.getPassword());
+        assertEquals("Jane", saved.getFirstName());
+        assertEquals("Smith", saved.getLastName());
+        assertEquals(Role.CUSTOMER, saved.getRole());
     }
 }

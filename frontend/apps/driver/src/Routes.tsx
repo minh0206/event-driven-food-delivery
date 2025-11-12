@@ -7,20 +7,23 @@ import { HistoryPage } from "./pages/HistoryPage";
 import { HomePage } from "./pages/HomePage";
 import { ProfilePage } from "./pages/ProfilePage";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <PrivateRoutes />,
-    errorElement: <ErrorPage />,
-    children: [
-      { index: true, element: <HomePage /> },
-      { path: "/history", element: <HistoryPage /> },
-      { path: "/profile", element: <ProfilePage /> },
-    ],
-  },
-  { path: "/login", element: <LoginPage /> },
-  { path: "/signup", element: <SignUpPage role={Role.DRIVER} /> },
-]);
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <PrivateRoutes />,
+      errorElement: <ErrorPage />,
+      children: [
+        { index: true, element: <HomePage /> },
+        { path: "history", element: <HistoryPage /> },
+        { path: "profile", element: <ProfilePage /> },
+      ],
+    },
+    { path: "login", element: <LoginPage /> },
+    { path: "signup", element: <SignUpPage role={Role.DRIVER} /> },
+  ],
+  { basename: (import.meta as any).env.BASE_URL }
+);
 
 export const Routes = () => {
   return <RouterProvider router={router} />;

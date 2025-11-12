@@ -3,6 +3,8 @@ package com.fooddelivery.restaurantservice.controller;
 import java.security.Principal;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fooddelivery.restaurantservice.dto.CompleteOrderViewDto;
 import com.fooddelivery.restaurantservice.dto.MenuItemDto;
 import com.fooddelivery.restaurantservice.dto.MenuItemRequestDto;
 import com.fooddelivery.restaurantservice.dto.RestaurantDto;
@@ -91,8 +94,17 @@ public class RestaurantManagementController {
     @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
     public List<RestaurantOrderDto> getRestaurantOrders(Principal principal) {
         Long ownerId = getAuthenticatedUserId(principal);
-        List<RestaurantOrder> orders = restaurantService.getRestaurantOrders(ownerId);
+        List<RestaurantOrder> orders = restaurantService.getActiveOrderDetails(ownerId);
         return orders.stream().map(restaurantOrderMapper::toDto).toList();
+    }
+
+    @GetMapping("/orders/history")
+    @PreAuthorize("hasRole('RESTAURANT_ADMIN')")
+    public Page<CompleteOrderViewDto> getRestaurantOrdersHistory(
+            Principal principal,
+            Pageable pageable) {
+        Long ownerId = getAuthenticatedUserId(principal);
+        return restaurantService.getHistoricalOrderDetails(ownerId, pageable);
     }
 
     @PutMapping("/orders/{orderId}")
@@ -105,4 +117,5 @@ public class RestaurantManagementController {
         RestaurantOrder updatedOrder = restaurantService.updateRestaurantOrder(orderId, requestDto, ownerId);
         return restaurantOrderMapper.toDto(updatedOrder);
     }
+
 }

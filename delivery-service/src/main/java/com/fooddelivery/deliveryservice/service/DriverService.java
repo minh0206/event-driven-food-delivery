@@ -80,7 +80,7 @@ public class DriverService {
             throw new EntityNotFoundException(ORDER_NOT_FOUND);
         }
 
-        return orderServiceClient.getOrderById(orderId);
+        return orderServiceClient.getDriverOrderById(orderId);
     }
 
     public void markOrderAsInTransit(Long userId) {

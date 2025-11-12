@@ -9,21 +9,24 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { RestaurantListPage } from "./pages/RestaurantListPage";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <PrivateRoutes />,
-    errorElement: <ErrorPage />,
-    children: [
-      { index: true, element: <RestaurantListPage /> },
-      { path: "restaurants/:id", element: <RestaurantDetailPage /> },
-      { path: "orders", element: <OrderListPage /> },
-      { path: "profile", element: <ProfilePage /> },
-      { path: "cart", element: <CartPage /> },
-    ],
-  },
-  { path: "/login", element: <LoginPage /> },
-  { path: "/signup", element: <SignUpPage role={Role.CUSTOMER} /> },
-]);
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <PrivateRoutes />,
+      errorElement: <ErrorPage />,
+      children: [
+        { index: true, element: <RestaurantListPage /> },
+        { path: "restaurants/:id", element: <RestaurantDetailPage /> },
+        { path: "orders", element: <OrderListPage /> },
+        { path: "profile", element: <ProfilePage /> },
+        { path: "cart", element: <CartPage /> },
+      ],
+    },
+    { path: "login", element: <LoginPage /> },
+    { path: "signup", element: <SignUpPage role={Role.CUSTOMER} /> },
+  ],
+  { basename: (import.meta as any).env.BASE_URL }
+);
 
 export default router;

@@ -55,8 +55,9 @@ const CartPage = () => {
           title: "Order placed successfully!",
         });
         console.log("Order placed successfully:", response);
-        // clearCart();
-        navigate("/orders");
+
+        clearCart();
+        navigate("orders");
       })
       .catch((error) => {
         toaster.error({

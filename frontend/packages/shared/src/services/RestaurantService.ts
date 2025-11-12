@@ -1,10 +1,11 @@
 import apiClient from "api-client";
+import { HistoryRestaurantOrder } from "../models";
 import { MenuItem } from "../models/MenuItem";
 import { Restaurant } from "../models/Restaurant";
 import { RestaurantOrder } from "../models/RestaurantOrder";
 
-interface FetchRestaurantsResponse {
-  content: Restaurant[];
+interface PaginatedResponse<T> {
+  content: T[];
   page: {
     size: number;
     number: number;
@@ -16,8 +17,8 @@ interface FetchRestaurantsResponse {
 class RestaurantService {
   // Public endpoints
   async getAllRestaurants() {
-    return (await apiClient.get<FetchRestaurantsResponse>("/restaurants")).data
-      .content;
+    return (await apiClient.get<PaginatedResponse<Restaurant>>("/restaurants"))
+      .data.content;
   }
 
   async getRestaurant(id: number) {
@@ -68,6 +69,14 @@ class RestaurantService {
     return (
       await apiClient.get<RestaurantOrder[]>("/restaurants/manage/orders")
     ).data;
+  }
+
+  async getHistoryRestaurantOrders(): Promise<HistoryRestaurantOrder[]> {
+    return (
+      await apiClient.get<PaginatedResponse<HistoryRestaurantOrder>>(
+        "/restaurants/manage/orders/history"
+      )
+    ).data.content;
   }
 
   async updateRestaurantOrder(order: RestaurantOrder) {

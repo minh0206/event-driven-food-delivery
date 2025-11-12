@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.fooddelivery.shared.dto.ErrorResponseDto;
 
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -47,15 +48,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(responseDto, HttpStatus.FORBIDDEN);
     }
 
-    // Handler for email already exists
-    @ExceptionHandler(EmailExistsException.class)
-    public ResponseEntity<ErrorResponseDto> handleEmailExistsException(
-            EmailExistsException ex, HttpServletRequest request) {
+    // Handler for entity already exists
+    @ExceptionHandler(EntityExistsException.class)
+    public ResponseEntity<ErrorResponseDto> handleEntityExistsException(
+            EntityExistsException ex, HttpServletRequest request) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
-                "Email already exists",
+                "Entity already exists",
                 request.getRequestURI());
         return new ResponseEntity<>(responseDto, HttpStatus.CONFLICT);
     }

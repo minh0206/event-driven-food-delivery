@@ -4,9 +4,13 @@ import { NavLink, useLocation } from "react-router-dom";
 
 export const NavBar = () => {
   const location = useLocation();
+  const base = ((import.meta as any).env.BASE_URL as string) || "/";
+  const localPath = location.pathname.startsWith(base)
+    ? location.pathname.slice(base.length - (base.endsWith("/") ? 1 : 0))
+    : location.pathname;
   const isDeliveriesActive =
-    location.pathname === "/" || location.pathname.startsWith("/deliveries");
-  const isHistoryActive = location.pathname.startsWith("/history");
+    localPath === "/" || localPath.startsWith("/deliveries");
+  const isHistoryActive = localPath.startsWith("/history");
 
   return (
     <Flex

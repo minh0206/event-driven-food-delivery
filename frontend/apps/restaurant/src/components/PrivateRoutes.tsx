@@ -14,7 +14,7 @@ const PrivateRoutes = () => {
   if (isLoading || !isInitialized) return <div>Loading user data...</div>;
 
   // If the user is not authenticated, redirect to login.
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="login" replace />;
 
   // If the user is authenticated, render the child route.
   return <Layout />;

@@ -13,15 +13,15 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "29092:29092" # Kafka host port
+      - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       # Bind both listeners on all interfaces inside the container
-      # KAFKA_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://0.0.0.0:29092
       # Advertise correct addresses for each network
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://0.0.0.0:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -47,6 +47,7 @@ services:
     image: minh020698/event-driven-food-delivery-user-service:${VERSION}
     depends_on:
       - postgres-db
+      - service-discovery
     ports:
       - "8081:8081"
     environment:
@@ -54,6 +55,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/food_delivery_db
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
+      EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
     
   restaurant-service:
     build:
@@ -66,6 +68,7 @@ services:
     depends_on:
       - postgres-db
       - kafka-broker
+      - service-discovery
     ports:
       - "8082:8082"
     environment:
@@ -73,8 +76,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/food_delivery_db
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-      # KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
-      KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
   
   order-service:
     build:
@@ -87,6 +90,7 @@ services:
     depends_on:
       - postgres-db
       - kafka-broker
+      - service-discovery
     ports:
       - "8083:8083"
     environment:
@@ -95,6 +99,7 @@ services:
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
       KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
   
   delivery-service:
     build:
@@ -107,6 +112,7 @@ services:
     depends_on:
       - postgres-db
       - kafka-broker
+      - service-discovery
     ports:
       - "8084:8084"
     environment:
@@ -115,6 +121,7 @@ services:
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
       KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
 
   api-gateway:
     build:
@@ -124,10 +131,23 @@ services:
       args:
         - VERSION=${VERSION}
     image: minh020698/event-driven-food-delivery-api-gateway:${VERSION}
-    depends_on:
-      - postgres-db
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
+
+  service-discovery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: service-discovery
+      args:
+        - VERSION=${VERSION}
+    image: minh020698/event-driven-food-delivery-service-discovery:${VERSION}
     ports:
       - "8761:8761"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
 
   frontend:
     build:
