@@ -131,8 +131,14 @@ services:
       args:
         - VERSION=${VERSION}
     image: minh020698/event-driven-food-delivery-api-gateway:${VERSION}
-    ports:
-      - "8080:8080"
+    deploy:
+      replicas: 2 # This will create two instances
+    depends_on:
+      - service-discovery
+    # ports:
+    #   - "8080:8080"
+    networks:
+      - my-app-network
     environment:
       EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
 
@@ -148,6 +154,8 @@ services:
       - "8761:8761"
     environment:
       EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
+    networks:
+      - my-app-network
 
   frontend:
     build:
@@ -159,7 +167,12 @@ services:
     image: minh020698/event-driven-food-delivery-frontend:${VERSION}
     ports:
       - "80:80"
-     
+    networks:
+      - my-app-network     
 
 volumes:
   postgres_data:
+
+networks:
+  my-app-network:
+    driver: bridge

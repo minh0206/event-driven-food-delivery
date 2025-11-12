@@ -53,3 +53,5 @@ eclipse-formatter.xml
 .env
 application-local.properties
 
+# TypeScript build info
+**/tsconfig.tsbuildinfo
