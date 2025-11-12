@@ -1,9 +1,10 @@
 package com.fooddelivery.orderservice.repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,9 +20,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items WHERE o.id = :orderId")
     Optional<Order> findByIdWithItems(Long orderId);
 
-    List<Order> findByRestaurantId(Long restaurantId);
-
-    List<Order> findByRestaurantIdAndStatusIn(Long restaurantId, Collection<OrderStatus> statuses);
-
-    List<Order> findByRestaurantIdAndStatusNotIn(Long restaurantId, Collection<OrderStatus> statuses);
+    @EntityGraph(attributePaths = "items")
+    Page<Order> findAllByRestaurantIdAndStatus(Long restaurantId, OrderStatus status, Pageable pageable);
 }
