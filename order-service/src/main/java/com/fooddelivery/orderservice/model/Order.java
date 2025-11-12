@@ -46,4 +46,6 @@ public class Order {
     private List<OrderItem> items;
 
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }
