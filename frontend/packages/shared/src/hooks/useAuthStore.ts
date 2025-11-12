@@ -35,6 +35,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
     } catch (error) {
       console.error("Failed to initialize auth store:", error);
+      localStorage.removeItem("authToken");
     }
 
     set({ isLoading: false, isInitialized: true });
@@ -43,11 +44,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     set({ isLoading: true });
 
-    const { token } = await userService.loginUser(email, password);
-    localStorage.setItem("authToken", token);
+    try {
+      const { token } = await userService.loginUser(email, password);
+      localStorage.setItem("authToken", token);
 
-    const user = await userService.getProfile();
-    set(() => ({ token, user, isLoading: false }));
+      const user = await userService.getProfile();
+      set(() => ({ token, user, isLoading: false }));
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
   },
 
   register: async (registerUser: RegisterUser) => {
