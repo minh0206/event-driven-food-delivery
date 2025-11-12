@@ -1,17 +1,17 @@
-import axios from 'axios';
+import axios from "axios";
 
 const apiClient = axios.create({
   // Point this to the Spring Cloud API Gateway's address
-  baseURL: 'http://localhost:8080/api',
+  baseURL: "http://localhost:80/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Use an interceptor to add the auth token to every request
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

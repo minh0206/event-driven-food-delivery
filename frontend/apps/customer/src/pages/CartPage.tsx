@@ -57,7 +57,7 @@ const CartPage = () => {
         console.log("Order placed successfully:", response);
 
         clearCart();
-        navigate("orders");
+        navigate("/orders");
       })
       .catch((error) => {
         toaster.error({

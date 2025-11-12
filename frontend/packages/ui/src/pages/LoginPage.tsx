@@ -1,5 +1,6 @@
 import {
   AbsoluteCenter,
+  Alert,
   Button,
   Card,
   Link as ChakraLink,
@@ -9,7 +10,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useAuthStore } from "@repo/shared/hooks";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { PasswordInput } from "../components/ui/password-input";
@@ -27,34 +28,26 @@ export const LoginPage = () => {
   } = useForm<FormValues>();
   const { user, isLoading, isInitialized, login, initialize } = useAuthStore();
   const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: FormValues) => {
     try {
       await login(data.email, data.password);
       // With per-app basename, navigating to root goes to the correct app dashboard
       navigate("/");
-    } catch (error) {
-      console.error("Login failed:", error);
-      // Handle login error (e.g., show a notification)
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Server is down");
     }
   };
 
   useEffect(() => {
     if (!isInitialized) initialize();
-
-    if (user) {
-      navigate("/");
-    }
+    if (user) navigate("/");
   }, [initialize, user]);
-
-  // If the user is loading, show a loading state
-  if (isLoading) return <div>Loading...</div>;
-
-  const signupPath = "/signup";
 
   return (
     <>
-      {!isLoading && (
+      {isInitialized && (
         <AbsoluteCenter>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Card.Root
@@ -93,15 +86,21 @@ export const LoginPage = () => {
                     </Field.ErrorText>
                   </Field.Root>
 
-                  <Button type="submit" variant="solid">
+                  <Button type="submit" variant="solid" loading={isLoading}>
                     Sign in
                   </Button>
+                  {error && (
+                    <Alert.Root status="error">
+                      <Alert.Indicator />
+                      <Alert.Content>Error: {error}</Alert.Content>
+                    </Alert.Root>
+                  )}
                 </Stack>
               </Card.Body>
               <Card.Footer justifyContent="center">
                 <Text>Don't have an account?</Text>
                 <ChakraLink asChild>
-                  <Link to={signupPath} replace>
+                  <Link to="/signup" replace>
                     <b>Sign up</b>
                   </Link>
                 </ChakraLink>

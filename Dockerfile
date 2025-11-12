@@ -92,7 +92,7 @@ FROM nginx:alpine AS frontend
 COPY --from=frontend-builder /app/apps/customer/dist /usr/share/nginx/html/customer
 COPY --from=frontend-builder /app/apps/restaurant/dist /usr/share/nginx/html/restaurant
 COPY --from=frontend-builder /app/apps/driver/dist /usr/share/nginx/html/driver
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN nginx -t
 
 EXPOSE 80

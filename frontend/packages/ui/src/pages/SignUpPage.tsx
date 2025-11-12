@@ -1,6 +1,7 @@
 // apps/customer/src/pages/LoginPage.tsx
 import {
   AbsoluteCenter,
+  Alert,
   Button,
   Card,
   Link as ChakraLink,
@@ -11,9 +12,9 @@ import {
 } from "@chakra-ui/react";
 import { useAuthStore } from "@repo/shared/hooks";
 import { Role } from "@repo/shared/models";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, Navigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PasswordInput } from "../components/ui/password-input";
 
 interface FormValues {
@@ -30,9 +31,10 @@ export const SignUpPage = ({ role }: { role: Role }) => {
   const {
     register,
     handleSubmit,
-    setError,
+    setError: setFormError,
     formState: { errors },
   } = useForm<FormValues>();
+
   const {
     register: registerUser,
     initialize,
@@ -40,25 +42,27 @@ export const SignUpPage = ({ role }: { role: Role }) => {
     user,
     isLoading,
   } = useAuthStore();
+
+  const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+
   const onSubmit = async (data: FormValues) => {
     try {
       await registerUser({ role, ...data });
     } catch (error: any) {
-      if (error.response.status === 409) {
-        setError("email", { type: "conflict" });
+      if (error.response?.status === 409) {
+        setFormError("email", { type: "conflict" });
       }
+
+      setError(error.response?.data?.message || "Server is down");
     }
   };
 
   useEffect(() => {
     if (!isInitialized) initialize();
+    if (user) navigate("/");
   }, [initialize, user]);
-
-  // If the user is loading, show a loading state
-  if (isLoading) return <div>Loading...</div>;
-
-  // If the user is authenticated, redirect to home page
-  if (user) return <Navigate to="/" replace />;
 
   return (
     <AbsoluteCenter>
@@ -167,9 +171,15 @@ export const SignUpPage = ({ role }: { role: Role }) => {
                 </>
               )}
 
-              <Button type="submit" variant="solid">
+              <Button type="submit" variant="solid" loading={isLoading}>
                 Sign up
               </Button>
+              {error && (
+                <Alert.Root status="error">
+                  <Alert.Indicator />
+                  <Alert.Content>Error: {error}</Alert.Content>
+                </Alert.Root>
+              )}
             </Stack>
           </Card.Body>
           <Card.Footer justifyContent="center">
