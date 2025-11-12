@@ -8,47 +8,32 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useWebSocket } from "@repo/shared/hooks";
-import { OrderStatus } from "@repo/shared/models";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
+import HistoryRestaurantOrderCard from "../components/HistoryRestaurantOrderCard";
 import RestaurantOrderCard from "../components/RestaurantOrderCard";
-import { useRestaurantOrders } from "../hooks/useRestaurantOrders";
+import { useHistoryRestaurantOrders } from "../hooks/useHistoryRestaurantOrders";
+import { useOngoingRestaurantOrders } from "../hooks/useOngoingRestaurantOrders";
 
 const ORDER_UPDATES_ENDPOINT = "/user/queue/order-updates";
 
 const OrderManagementPage = () => {
-  const { data: orders, isLoading, error, refetch } = useRestaurantOrders();
+  const {
+    data: ongoingOrders,
+    isLoading: isLoadingOngoing,
+    error: errorOngoing,
+    refetch: refetchOngoing,
+  } = useOngoingRestaurantOrders();
+
+  const {
+    data: historyOrders,
+    isLoading: isLoadingHistory,
+    error: errorHistory,
+  } = useHistoryRestaurantOrders();
 
   const { isConnected, subscribe } = useWebSocket("http://localhost:8082/ws");
-  const [activeTab, setActiveTab] = useState<string>("ongoing");
-
-  const ongoingOrders = useMemo(
-    () =>
-      orders?.filter(
-        (o) =>
-          ![
-            OrderStatus.DELIVERED,
-            OrderStatus.CANCELLED,
-            OrderStatus.REJECTED,
-          ].includes(o.status)
-      ) ?? [],
-    [orders]
-  );
-
-  const historyOrders = useMemo(() => {
-    if (activeTab !== "history") return [];
-    return (
-      orders?.filter((o) =>
-        [
-          OrderStatus.DELIVERED,
-          OrderStatus.CANCELLED,
-          OrderStatus.REJECTED,
-        ].includes(o.status)
-      ) ?? []
-    );
-  }, [orders, activeTab]);
 
   const renderHistoryContent = () => {
-    if (isLoading) {
+    if (isLoadingHistory) {
       return (
         <>
           <Spinner size="lg" />
@@ -56,11 +41,13 @@ const OrderManagementPage = () => {
         </>
       );
     }
-    if (error) {
+    if (errorHistory) {
       return (
         <Alert.Root status="error">
           <Alert.Indicator />
-          <Alert.Content>Error loading orders: {error?.message}</Alert.Content>
+          <Alert.Content>
+            Error loading orders: {errorHistory?.message}
+          </Alert.Content>
         </Alert.Root>
       );
     }
@@ -68,7 +55,7 @@ const OrderManagementPage = () => {
       return (
         <VStack align="stretch">
           {historyOrders.map((order) => (
-            <RestaurantOrderCard key={order.orderId} order={order} />
+            <HistoryRestaurantOrderCard key={order.orderId} order={order} />
           ))}
         </VStack>
       );
@@ -77,7 +64,7 @@ const OrderManagementPage = () => {
   };
 
   const renderOngoingContent = () => {
-    if (isLoading) {
+    if (isLoadingOngoing) {
       return (
         <>
           <Spinner size="lg" />
@@ -85,11 +72,13 @@ const OrderManagementPage = () => {
         </>
       );
     }
-    if (error) {
+    if (errorOngoing) {
       return (
         <Alert.Root status="error">
           <Alert.Indicator />
-          <Alert.Content>Error loading orders: {error?.message}</Alert.Content>
+          <Alert.Content>
+            Error loading orders: {errorOngoing?.message}
+          </Alert.Content>
         </Alert.Root>
       );
     }
@@ -110,7 +99,7 @@ const OrderManagementPage = () => {
 
     const subscription = subscribe(ORDER_UPDATES_ENDPOINT, async (message) => {
       // Refetch orders to update the list
-      await refetch();
+      await refetchOngoing();
       console.log("Order updated", message.body);
     });
     // Return a cleanup function to unsubscribe
@@ -122,11 +111,7 @@ const OrderManagementPage = () => {
       <Heading as="h1" size="xl" mb={4}>
         Order Management
       </Heading>
-      <Tabs.Root
-        lazyMount
-        defaultValue="ongoing"
-        onValueChange={(details) => setActiveTab(details.value)}
-      >
+      <Tabs.Root lazyMount unmountOnExit defaultValue="ongoing">
         <Tabs.List>
           <Tabs.Trigger value="ongoing">Ongoing</Tabs.Trigger>
           <Tabs.Trigger value="history">History</Tabs.Trigger>

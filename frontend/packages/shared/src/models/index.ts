@@ -1,3 +1,4 @@
+export * from "./HistoryRestaurantOrder";
 export * from "./MenuItem";
 export * from "./Order";
 export * from "./OrderItem";

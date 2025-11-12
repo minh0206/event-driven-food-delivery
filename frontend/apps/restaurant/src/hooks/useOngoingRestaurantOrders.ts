@@ -3,9 +3,9 @@ import { RestaurantOrder } from "@repo/shared/models";
 import { restaurantService } from "@repo/shared/services";
 import { useQuery } from "@tanstack/react-query";
 
-export const useRestaurantOrders = () => {
+export const useOngoingRestaurantOrders = () => {
   return useQuery<RestaurantOrder[], Error>({
     queryKey: CACHE_KEYS.RESTAURANT_ORDERS,
-    queryFn: () => restaurantService.getRestaurantOrders(),
+    queryFn: restaurantService.getRestaurantOrders,
   });
 };

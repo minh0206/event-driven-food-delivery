@@ -11,6 +11,7 @@ export const CACHE_KEYS = {
   ],
   CUSTOMER_ORDERS: ["customer-orders"],
   RESTAURANT_ORDERS: ["restaurant-orders"],
+  HISTORY_RESTAURANT_ORDERS: ["history-restaurant-orders"],
   DRIVER_STATUS: ["driver-status"],
   DRIVER_ORDER: ["driver-order"],
 };
