@@ -1,4 +1,5 @@
 services:
+  
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
     ports:
@@ -157,14 +158,13 @@ services:
     networks:
       - my-app-network
 
-  frontend:
+  nginx:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: frontend
+      dockerfile: Dockerfile.frontend
       args:
         - VERSION=${VERSION}
-    image: minh020698/event-driven-food-delivery-frontend:${VERSION}
+    image: minh020698/event-driven-food-delivery-nginx:${VERSION}
     ports:
       - "80:80"
     networks:
