@@ -79,7 +79,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
       KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
       EUREKA_CLIENT_SERVICE_URL: http://service-discovery:8761/eureka/
-  
+
   order-service:
     build:
       context: . 
@@ -136,8 +136,6 @@ services:
       replicas: 2 # This will create two instances
     depends_on:
       - service-discovery
-    # ports:
-    #   - "8080:8080"
     networks:
       - my-app-network
     environment:
@@ -163,12 +161,14 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        - VERSION=${VERSION}
+        - VITE_API_BASE_URL=/api
     image: minh020698/event-driven-food-delivery-nginx:${VERSION}
     ports:
       - "80:80"
     networks:
-      - my-app-network     
+      - my-app-network
+    # environment:
+    #   VITE_API_BASE_URL: http://api-gateway:8080
 
 volumes:
   postgres_data:
