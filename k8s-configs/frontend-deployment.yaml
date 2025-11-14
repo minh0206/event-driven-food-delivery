@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: frontend
+          image: minh020698/event-driven-food-delivery-frontend:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "512m"
+              ephemeral-storage: "1Gi"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          
+          env:
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: jwt-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
