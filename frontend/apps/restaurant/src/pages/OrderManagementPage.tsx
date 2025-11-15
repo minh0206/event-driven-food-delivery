@@ -30,7 +30,7 @@ const OrderManagementPage = () => {
     error: errorHistory,
   } = useHistoryRestaurantOrders();
 
-  const { isConnected, subscribe } = useWebSocket("http://localhost:8082/ws");
+  const { isConnected, subscribe } = useWebSocket("/ws/restaurant");
 
   const renderHistoryContent = () => {
     if (isLoadingHistory) {

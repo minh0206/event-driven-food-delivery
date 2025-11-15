@@ -15,7 +15,7 @@ import { MenuItem } from "@repo/shared/models";
 import { Toaster, toaster } from "@repo/ui/components";
 import { useParams } from "react-router-dom";
 import MenuItemCard from "../components/MenuItemCard";
-import { useCartStore } from "../stores/cartStore";
+import { useCartStore } from "../stores/useCartStore";
 
 export const RestaurantDetailPage = () => {
   const { id } = useParams();

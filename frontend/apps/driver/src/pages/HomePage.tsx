@@ -15,7 +15,7 @@ import { DriverStatus } from "../models/DriverStatus";
 const ORDER_UPDATES_ENDPOINT = "/user/queue/order-updates";
 
 export const HomePage = () => {
-  const { isConnected, subscribe } = useWebSocket("http://localhost:8084/ws");
+  const { isConnected, subscribe } = useWebSocket("/ws/driver");
   const { data, refetch: refetchStatus } = useDriverStatus();
   const { data: driverOrder, refetch: refetchOrder, error } = useDriverOrder();
   const updateDriverStatus = useUpdateDriverStatus();

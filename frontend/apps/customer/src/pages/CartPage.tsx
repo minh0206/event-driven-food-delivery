@@ -18,7 +18,7 @@ import { useRestaurant } from "@repo/shared/hooks";
 import { orderService } from "@repo/shared/services";
 import { useNavigate } from "react-router-dom";
 import CartItemCard from "../components/CartItemCard";
-import { useCartStore } from "../stores/cartStore";
+import { useCartStore } from "../stores/useCartStore";
 
 const CartPage = () => {
   const {
