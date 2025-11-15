@@ -18,4 +18,5 @@ export const CACHE_KEYS = {
 
 export const STORAGE_KEYS = {
   CART: "cart-storage",
+  AUTH: "auth-storage",
 };
