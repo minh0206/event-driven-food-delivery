@@ -12,7 +12,7 @@ import {
 import { UserAvatar } from "@repo/ui/components";
 import { LuShoppingCart } from "react-icons/lu";
 import { NavLink, useLocation } from "react-router-dom";
-import { useCartStore } from "../stores/cartStore";
+import { useCartStore } from "../stores/useCartStore";
 
 export const NavBar = () => {
   const location = useLocation();

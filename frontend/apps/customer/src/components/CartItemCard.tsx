@@ -9,7 +9,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { LuMinus, LuPlus } from "react-icons/lu";
-import { CartItem } from "../stores/cartStore";
+import { CartItem } from "../stores/useCartStore";
 
 const CartItemCard = ({
   item,
