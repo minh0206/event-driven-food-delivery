@@ -1,18 +1,21 @@
 server:
   port: 8080
 
-# Eureka Client
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL}
-
 # Actuator
 management:
   endpoints:
     web:
       exposure:
         include: "*"
+
+logging:
+  level:
+    org:
+      springframework:
+        security: TRACE
+        web: TRACE
+        cloud:
+          gateway: TRACE
 
 spring:
   application:
@@ -22,41 +25,56 @@ spring:
       server:
         webflux:
           # Enable CORS for all routes
-          globalcors:
-            corsConfigurations:
-              "[/**]":
-                allowedOrigins:
-                  - "http://localhost:5173"
-                  - "http://localhost:5174"
-                  - "http://localhost:5175"
-                allowedMethods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                allowedHeaders:
-                  - "*"
-                allowCredentials: true
-                maxAge: 3600
+          # globalcors:
+          #   corsConfigurations:
+          #     "[/**]":
+          #       allowedOrigins:
+          #         - "http://localhost:5173"
+          #         - "http://localhost:5174"
+          #         - "http://localhost:5175"
+          #       allowedMethods:
+          #         - GET
+          #         - POST
+          #         - PUT
+          #         - DELETE
+          #       allowedHeaders:
+          #         - "*"
+          #       allowCredentials: true
+          #       maxAge: 3600
 
           # Configure the API gateway server
           routes:
             - id: user-service-route
-              uri: http://localhost:8081
+              uri: ${USER_SERVICE_URL}
               predicates:
                 - Path=/api/users/**
 
             - id: restaurant-service-route
-              uri: http://localhost:8082
+              uri: ${RESTAURANT_SERVICE_URL}
               predicates:
                 - Path=/api/restaurants/**
 
+            - id: restaurant-service-websocket-route
+              uri: ${RESTAURANT_SERVICE_URL}
+              predicates:
+                - Path=/ws/restaurant/** # Matches requests starting with /ws/restaurant/
+
             - id: order-service-route
-              uri: http://localhost:8083
+              uri: ${ORDER_SERVICE_URL}
               predicates:
                 - Path=/api/orders/**
 
+            - id: order-service-websocket-route
+              uri: ${ORDER_SERVICE_URL}
+              predicates:
+                - Path=/ws/order/** # Matches requests starting with /ws/order/
+
             - id: delivery-service-route
-              uri: http://localhost:8084
+              uri: ${DELIVERY_SERVICE_URL}
               predicates:
                 - Path=/api/drivers/**
+
+            - id: delivery-service-websocket-route
+              uri: ${DELIVERY_SERVICE_URL}
+              predicates:
+                - Path=/ws/driver/** # Matches requests starting with /ws/driver/
