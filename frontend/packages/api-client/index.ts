@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  // Point this to the Spring Cloud API Gateway's address
-  baseURL: "http://localhost:80/api",
+  baseURL: "/api",
   headers: {
     "Content-Type": "application/json",
   },

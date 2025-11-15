@@ -17,7 +17,7 @@ import { useCustomerOrders } from "../hooks/useCustomerOrders";
 const ORDER_UPDATES_ENDPOINT = "/user/queue/order-updates";
 
 const OrderListPage = () => {
-  const { isConnected, subscribe } = useWebSocket("http://localhost:8083/ws");
+  const { isConnected, subscribe } = useWebSocket("/ws/order");
   const [activeTab, setActiveTab] = useState<string>("ongoing");
   const { data: orders, isLoading, error, refetch } = useCustomerOrders();
 

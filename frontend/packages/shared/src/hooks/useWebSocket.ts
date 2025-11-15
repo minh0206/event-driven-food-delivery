@@ -18,7 +18,7 @@ export const useWebSocket = (url: string) => {
   // Memoize the callback functions to prevent unnecessary re-renders
   const onConnect = useCallback(() => {
     setIsConnected(true);
-    console.log("Connected to WebSocket");
+    console.log("Connected to WebSocket: ", url);
   }, []);
 
   const onDisconnect = useCallback(() => {
