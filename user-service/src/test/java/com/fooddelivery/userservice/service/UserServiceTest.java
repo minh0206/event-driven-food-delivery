@@ -25,8 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fooddelivery.shared.dto.RestaurantRequestDto;
-import com.fooddelivery.shared.feignclient.DeliveryServiceClient;
-import com.fooddelivery.shared.feignclient.RestaurantServiceClient;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
