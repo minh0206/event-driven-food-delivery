@@ -22,6 +22,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,7 @@ import com.fooddelivery.shared.dto.OrderItemDto;
 import com.fooddelivery.shared.enumerate.OrderStatus;
 
 @WebMvcTest(OrderController.class)
+@ActiveProfiles("test")
 class OrderControllerTest {
 
     @Autowired
