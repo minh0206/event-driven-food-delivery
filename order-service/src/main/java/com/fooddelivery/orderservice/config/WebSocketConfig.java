@@ -1,5 +1,6 @@
 package com.fooddelivery.orderservice.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -16,6 +17,9 @@ import lombok.AllArgsConstructor;
 @EnableWebSocketMessageBroker
 @AllArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    @Value("${app.cors.allowed-origins:localhost:5173}")
+    private @NonNull String[] allowedOrigins;
+
     private final WebSocketAuthInterceptor webSocketAuthInterceptor;
 
     @Override
@@ -23,8 +27,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // The "/ws" endpoint is where the client will connect to for the WebSocket
         // handshake.
         // withSockJS() is a fallback for browsers that don't support WebSocket.
-        registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:5173")
+        registry.addEndpoint("/ws/order")
+                .setAllowedOrigins(allowedOrigins)
                 .withSockJS();
     }
 
