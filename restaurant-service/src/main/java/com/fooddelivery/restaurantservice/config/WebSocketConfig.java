@@ -1,5 +1,6 @@
 package com.fooddelivery.restaurantservice.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -11,18 +12,23 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import com.fooddelivery.securitylib.interceptor.WebSocketAuthInterceptor;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @EnableWebSocketMessageBroker
 @AllArgsConstructor
+@Slf4j
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    @Value("${app.cors.allowed-origins:localhost:5175}")
+    private @NonNull String[] allowedOrigins;
+
     private WebSocketAuthInterceptor webSocketAuthInterceptor;
 
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         // withSockJS() is a fallback for browsers that don't support WebSocket.
-        registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:5174")
+        registry.addEndpoint("/ws/restaurant")
+                .setAllowedOrigins(allowedOrigins)
                 .withSockJS();
     }
 
