@@ -21,4 +21,12 @@ spec:
             name: api-gateway-service
             port:
               number: 80
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-service
+            port:
+              number: 80
+
   ingressClassName: nginx
