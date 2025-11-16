@@ -27,7 +27,6 @@ import com.fooddelivery.shared.event.OrderAcceptedEvent;
 import com.fooddelivery.shared.event.OrderPlacedEvent;
 import com.fooddelivery.shared.event.OrderReadyEvent;
 import com.fooddelivery.shared.event.OrderRejectedEvent;
-import com.fooddelivery.shared.feignclient.OrderServiceClient;
 import com.fooddelivery.shared.publisher.OrderAcceptedEventPublisher;
 import com.fooddelivery.shared.publisher.OrderReadyEventPublisher;
 import com.fooddelivery.shared.publisher.OrderRejectedEventPublisher;

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fooddelivery.deliveryservice.model.Driver;
@@ -22,6 +23,13 @@ import com.fooddelivery.deliveryservice.service.DriverService;
 import com.fooddelivery.securitylib.service.JwtService;
 
 @WebMvcTest(InternalDriverController.class)
+@TestPropertySource(properties = {
+        "logging.level.org.springframework.security=INFO",
+        "logging.level.org.springframework.web=INFO",
+        "order-service.url=http://localhost:8083",
+        "user-service.url=http://localhost:8081",
+        "restaurant-service.url=http://localhost:8082"
+})
 class InternalDriverControllerTest {
 
     @Autowired

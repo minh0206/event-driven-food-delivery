@@ -32,6 +32,11 @@ public class SharedModuleAutoConfiguration {
     }
 
     @Bean
+    GlobalCorsConfig globalCorsConfig() {
+        return new GlobalCorsConfig();
+    }
+
+    @Bean
     OrderPlacedEventPublisher orderPlacedEventPublisher(KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate) {
         return new OrderPlacedEventPublisher(kafkaTemplate);
     }

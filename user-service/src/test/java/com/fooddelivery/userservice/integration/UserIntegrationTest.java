@@ -10,9 +10,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fooddelivery.securitylib.service.JwtService;
-import com.fooddelivery.shared.feignclient.DeliveryServiceClient;
-import com.fooddelivery.shared.feignclient.RestaurantServiceClient;
 import com.fooddelivery.userservice.repository.UserRepository;
+import com.fooddelivery.userservice.service.DeliveryServiceClient;
+import com.fooddelivery.userservice.service.RestaurantServiceClient;
 
 @SpringBootTest
 @AutoConfigureMockMvc

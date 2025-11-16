@@ -78,14 +78,12 @@ EXPOSE 8080
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 
 # --- STAGE 7: Target Service Discovery ---
-FROM eclipse-temurin:25-jre-jammy AS service-discovery
-WORKDIR /app
-RUN mkdir -p /app/lib
-COPY --from=backend-builder /app/service-discovery/target/*.jar app.jar
-COPY --from=backend-builder /app/shared-module/target/*.jar /app/lib/shared-module.jar
-COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security-jwt-lib.jar
-EXPOSE 8761
-CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
+# FROM eclipse-temurin:25-jre-jammy AS service-discovery
+# WORKDIR /app
+# RUN mkdir -p /app/lib
+# COPY --from=backend-builder /app/service-discovery/target/*.jar app.jar
+# EXPOSE 8761
+# CMD ["java", "-jar", "app.jar"]
 
 # --- STAGE 8: Target Frontend ---
 FROM nginx:alpine AS frontend
