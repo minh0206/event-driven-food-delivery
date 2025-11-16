@@ -5,9 +5,13 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "frontend-dev" ]
+    branches: [ "master", "frontend-dev" ]
   pull_request:
     branches: [ "master" ]
+
+env:
+  DOCKERHUB_USERNAME: minh020698
+  IMAGE_TAG: 0.0.1-SNAPSHOT
 
 jobs:
   build:
@@ -38,10 +42,35 @@ jobs:
         cache: 'pnpm'
         cache-dependency-path: frontend/pnpm-lock.yaml
 
-
     - name: Install dependencies
       run: pnpm install
       
     - name: Build project
       run: pnpm build # Replace 'pnpm build' with your actual build command
+    
+    -
+      name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    -
+      name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    -
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - 
+      name: Build and push Frontend
+      uses: docker/build-push-action@v6
+      with:
+        file: ./Dockerfile.frontend
+        push: true
+        tags: |
+          ${{ env.DOCKERHUB_USERNAME }}/event-driven-food-delivery-frontend:${{ env.IMAGE_TAG }}
+          ${{ env.DOCKERHUB_USERNAME }}/event-driven-food-delivery-frontend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
