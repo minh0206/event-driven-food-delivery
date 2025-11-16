@@ -6,7 +6,7 @@ metadata:
   labels:
     app: user-service
 spec:
-  replicas: 1 # Start with two instances for high availability
+  replicas: 1
   selector:
     matchLabels:
       app: user-service
@@ -48,6 +48,31 @@ spec:
               secretKeyRef:
                 name: app-secret
                 key: jwt-secret
+          
+          - name: USER_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: user-service-url
+          
+          - name: RESTAURANT_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: restaurant-service-url
+
+          - name: ORDER_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: order-service-url
+
+          - name: DELIVERY_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: delivery-service-url
+
 ---
 apiVersion: v1
 kind: Service
@@ -58,5 +83,5 @@ spec:
     app: user-service
   ports:
     - protocol: TCP
-      port: 80
+      port: 8081
       targetPort: 8081

@@ -20,7 +20,7 @@ spec:
         - name: restaurant-service
           image: minh020698/event-driven-food-delivery-restaurant-service:0.0.1-SNAPSHOT
           ports:
-            - containerPort: 8081
+            - containerPort: 8082
           resources:
             requests:
               memory: "1Gi"
@@ -48,6 +48,37 @@ spec:
               secretKeyRef:
                 name: app-secret
                 key: jwt-secret
+          
+          - name: USER_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: user-service-url
+          
+          - name: RESTAURANT_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: restaurant-service-url
+
+          - name: ORDER_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: order-service-url
+
+          - name: DELIVERY_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: delivery-service-url
+          
+          - name: APP_CORS_ALLOWED_ORIGINS
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: app-cors-allowed-origins
+
 ---
 apiVersion: v1
 kind: Service
@@ -58,5 +89,5 @@ spec:
     app: restaurant-service
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 8081
+      port: 8082
+      targetPort: 8082
