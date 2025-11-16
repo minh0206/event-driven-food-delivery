@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JwtService {
-    @Value("${spring.jwt.expiration}")
+    @Value("${spring.jwt.expiration:3600}")
     private long tokenExpiration;
 
     @Value("${spring.jwt.secret}")
