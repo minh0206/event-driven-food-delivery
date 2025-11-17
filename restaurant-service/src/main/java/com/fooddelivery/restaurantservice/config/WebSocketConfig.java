@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @Slf4j
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    @Value("${app.cors.allowed-origins:localhost:5175}")
+    @Value("${app.cors.allowed-origins:*}")
     private @NonNull String[] allowedOrigins;
 
     private WebSocketAuthInterceptor webSocketAuthInterceptor;
@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         // withSockJS() is a fallback for browsers that don't support WebSocket.
         registry.addEndpoint("/ws/restaurant")
-                .setAllowedOrigins(allowedOrigins)
+                .setAllowedOriginPatterns(allowedOrigins)
                 .withSockJS();
     }
 
