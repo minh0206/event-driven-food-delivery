@@ -19,18 +19,13 @@ const HomePage = () => {
 
         <ServiceHealthDashboard />
 
-        <Box
-          p={6}
-          bg="white"
-          borderRadius="md"
-          shadow="sm"
-          borderWidth="1px"
-        >
+        <Box p={6} bg="white" borderRadius="md" shadow="sm" borderWidth="1px">
           <Heading size="lg" mb={4}>
             System Overview
           </Heading>
           <Text color="gray.600">
-            This is the system administration dashboard. Use the navigation bar to access different sections.
+            This is the system administration dashboard. Use the navigation bar
+            to access different sections.
           </Text>
         </Box>
       </VStack>

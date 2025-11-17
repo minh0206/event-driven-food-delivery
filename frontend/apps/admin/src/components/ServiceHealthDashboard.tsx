@@ -4,7 +4,12 @@ import { getAllServicesHealth } from "../services/healthService";
 import ServiceHealthCard from "./ServiceHealthCard";
 
 const ServiceHealthDashboard = () => {
-  const { data: services, isLoading, error, refetch } = useQuery({
+  const {
+    data: services,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["serviceHealth"],
     queryFn: getAllServicesHealth,
     refetchInterval: 30000, // Refetch every 30 seconds
@@ -49,7 +54,12 @@ const ServiceHealthDashboard = () => {
       borderColor="gray.200"
       shadow="sm"
     >
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={6}
+      >
         <Box>
           <Heading size="md" mb={1}>
             Service Health Status
