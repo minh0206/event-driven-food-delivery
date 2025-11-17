@@ -20,7 +20,11 @@ interface FormValues {
   password: string;
 }
 
-export const LoginPage = () => {
+interface LoginPageProps {
+  showSignup?: boolean;
+}
+
+export const LoginPage = ({ showSignup = true }: LoginPageProps) => {
   const {
     register,
     handleSubmit,
@@ -98,12 +102,16 @@ export const LoginPage = () => {
                 </Stack>
               </Card.Body>
               <Card.Footer justifyContent="center">
-                <Text>Don't have an account?</Text>
-                <ChakraLink asChild>
-                  <Link to="/signup" replace>
-                    <b>Sign up</b>
-                  </Link>
-                </ChakraLink>
+                {showSignup && (
+                  <>
+                    <Text>Don't have an account?</Text>
+                    <ChakraLink asChild>
+                      <Link to="/signup" replace>
+                        <b>Sign up</b>
+                      </Link>
+                    </ChakraLink>
+                  </>
+                )}
               </Card.Footer>
             </Card.Root>
           </form>
