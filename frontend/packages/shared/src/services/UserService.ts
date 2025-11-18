@@ -1,6 +1,6 @@
-import apiClient from "api-client";
 import { Role } from "../models";
 import { User } from "../models/User";
+import { apiClient } from "./api-client";
 
 interface LoginResponse {
   token: string;
@@ -18,6 +18,10 @@ export interface RegisterUser {
 }
 
 class UserService {
+  async checkHealth() {
+    return (await apiClient.get("/users/actuator/health")).data;
+  }
+
   async registerUser(registerUser: RegisterUser) {
     switch (registerUser.role) {
       case Role.CUSTOMER:

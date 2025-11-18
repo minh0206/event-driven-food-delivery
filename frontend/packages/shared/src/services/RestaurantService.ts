@@ -1,4 +1,4 @@
-import apiClient from "api-client";
+import { apiClient } from "@repo/shared/services";
 import { HistoryRestaurantOrder } from "../models";
 import { MenuItem } from "../models/MenuItem";
 import { Restaurant } from "../models/Restaurant";

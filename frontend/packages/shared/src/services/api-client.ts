@@ -1,6 +1,7 @@
+import { STORAGE_KEYS } from "@repo/shared/constants";
 import axios from "axios";
 
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: "/api",
   headers: {
     "Content-Type": "application/json",
@@ -10,7 +11,7 @@ const apiClient = axios.create({
 // Use an interceptor to add the auth token to every request
 apiClient.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem("authToken");
+    const token = sessionStorage.getItem(STORAGE_KEYS.AUTH);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -20,5 +21,3 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
-export default apiClient;
