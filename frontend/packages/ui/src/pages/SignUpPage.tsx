@@ -1,4 +1,3 @@
-// apps/customer/src/pages/LoginPage.tsx
 import {
   AbsoluteCenter,
   Alert,
@@ -60,9 +59,9 @@ export const SignUpPage = ({ role }: { role: Role }) => {
   };
 
   useEffect(() => {
-    if (!isInitialized) initialize();
+    if (!isInitialized) initialize(role);
     if (user) navigate("/");
-  }, [initialize, user]);
+  }, [initialize, role, user]);
 
   return (
     <AbsoluteCenter>
