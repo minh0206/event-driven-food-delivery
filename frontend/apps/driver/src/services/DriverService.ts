@@ -1,5 +1,5 @@
 import { OrderStatus } from "@repo/shared/models";
-import apiClient from "api-client";
+import { apiClient } from "@repo/shared/services";
 import { DriverOrder } from "../models/DriverOrder";
 import { DriverStatus } from "../models/DriverStatus";
 

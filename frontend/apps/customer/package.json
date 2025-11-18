@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "api-client": "workspace:*",
     "@repo/shared": "workspace:*",
     "@repo/ui": "workspace:*"
   },
