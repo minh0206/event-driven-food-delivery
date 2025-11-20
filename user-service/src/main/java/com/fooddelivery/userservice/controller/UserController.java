@@ -2,15 +2,14 @@ package com.fooddelivery.userservice.controller;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +20,7 @@ import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
+import com.fooddelivery.userservice.model.Token;
 import com.fooddelivery.userservice.model.User;
 import com.fooddelivery.userservice.service.TokenService;
 import com.fooddelivery.userservice.service.UserService;
@@ -46,12 +46,12 @@ public class UserController {
     private final UserMapper userMapper;
     private final TokenService tokenService;
 
-    private Cookie createCookie(String key, String value, String path) {
+    private Cookie createCookie(String key, String value, String path, int maxAge) {
         Cookie cookie = new Cookie(key, value);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false); // Set to true in production with HTTPS
         cookie.setPath(path);
-        cookie.setMaxAge(jwtConfig.getRefreshExpiration());
+        cookie.setMaxAge(maxAge);
         return cookie;
     }
 
@@ -64,7 +64,7 @@ public class UserController {
 
         // Save token to database
         Claims claims = jwtService.extractAllClaims(accessToken);
-        tokenService.saveToken(accessToken, registeredUser.getId(), claims.getExpiration());
+        tokenService.saveRefreshToken(accessToken, registeredUser.getId(), claims.getExpiration());
 
         return Map.of(ACCESS_TOKEN_KEY, accessToken);
     }
@@ -79,7 +79,7 @@ public class UserController {
 
         // Save token to database
         Claims claims = jwtService.extractAllClaims(accessToken);
-        tokenService.saveToken(accessToken, registeredUser.getId(), claims.getExpiration());
+        tokenService.saveRefreshToken(accessToken, registeredUser.getId(), claims.getExpiration());
 
         return Map.of(ACCESS_TOKEN_KEY, accessToken);
     }
@@ -93,7 +93,7 @@ public class UserController {
 
         // Save token to database
         Claims claims = jwtService.extractAllClaims(accessToken);
-        tokenService.saveToken(accessToken, registeredUser.getId(), claims.getExpiration());
+        tokenService.saveRefreshToken(accessToken, registeredUser.getId(), claims.getExpiration());
 
         return Map.of(ACCESS_TOKEN_KEY, accessToken);
     }
@@ -103,18 +103,35 @@ public class UserController {
             @RequestBody LoginRequestDto requestDto,
             HttpServletResponse response) {
         User user = userService.loginUser(requestDto.email(), requestDto.password());
+
+        // Check if user has a valid refresh token
+        String refreshToken;
+        Optional<Token> existingToken = tokenService
+                .getValidTokenByUserId(user.getId());
+
+        if (existingToken.isPresent()) {
+            // Use existing valid refresh token
+            refreshToken = existingToken.get().getRefreshToken();
+            log.info("Reusing existing valid refresh token for user: {}", user.getId());
+        } else {
+            // Generate new refresh token only if no valid token exists
+            refreshToken = jwtService.generateRefreshToken(
+                    user.getId().toString(),
+                    user.getRole().toString());
+
+            // Save new refresh token to database
+            Claims refreshClaims = jwtService.extractAllClaims(refreshToken);
+            tokenService.saveRefreshToken(refreshToken, user.getId(), refreshClaims.getExpiration());
+            log.info("Created new refresh token for user: {}", user.getId());
+        }
+
+        // Always generate a new access token
         String accessToken = jwtService.generateAccessToken(
                 user.getId().toString(),
                 user.getRole().toString());
-        String refreshToken = jwtService.generateRefreshToken(
-                user.getId().toString(),
-                user.getRole().toString());
 
-        // Save tokens to database
-        Claims refreshClaims = jwtService.extractAllClaims(refreshToken);
-        tokenService.saveToken(refreshToken, user.getId(), refreshClaims.getExpiration());
-
-        response.addCookie(createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh"));
+        response.addCookie(
+                createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
         return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
 
@@ -151,41 +168,20 @@ public class UserController {
         }
 
         String accessToken = jwtService.generateAccessToken(userId, role);
-
-        // Save new access token to database
-        Claims accessClaims = jwtService.extractAllClaims(accessToken);
-        tokenService.saveToken(accessToken, user.getId(), accessClaims.getExpiration());
-
         return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(
-            @RequestHeader("Authorization") String authHeader,
-            Authentication authentication,
+            Principal principal,
             HttpServletResponse response) {
-
-        // Extract token from Authorization header
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-
-            // Revoke the current access token
-            tokenService.revokeToken(token);
-
-            // Optionally revoke all tokens for this user
-            Long userId = Long.parseLong(authentication.getName());
-            tokenService.revokeAllUserTokens(userId);
-
-            log.info("User {} logged out successfully", userId);
-        }
+        // Revoke all tokens for this user
+        Long userId = Long.parseLong(principal.getName());
+        tokenService.revokeAllUserTokens(userId);
+        log.info("User {} logged out successfully", userId);
 
         // Clear refresh token cookie
-        Cookie cookie = new Cookie(REFRESH_TOKEN_KEY, null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/api/users/refresh");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        response.addCookie(createCookie(REFRESH_TOKEN_KEY, "", "/api/users/refresh", 0));
 
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }

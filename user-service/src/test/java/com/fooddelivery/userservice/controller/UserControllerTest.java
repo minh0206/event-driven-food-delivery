@@ -70,7 +70,7 @@ class UserControllerTest {
         saved.setRole(Role.CUSTOMER);
 
         when(userService.registerCustomer(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("1", Role.CUSTOMER.toString())).thenReturn("jwt-token");
+        when(jwtService.generateAccessToken("1", Role.CUSTOMER.toString())).thenReturn("jwt-token");
 
         mockMvc.perform(post("/api/users/register/customer")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -79,7 +79,7 @@ class UserControllerTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token"))));
 
         verify(userService).registerCustomer(any(RegisterRequestDto.class));
-        verify(jwtService).generateToken("1", Role.CUSTOMER.toString());
+        verify(jwtService).generateAccessToken("1", Role.CUSTOMER.toString());
     }
 
     @Test
@@ -98,7 +98,7 @@ class UserControllerTest {
         saved.setRole(Role.RESTAURANT_ADMIN);
 
         when(userService.registerRestaurantAdmin(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("2", Role.RESTAURANT_ADMIN.toString())).thenReturn("jwt-token-2");
+        when(jwtService.generateAccessToken("2", Role.RESTAURANT_ADMIN.toString())).thenReturn("jwt-token-2");
 
         mockMvc.perform(post("/api/users/register/restaurant")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -107,7 +107,7 @@ class UserControllerTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token-2"))));
 
         verify(userService).registerRestaurantAdmin(any(RegisterRequestDto.class));
-        verify(jwtService).generateToken("2", Role.RESTAURANT_ADMIN.toString());
+        verify(jwtService).generateAccessToken("2", Role.RESTAURANT_ADMIN.toString());
     }
 
     @Test
@@ -126,7 +126,7 @@ class UserControllerTest {
         saved.setRole(Role.DELIVERY_DRIVER);
 
         when(userService.registerDriver(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("3", Role.DELIVERY_DRIVER.toString())).thenReturn("jwt-token-3");
+        when(jwtService.generateAccessToken("3", Role.DELIVERY_DRIVER.toString())).thenReturn("jwt-token-3");
 
         mockMvc.perform(post("/api/users/register/driver")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,7 +135,7 @@ class UserControllerTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token-3"))));
 
         verify(userService).registerDriver(any(RegisterRequestDto.class));
-        verify(jwtService).generateToken("3", Role.DELIVERY_DRIVER.toString());
+        verify(jwtService).generateAccessToken("3", Role.DELIVERY_DRIVER.toString());
     }
 
     @Test
@@ -147,7 +147,7 @@ class UserControllerTest {
         user.setRole(Role.CUSTOMER);
 
         when(userService.loginUser("a@b.com", "password123")).thenReturn(user);
-        when(jwtService.generateToken("4", Role.CUSTOMER.toString())).thenReturn("jwt-login");
+        when(jwtService.generateAccessToken("4", Role.CUSTOMER.toString())).thenReturn("jwt-login");
 
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -156,7 +156,7 @@ class UserControllerTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-login"))));
 
         verify(userService).loginUser("a@b.com", "password123");
-        verify(jwtService).generateToken("4", Role.CUSTOMER.toString());
+        verify(jwtService).generateAccessToken("4", Role.CUSTOMER.toString());
     }
 
     @Test
@@ -236,7 +236,7 @@ class UserControllerTest {
         driver.setRole(Role.DELIVERY_DRIVER);
 
         when(userService.loginUser("driver@example.com", "password123")).thenReturn(driver);
-        when(jwtService.generateToken("5", Role.DELIVERY_DRIVER.toString())).thenReturn("driver-token");
+        when(jwtService.generateAccessToken("5", Role.DELIVERY_DRIVER.toString())).thenReturn("driver-token");
 
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -244,7 +244,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "driver-token"))));
 
-        verify(jwtService).generateToken("5", Role.DELIVERY_DRIVER.toString());
+        verify(jwtService).generateAccessToken("5", Role.DELIVERY_DRIVER.toString());
     }
 
     @Test
@@ -281,7 +281,7 @@ class UserControllerTest {
         saved.setRestaurantId(100L);
 
         when(userService.registerRestaurantAdmin(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("7", Role.RESTAURANT_ADMIN.toString())).thenReturn("restaurant-token");
+        when(jwtService.generateAccessToken("7", Role.RESTAURANT_ADMIN.toString())).thenReturn("restaurant-token");
 
         mockMvc.perform(post("/api/users/register/restaurant")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -309,7 +309,7 @@ class UserControllerTest {
         saved.setDriverId(200L);
 
         when(userService.registerDriver(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("8", Role.DELIVERY_DRIVER.toString())).thenReturn("minimal-driver-token");
+        when(jwtService.generateAccessToken("8", Role.DELIVERY_DRIVER.toString())).thenReturn("minimal-driver-token");
 
         mockMvc.perform(post("/api/users/register/driver")
                 .contentType(MediaType.APPLICATION_JSON)
