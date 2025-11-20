@@ -24,7 +24,7 @@ public class TokenService implements TokenValidationService {
     private final TokenRepository tokenRepository;
 
     @Transactional
-    public void saveToken(String tokenValue, Long userId, Date expirationDate) {
+    public void saveRefreshToken(String tokenValue, Long userId, Date expirationDate) {
         Token token = new Token();
         token.setRefreshToken(tokenValue);
         token.setUserId(userId);
@@ -46,7 +46,7 @@ public class TokenService implements TokenValidationService {
     }
 
     @Transactional
-    public void revokeToken(String tokenValue) {
+    public void revokeRefreshToken(String tokenValue) {
         Optional<Token> tokenOpt = tokenRepository.findByRefreshToken(tokenValue);
         if (tokenOpt.isPresent()) {
             Token token = tokenOpt.get();
@@ -68,6 +68,14 @@ public class TokenService implements TokenValidationService {
     public void cleanupExpiredTokens() {
         tokenRepository.deleteExpiredTokens(LocalDateTime.now());
         log.info("Expired tokens cleaned up");
+    }
+
+    public java.util.List<Token> getAllTokens() {
+        return tokenRepository.findAll();
+    }
+
+    public Optional<Token> getValidTokenByUserId(Long userId) {
+        return tokenRepository.findValidTokenByUserId(userId, LocalDateTime.now());
     }
 
     private LocalDateTime convertToLocalDateTime(Date date) {

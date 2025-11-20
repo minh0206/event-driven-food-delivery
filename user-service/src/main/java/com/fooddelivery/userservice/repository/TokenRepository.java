@@ -21,4 +21,7 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
     @Modifying
     @Query("DELETE FROM Token t WHERE t.expiresAt < :now")
     void deleteExpiredTokens(LocalDateTime now);
+
+    @Query("SELECT t FROM Token t WHERE t.userId = :userId AND t.revoked = false AND t.expiresAt > :now ORDER BY t.expiresAt DESC")
+    Optional<Token> findValidTokenByUserId(Long userId, LocalDateTime now);
 }
