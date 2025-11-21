@@ -1,5 +1,5 @@
 import { Box, HStack, Table, Text } from "@chakra-ui/react";
-import { ServiceHealth } from "../types/ServiceHealth";
+import { ServiceHealth } from "../models/ServiceHealth";
 
 interface ServiceHealthCardProps {
   service: ServiceHealth;

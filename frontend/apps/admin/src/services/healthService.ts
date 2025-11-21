@@ -1,7 +1,8 @@
-import apiClient from "api-client";
-import { HealthResponse } from "../types/ServiceHealth";
+import { apiClient } from "@repo/shared/services";
+import { HealthResponse } from "../models/ServiceHealth";
 
 const SERVICES = [
+  { name: "API Gateway", endpoint: "/actuator/health" },
   { name: "User Service", endpoint: "/users/actuator/health" },
   { name: "Restaurant Service", endpoint: "/restaurants/actuator/health" },
   { name: "Order Service", endpoint: "/orders/actuator/health" },
