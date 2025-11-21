@@ -1,6 +1,7 @@
 import { Box, Container, Heading, Text, VStack } from "@chakra-ui/react";
 import { useAuthStore } from "@repo/shared/hooks";
 import ServiceHealthDashboard from "../components/ServiceHealthDashboard";
+import TokensDashboard from "../components/TokensDashboard";
 
 const HomePage = () => {
   const { user } = useAuthStore();
@@ -18,6 +19,8 @@ const HomePage = () => {
         </Box>
 
         <ServiceHealthDashboard />
+
+        <TokensDashboard />
 
         <Box p={6} bg="white" borderRadius="md" shadow="sm" borderWidth="1px">
           <Heading size="lg" mb={4}>
