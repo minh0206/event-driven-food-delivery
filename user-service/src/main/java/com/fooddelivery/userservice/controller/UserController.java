@@ -2,7 +2,6 @@ package com.fooddelivery.userservice.controller;
 
 import java.security.Principal;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +19,8 @@ import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
-import com.fooddelivery.userservice.model.Token;
 import com.fooddelivery.userservice.model.User;
-import com.fooddelivery.userservice.service.TokenService;
+import com.fooddelivery.userservice.service.RefreshTokenService;
 import com.fooddelivery.userservice.service.UserService;
 
 import io.jsonwebtoken.Claims;
@@ -44,7 +42,7 @@ public class UserController {
     private final JwtConfig jwtConfig;
     private final JwtService jwtService;
     private final UserMapper userMapper;
-    private final TokenService tokenService;
+    private final RefreshTokenService refreshTokenService;
 
     private Cookie createCookie(String key, String value, String path, int maxAge) {
         Cookie cookie = new Cookie(key, value);
@@ -56,46 +54,84 @@ public class UserController {
     }
 
     @PostMapping("/register/customer")
-    public Map<String, String> registerCustomer(@Valid @RequestBody RegisterRequestDto requestDto) {
+    public ResponseEntity<Map<String, String>> registerCustomer(
+            @Valid @RequestBody RegisterRequestDto requestDto,
+            HttpServletResponse response) {
         User registeredUser = userService.registerCustomer(requestDto);
+
+        // Generate access token
         String accessToken = jwtService.generateAccessToken(
                 registeredUser.getId().toString(),
                 registeredUser.getRole().toString());
 
-        // Save token to database
-        Claims claims = jwtService.extractAllClaims(accessToken);
-        tokenService.saveRefreshToken(accessToken, registeredUser.getId(), claims.getExpiration());
+        // Generate refresh token
+        String refreshToken = jwtService.generateRefreshToken(
+                registeredUser.getId().toString(),
+                registeredUser.getRole().toString());
 
-        return Map.of(ACCESS_TOKEN_KEY, accessToken);
+        // Save refresh token to database
+        Claims refreshClaims = jwtService.extractAllClaims(refreshToken);
+        refreshTokenService.saveRefreshToken(refreshToken, registeredUser.getId(), refreshClaims.getExpiration());
+
+        // Add refresh token to cookie
+        response.addCookie(
+                createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
+
+        return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
 
     @PostMapping("/register/restaurant")
-    public Map<String, String> registerRestaurantAdmin(
-            @Valid @RequestBody RegisterRequestDto requestDto) {
+    public ResponseEntity<Map<String, String>> registerRestaurantAdmin(
+            @Valid @RequestBody RegisterRequestDto requestDto,
+            HttpServletResponse response) {
         User registeredUser = userService.registerRestaurantAdmin(requestDto);
+
+        // Generate access token
         String accessToken = jwtService.generateAccessToken(
                 registeredUser.getId().toString(),
                 registeredUser.getRole().toString());
 
-        // Save token to database
-        Claims claims = jwtService.extractAllClaims(accessToken);
-        tokenService.saveRefreshToken(accessToken, registeredUser.getId(), claims.getExpiration());
+        // Generate refresh token
+        String refreshToken = jwtService.generateRefreshToken(
+                registeredUser.getId().toString(),
+                registeredUser.getRole().toString());
 
-        return Map.of(ACCESS_TOKEN_KEY, accessToken);
+        // Save refresh token to database
+        Claims refreshClaims = jwtService.extractAllClaims(refreshToken);
+        refreshTokenService.saveRefreshToken(refreshToken, registeredUser.getId(), refreshClaims.getExpiration());
+
+        // Add refresh token to cookie
+        response.addCookie(
+                createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
+
+        return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
 
     @PostMapping("/register/driver")
-    public Map<String, String> registerDriver(@Valid @RequestBody RegisterRequestDto requestDto) {
+    public ResponseEntity<Map<String, String>> registerDriver(
+            @Valid @RequestBody RegisterRequestDto requestDto,
+            HttpServletResponse response) {
         User registeredUser = userService.registerDriver(requestDto);
+
+        // Generate access token
         String accessToken = jwtService.generateAccessToken(
                 registeredUser.getId().toString(),
                 registeredUser.getRole().toString());
 
-        // Save token to database
-        Claims claims = jwtService.extractAllClaims(accessToken);
-        tokenService.saveRefreshToken(accessToken, registeredUser.getId(), claims.getExpiration());
+        // Generate refresh token
+        String refreshToken = jwtService.generateRefreshToken(
+                registeredUser.getId().toString(),
+                registeredUser.getRole().toString());
 
-        return Map.of(ACCESS_TOKEN_KEY, accessToken);
+        // Save refresh token to database
+        Claims refreshClaims = jwtService.extractAllClaims(refreshToken);
+        refreshTokenService.saveRefreshToken(refreshToken, registeredUser.getId(), refreshClaims.getExpiration());
+
+        // Add refresh token to cookie
+        response.addCookie(
+                createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
+
+        return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
 
     @PostMapping("/login")
@@ -104,34 +140,25 @@ public class UserController {
             HttpServletResponse response) {
         User user = userService.loginUser(requestDto.email(), requestDto.password());
 
-        // Check if user has a valid refresh token
-        String refreshToken;
-        Optional<Token> existingToken = tokenService
-                .getValidTokenByUserId(user.getId());
+        // Generate a new refresh token
+        String refreshToken = jwtService.generateRefreshToken(
+                user.getId().toString(),
+                user.getRole().toString());
 
-        if (existingToken.isPresent()) {
-            // Use existing valid refresh token
-            refreshToken = existingToken.get().getRefreshToken();
-            log.info("Reusing existing valid refresh token for user: {}", user.getId());
-        } else {
-            // Generate new refresh token only if no valid token exists
-            refreshToken = jwtService.generateRefreshToken(
-                    user.getId().toString(),
-                    user.getRole().toString());
+        // Save new refresh token to database
+        Claims refreshClaims = jwtService.extractAllClaims(refreshToken);
+        var savedRefreshToken = refreshTokenService.saveRefreshToken(refreshToken, user.getId(),
+                refreshClaims.getExpiration());
+        log.info("Created new refresh token for user: {}", user.getId());
 
-            // Save new refresh token to database
-            Claims refreshClaims = jwtService.extractAllClaims(refreshToken);
-            tokenService.saveRefreshToken(refreshToken, user.getId(), refreshClaims.getExpiration());
-            log.info("Created new refresh token for user: {}", user.getId());
-        }
-
-        // Always generate a new access token
+        // Generate a new access token
         String accessToken = jwtService.generateAccessToken(
                 user.getId().toString(),
                 user.getRole().toString());
 
         response.addCookie(
                 createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
+
         return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
 
@@ -146,7 +173,7 @@ public class UserController {
         }
 
         // Check if token is revoked
-        if (!tokenService.isTokenValid(refreshToken)) {
+        if (!refreshTokenService.isTokenValid(refreshToken)) {
             log.error("Refresh token has been revoked");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -177,7 +204,7 @@ public class UserController {
             HttpServletResponse response) {
         // Revoke all tokens for this user
         Long userId = Long.parseLong(principal.getName());
-        tokenService.revokeAllUserTokens(userId);
+        refreshTokenService.revokeAllUserTokens(userId);
         log.info("User {} logged out successfully", userId);
 
         // Clear refresh token cookie
