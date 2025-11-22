@@ -16,7 +16,7 @@ const router = createBrowserRouter(
     {
       path: "/",
       element: (
-        <PrivateRoutes role={Role.CUSTOMER}>
+        <PrivateRoutes>
           <Layout />
         </PrivateRoutes>
       ),

@@ -14,7 +14,7 @@ const router = createBrowserRouter(
     {
       path: "/",
       element: (
-        <PrivateRoutes role={Role.RESTAURANT_ADMIN}>
+        <PrivateRoutes>
           <Layout />
         </PrivateRoutes>
       ),
