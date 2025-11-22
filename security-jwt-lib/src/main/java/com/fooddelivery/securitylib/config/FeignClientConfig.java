@@ -12,13 +12,11 @@ import feign.Logger;
 import feign.Request;
 
 @Configuration
-public class FeignClientConfiguration {
+public class FeignClientConfig {
     @Bean
     FeignClientAuthInterceptor feignClientAuthInterceptor(JwtService jwtService) {
         return new FeignClientAuthInterceptor(jwtService);
     }
-
-    // Other potential configurations:
 
     // Configure logging level
     @Bean
