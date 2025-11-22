@@ -263,7 +263,7 @@ public class RestaurantService {
         }
 
         List<CompleteOrderViewDto> completeData = new ArrayList<>();
-        for (int i = 0; i < masterOrderData.getTotalElements(); i++) {
+        for (int i = 0; i < pageable.getPageSize(); i++) {
             MasterOrderDto masterOrder = masterOrderData.getContent().get(i);
             RestaurantOrder operationalOrder = operationalData.getContent().get(i);
             completeData.add(restaurantOrderMapper.toCompleteOrderViewDto(masterOrder, operationalOrder));

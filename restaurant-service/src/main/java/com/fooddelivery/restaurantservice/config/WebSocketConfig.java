@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         // withSockJS() is a fallback for browsers that don't support WebSocket.
         registry.addEndpoint("/ws/restaurant")
-                .setAllowedOriginPatterns(allowedOrigins)
+                .setAllowedOrigins(allowedOrigins)
                 .withSockJS();
     }
 
