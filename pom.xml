@@ -15,10 +15,11 @@
     <artifactId>food-delivery-system</artifactId>
     <name>Food Delivery System</name>
     <description>Event-Driven Food Delivery System</description>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
 
     <properties>
+        <revision>0.0.1-SNAPSHOT</revision>
         <java.version>25</java.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <org.mapstruct.version>1.6.2</org.mapstruct.version>
@@ -33,7 +34,6 @@
         <module>order-service</module>
         <module>delivery-service</module>
         <module>api-gateway</module>
-        <module>service-discovery</module>
         <module>security-jwt-lib</module>
         <module>shared-module</module>
     </modules>
@@ -63,12 +63,12 @@
             <dependency>
                 <groupId>com.fooddelivery</groupId>
                 <artifactId>security-jwt-lib</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
+                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.fooddelivery</groupId>
                 <artifactId>shared-module</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
+                <version>${revision}</version>
             </dependency>
 
             <!-- External Libraries -->
