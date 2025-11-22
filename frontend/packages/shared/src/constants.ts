@@ -14,9 +14,10 @@ export const CACHE_KEYS = {
   HISTORY_RESTAURANT_ORDERS: ["history-restaurant-orders"],
   DRIVER_STATUS: ["driver-status"],
   DRIVER_ORDER: ["driver-order"],
+  TOKENS: ["tokens"],
 };
 
 export const STORAGE_KEYS = {
   CART: "cart-storage",
-  AUTH: "auth-storage",
+  ACCESS_TOKEN: "access-token",
 };

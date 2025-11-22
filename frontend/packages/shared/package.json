@@ -6,7 +6,8 @@
     "./hooks": "./src/hooks/index.ts",
     "./models": "./src/models/index.ts",
     "./services": "./src/services/index.ts",
-    "./constants": "./src/constants.ts"
+    "./constants": "./src/constants.ts",
+    "./utils/tokenLogger": "./src/utils/tokenLogger.ts"
   },
   "scripts": {
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"

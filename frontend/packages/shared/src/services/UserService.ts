@@ -3,7 +3,7 @@ import { User } from "../models/User";
 import { apiClient } from "./api-client";
 
 interface LoginResponse {
-  token: string;
+  accessToken: string;
 }
 
 export interface RegisterUser {
@@ -51,17 +51,29 @@ class UserService {
   }
 
   async loginUser(email: string, password: string) {
-    return (
-      await apiClient.post<LoginResponse>("/users/login", {
-        email,
-        password,
-      })
-    ).data;
+    const response = await apiClient.post<LoginResponse>("/users/login", {
+      email,
+      password,
+    });
+
+    console.log("Login response: ", response);
+
+    return response.data;
   }
 
   async getProfile() {
     const request = await apiClient.get<User>("/users/profile");
     return request.data;
+  }
+
+  async logout() {
+    const request = await apiClient.post("/users/logout");
+    return request.data;
+  }
+
+  async refreshToken() {
+    const response = await apiClient.post<LoginResponse>("/users/refresh");
+    return response.data;
   }
 }
 

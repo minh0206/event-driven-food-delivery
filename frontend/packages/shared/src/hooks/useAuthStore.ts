@@ -6,16 +6,18 @@ import { Role } from "../models";
 import { User } from "../models/User";
 import { userService } from "../services";
 import { RegisterUser } from "../services/UserService";
+import { tokenLogger } from "../utils/tokenLogger";
 
 type AuthState = {
   token: string | null;
   user: User | null;
   isLoading: boolean;
   isInitialized: boolean;
-  initialize: (role: Role) => Promise<void>;
+  initialize: () => Promise<void>;
   login: (email: string, password: string, role: Role) => Promise<void>;
   register: (registerUser: RegisterUser) => Promise<void>;
-  logout: () => void;
+  refreshToken: () => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
@@ -24,28 +26,33 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   isLoading: false,
   isInitialized: false,
 
-  initialize: async (role: Role) => {
+  initialize: async () => {
     set({ isLoading: true });
 
     try {
       //Check health
-      await userService.checkHealth();
+      const health = await userService.checkHealth();
+      console.log("init", health);
 
-      // Try to get the token from localStorage
-      const token = localStorage.getItem(role);
-      console.log(token);
+      // Try to get a session access token
+      const accessToken = sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      tokenLogger.logInitialization(!!accessToken);
+
+      if (accessToken) {
+        tokenLogger.logAccessTokenRetrieved(accessToken);
+      }
 
       // If token is present, get the user
-      if (token) {
-        sessionStorage.setItem(STORAGE_KEYS.AUTH, token);
+      if (accessToken) {
         const user = await userService.getProfile();
-        set({ token, user });
+        set({ token: accessToken, user });
       }
       set({ isLoading: false, isInitialized: true });
     } catch (error) {
       console.error("Failed to initialize Auth store:", error);
-      sessionStorage.removeItem(STORAGE_KEYS.AUTH);
-      set({ isLoading: false, isInitialized: false });
+      tokenLogger.logTokenRemoved("initialization_failed");
+      sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      set({ isLoading: false, isInitialized: true });
     }
   },
 
@@ -53,9 +60,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     set({ isLoading: true });
 
     try {
-      const { token } = await userService.loginUser(email, password);
-      sessionStorage.setItem(STORAGE_KEYS.AUTH, token);
-      console.log("token", token);
+      const { accessToken } = await userService.loginUser(email, password);
+      tokenLogger.logAccessTokenReceived(accessToken, "login");
+
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+      tokenLogger.logAccessTokenStored(accessToken);
 
       const user = await userService.getProfile();
       if (user.role !== role) {
@@ -63,10 +72,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         throw new AxiosError("You are not authorized to access this resource");
       }
 
-      localStorage.setItem(role, token);
-      set(() => ({ token, user, isLoading: false }));
+      set(() => ({ accessToken, user, isLoading: false }));
     } catch (error) {
-      sessionStorage.removeItem(STORAGE_KEYS.AUTH);
+      tokenLogger.logTokenRemoved("logout");
+      sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       set({ isLoading: false });
       throw error;
     }
@@ -76,25 +85,59 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     set({ isLoading: true });
 
     try {
-      const { token } = await userService.registerUser(registerUser);
-      localStorage.setItem(registerUser.role, token);
-      sessionStorage.setItem(STORAGE_KEYS.AUTH, token);
+      const { accessToken } = await userService.registerUser(registerUser);
+      tokenLogger.logAccessTokenReceived(accessToken, "register");
+
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+      tokenLogger.logAccessTokenStored(accessToken);
 
       const user = await userService.getProfile();
-      set(() => ({ token, user, isLoading: false }));
+      set(() => ({ accessToken, user, isLoading: false }));
     } catch (error) {
       set({ isLoading: false });
       throw error;
     }
   },
 
-  logout: () => {
-    sessionStorage.removeItem(STORAGE_KEYS.AUTH);
+  refreshToken: async () => {
+    try {
+      tokenLogger.logRefreshInitiated("manual");
 
-    const role = get().user?.role;
-    if (role) localStorage.removeItem(role);
+      // The refreshToken cookie is automatically sent by the browser
+      const { accessToken } = await userService.refreshToken();
+      tokenLogger.logAccessTokenReceived(accessToken, "refresh");
 
-    set(() => ({ token: null, user: null }));
+      // Update the access token in storage
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+      tokenLogger.logAccessTokenStored(accessToken);
+
+      set({ token: accessToken });
+      tokenLogger.logRefreshSuccess(accessToken);
+    } catch (error) {
+      console.error("Failed to refresh token:", error);
+      tokenLogger.logRefreshFailure(error);
+
+      // If refresh fails, logout the user
+      get().logout();
+      throw error;
+    }
+  },
+
+  logout: async () => {
+    tokenLogger.logLogout();
+
+    try {
+      // Call backend to clear the refresh token cookie
+      await userService.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Clear local storage regardless of backend response
+      tokenLogger.logTokenRemoved("logout");
+      sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+
+      set(() => ({ token: null, user: null }));
+    }
   },
 }));
 
