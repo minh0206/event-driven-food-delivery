@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // handshake.
         // withSockJS() is a fallback for browsers that don't support WebSocket.
         registry.addEndpoint("/ws/order")
-                .setAllowedOriginPatterns(allowedOrigins)
+                .setAllowedOrigins(allowedOrigins)
                 .withSockJS();
     }
 
