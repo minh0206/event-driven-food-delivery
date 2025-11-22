@@ -1,23 +1,20 @@
 import { useAuthStore } from "@repo/shared/hooks";
-import { Role } from "@repo/shared/models";
 import { LoadingSpinner } from "@repo/ui/components";
 import { ReactNode, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 
 export const PrivateRoutes = ({
-  role,
   navigateTo = "login",
   children,
 }: {
-  role: Role;
   navigateTo?: string;
   children?: ReactNode;
 }) => {
   const { user, isLoading, isInitialized, initialize } = useAuthStore();
 
   useEffect(() => {
-    if (!isInitialized) initialize(role);
-  }, [initialize, role]);
+    if (!isInitialized) initialize();
+  }, [initialize]);
 
   if (isLoading && !isInitialized) return <LoadingSpinner />; // If the user is loading, show a loading state.
 

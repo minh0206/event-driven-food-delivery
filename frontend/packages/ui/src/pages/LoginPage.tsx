@@ -73,9 +73,9 @@ export const LoginPage = ({ role }: { role: Role }) => {
   };
 
   useEffect(() => {
-    if (!isInitialized && role) initialize(role);
+    if (!isInitialized) initialize();
     if (user) navigate("/");
-  }, [initialize, role, user]);
+  }, [initialize, user]);
 
   if (isLoading || !isInitialized) {
     return <LoadingSpinner />;
