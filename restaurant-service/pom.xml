@@ -11,19 +11,6 @@
     <artifactId>restaurant-service</artifactId>
     <name>restaurant-service</name>
     <description>Restaurant service for Food Delivery System</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
 
     <dependencies>
         <!-- Dependency on the shared module for this microservice -->
@@ -104,11 +91,6 @@
 
     <build>
         <plugins>
-            <!-- Compiler plugin config is inherited from the parent -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
