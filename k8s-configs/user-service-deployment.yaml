@@ -18,7 +18,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: user-service
-          image: minh020698/event-driven-food-delivery-user-service:0.0.1-SNAPSHOT
+          image: minh020698/event-driven-food-delivery-user-service:${VERSION}
           ports:
             - containerPort: 8081
           resources:
@@ -29,49 +29,49 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "512m"
-          
+
           env:
-          - name: SPRING_DATASOURCE_URL
-            valueFrom:
-              secretKeyRef:
-                name: food-delivery-db-cluster-app
-                key: jdbc-uri
-          
-          - name: JWT_EXPIRATION
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: jwt-expiration
-          
-          - name: JWT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: app-secret
-                key: jwt-secret
-          
-          - name: USER_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: user-service-url
-          
-          - name: RESTAURANT_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: restaurant-service-url
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: food-delivery-db-cluster-app
+                  key: jdbc-uri
 
-          - name: ORDER_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: order-service-url
+            - name: JWT_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: jwt-expiration
 
-          - name: DELIVERY_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: delivery-service-url
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: jwt-secret
+
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: user-service-url
+
+            - name: RESTAURANT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: restaurant-service-url
+
+            - name: ORDER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: order-service-url
+
+            - name: DELIVERY_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: delivery-service-url
 
 ---
 apiVersion: v1

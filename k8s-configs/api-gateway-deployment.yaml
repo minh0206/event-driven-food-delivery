@@ -17,7 +17,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: api-gateway
-          image: minh020698/event-driven-food-delivery-api-gateway:0.0.1-SNAPSHOT
+          image: minh020698/event-driven-food-delivery-api-gateway:${VERSION}
           ports:
             - containerPort: 8080
           resources:
@@ -28,31 +28,31 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "512m"
-          
+
           env:
-          - name: USER_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: user-service-url
-          
-          - name: RESTAURANT_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: restaurant-service-url
-          
-          - name: ORDER_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: order-service-url
-          
-          - name: DELIVERY_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: delivery-service-url
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: user-service-url
+
+            - name: RESTAURANT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: restaurant-service-url
+
+            - name: ORDER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: order-service-url
+
+            - name: DELIVERY_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: delivery-service-url
 
 ---
 apiVersion: v1
