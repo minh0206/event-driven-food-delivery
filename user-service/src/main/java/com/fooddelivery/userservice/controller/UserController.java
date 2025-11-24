@@ -47,7 +47,7 @@ public class UserController {
     private Cookie createCookie(String key, String value, String path, int maxAge) {
         Cookie cookie = new Cookie(key, value);
         cookie.setHttpOnly(true);
-        // cookie.setSecure(false); // Set to true in production with HTTPS
+        cookie.setSecure(true); // Set to true in production with HTTPS
         cookie.setPath(path);
         cookie.setMaxAge(maxAge);
         return cookie;
