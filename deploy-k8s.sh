@@ -14,13 +14,15 @@ if [ -z "$VERSION" ]; then
 fi
 
 echo "Deploying with VERSION=$VERSION"
+echo ""
 
 # Deploy all services
 for config in k8s-configs/*-deployment.yaml; do
   echo "Applying $config..."
   envsubst < "$config" | kubectl apply -f -
-done
+  echo ""
+don
 
-echo ""
+
 echo "Deployment complete!"
 echo "Check status: kubectl get pods"

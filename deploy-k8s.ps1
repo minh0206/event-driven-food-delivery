@@ -17,14 +17,15 @@ if ([string]::IsNullOrEmpty($Version)) {
 }
 
 Write-Host "Deploying with VERSION=$Version" -ForegroundColor Green
+Write-Host ""
 
 # Deploy all services
 Get-ChildItem k8s-configs\*-deployment.yaml | ForEach-Object {
     Write-Host "Applying $($_.Name)..." -ForegroundColor Cyan
     $content = (Get-Content $_.FullName -Raw) -replace '\$\{VERSION\}', $Version
     $content | kubectl apply -f -
+    Write-Host ""
 }
 
-Write-Host ""
 Write-Host "Deployment complete!" -ForegroundColor Green
 Write-Host "Check status: kubectl get pods"
