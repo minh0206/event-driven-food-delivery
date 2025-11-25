@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: order-service-deployment
+  namespace: ${NAMESPACE}
   labels:
     app: order-service
 spec:
@@ -17,9 +18,9 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: order-service
-          image: minh020698/event-driven-food-delivery-order-service:0.0.1-SNAPSHOT
+          image: minh020698/event-driven-food-delivery-order-service:${VERSION}
           ports:
-            - containerPort: 8081
+            - containerPort: 8083
           resources:
             requests:
               memory: "1Gi"
@@ -28,62 +29,71 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "1"
-          
+
           env:
-          - name: SPRING_DATASOURCE_URL
-            valueFrom:
-              secretKeyRef:
-                name: food-delivery-db-cluster-app
-                key: jdbc-uri
-          
-          - name: KAFKA_BOOTSTRAP_SERVERS
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: kafka-bootstrap-servers
-          
-          - name: JWT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: app-secret
-                key: jwt-secret
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://food-delivery-db-cluster-rw.default.svc.cluster.local:5432/food_delivery_db
 
-          - name: USER_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: user-service-url
-          
-          - name: RESTAURANT_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: restaurant-service-url
-          
-          - name: ORDER_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: order-service-url
-          
-          - name: DELIVERY_SERVICE_URL
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: delivery-service-url
-          
-          - name: APP_CORS_ALLOWED_ORIGINS
-            valueFrom:
-              configMapKeyRef:
-                name: app-config
-                key: app-cors-allowed-origins
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
 
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: kafka-bootstrap-servers
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: jwt-secret
+
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: user-service-url
+
+            - name: RESTAURANT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: restaurant-service-url
+
+            - name: ORDER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: order-service-url
+
+            - name: DELIVERY_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: delivery-service-url
+
+            - name: APP_CORS_ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: app-cors-allowed-origins
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: order-service-service
+  namespace: ${NAMESPACE}
 spec:
   selector:
     app: order-service

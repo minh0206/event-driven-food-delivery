@@ -1,6 +1,8 @@
 package com.fooddelivery.userservice.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.security.Principal;
+import java.util.Date;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fooddelivery.securitylib.config.JwtConfig;
 import com.fooddelivery.securitylib.service.JwtService;
 import com.fooddelivery.userservice.dto.CustomerDto;
 import com.fooddelivery.userservice.dto.DriverDto;
@@ -31,7 +35,11 @@ import com.fooddelivery.userservice.dto.RestaurantAdminDto;
 import com.fooddelivery.userservice.mapper.UserMapper;
 import com.fooddelivery.userservice.model.Role;
 import com.fooddelivery.userservice.model.User;
+import com.fooddelivery.userservice.service.RefreshTokenService;
 import com.fooddelivery.userservice.service.UserService;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.impl.DefaultClaims;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
@@ -41,6 +49,10 @@ class UserControllerTest {
     private JwtService jwtService;
     @Mock
     private UserMapper userMapper;
+    @Mock
+    private RefreshTokenService refreshTokenService;
+    @Mock
+    private JwtConfig jwtConfig;
 
     @InjectMocks
     private UserController userController;
@@ -52,6 +64,7 @@ class UserControllerTest {
     void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
         objectMapper = new ObjectMapper();
+        org.mockito.Mockito.lenient().when(jwtConfig.getRefreshExpiration()).thenReturn(86400);
     }
 
     @Test
@@ -69,17 +82,24 @@ class UserControllerTest {
         saved.setId(1L);
         saved.setRole(Role.CUSTOMER);
 
+        Claims mockClaims = new DefaultClaims();
+        mockClaims.setExpiration(new Date(System.currentTimeMillis() + 86400000));
+
         when(userService.registerCustomer(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("1", Role.CUSTOMER.toString())).thenReturn("jwt-token");
+        when(jwtService.generateAccessToken("1", Role.CUSTOMER.toString())).thenReturn("jwt-token");
+        when(jwtService.generateRefreshToken("1", Role.CUSTOMER.toString())).thenReturn("refresh-token");
+        when(jwtService.extractAllClaims("refresh-token")).thenReturn(mockClaims);
 
         mockMvc.perform(post("/api/users/register/customer")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token"))));
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("accessToken", "jwt-token"))));
 
         verify(userService).registerCustomer(any(RegisterRequestDto.class));
-        verify(jwtService).generateToken("1", Role.CUSTOMER.toString());
+        verify(jwtService).generateAccessToken("1", Role.CUSTOMER.toString());
+        verify(jwtService).generateRefreshToken("1", Role.CUSTOMER.toString());
+        verify(refreshTokenService).saveRefreshToken(anyString(), anyLong(), any(Date.class));
     }
 
     @Test
@@ -97,17 +117,24 @@ class UserControllerTest {
         saved.setId(2L);
         saved.setRole(Role.RESTAURANT_ADMIN);
 
+        Claims mockClaims = new DefaultClaims();
+        mockClaims.setExpiration(new Date(System.currentTimeMillis() + 86400000));
+
         when(userService.registerRestaurantAdmin(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("2", Role.RESTAURANT_ADMIN.toString())).thenReturn("jwt-token-2");
+        when(jwtService.generateAccessToken("2", Role.RESTAURANT_ADMIN.toString())).thenReturn("jwt-token-2");
+        when(jwtService.generateRefreshToken("2", Role.RESTAURANT_ADMIN.toString())).thenReturn("refresh-token-2");
+        when(jwtService.extractAllClaims("refresh-token-2")).thenReturn(mockClaims);
 
         mockMvc.perform(post("/api/users/register/restaurant")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token-2"))));
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("accessToken", "jwt-token-2"))));
 
         verify(userService).registerRestaurantAdmin(any(RegisterRequestDto.class));
-        verify(jwtService).generateToken("2", Role.RESTAURANT_ADMIN.toString());
+        verify(jwtService).generateAccessToken("2", Role.RESTAURANT_ADMIN.toString());
+        verify(jwtService).generateRefreshToken("2", Role.RESTAURANT_ADMIN.toString());
+        verify(refreshTokenService).saveRefreshToken(anyString(), anyLong(), any(Date.class));
     }
 
     @Test
@@ -125,17 +152,24 @@ class UserControllerTest {
         saved.setId(3L);
         saved.setRole(Role.DELIVERY_DRIVER);
 
+        Claims mockClaims = new DefaultClaims();
+        mockClaims.setExpiration(new Date(System.currentTimeMillis() + 86400000));
+
         when(userService.registerDriver(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("3", Role.DELIVERY_DRIVER.toString())).thenReturn("jwt-token-3");
+        when(jwtService.generateAccessToken("3", Role.DELIVERY_DRIVER.toString())).thenReturn("jwt-token-3");
+        when(jwtService.generateRefreshToken("3", Role.DELIVERY_DRIVER.toString())).thenReturn("refresh-token-3");
+        when(jwtService.extractAllClaims("refresh-token-3")).thenReturn(mockClaims);
 
         mockMvc.perform(post("/api/users/register/driver")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-token-3"))));
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("accessToken", "jwt-token-3"))));
 
         verify(userService).registerDriver(any(RegisterRequestDto.class));
-        verify(jwtService).generateToken("3", Role.DELIVERY_DRIVER.toString());
+        verify(jwtService).generateAccessToken("3", Role.DELIVERY_DRIVER.toString());
+        verify(jwtService).generateRefreshToken("3", Role.DELIVERY_DRIVER.toString());
+        verify(refreshTokenService).saveRefreshToken(anyString(), anyLong(), any(Date.class));
     }
 
     @Test
@@ -146,17 +180,24 @@ class UserControllerTest {
         user.setId(4L);
         user.setRole(Role.CUSTOMER);
 
+        Claims mockClaims = new DefaultClaims();
+        mockClaims.setExpiration(new Date(System.currentTimeMillis() + 86400000));
+
         when(userService.loginUser("a@b.com", "password123")).thenReturn(user);
-        when(jwtService.generateToken("4", Role.CUSTOMER.toString())).thenReturn("jwt-login");
+        when(jwtService.generateAccessToken("4", Role.CUSTOMER.toString())).thenReturn("jwt-login");
+        when(jwtService.generateRefreshToken("4", Role.CUSTOMER.toString())).thenReturn("refresh-login");
+        when(jwtService.extractAllClaims("refresh-login")).thenReturn(mockClaims);
 
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "jwt-login"))));
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("accessToken", "jwt-login"))));
 
         verify(userService).loginUser("a@b.com", "password123");
-        verify(jwtService).generateToken("4", Role.CUSTOMER.toString());
+        verify(jwtService).generateAccessToken("4", Role.CUSTOMER.toString());
+        verify(jwtService).generateRefreshToken("4", Role.CUSTOMER.toString());
+        verify(refreshTokenService).saveRefreshToken(anyString(), anyLong(), any(Date.class));
     }
 
     @Test
@@ -235,16 +276,23 @@ class UserControllerTest {
         driver.setId(5L);
         driver.setRole(Role.DELIVERY_DRIVER);
 
+        Claims mockClaims = new DefaultClaims();
+        mockClaims.setExpiration(new Date(System.currentTimeMillis() + 86400000));
+
         when(userService.loginUser("driver@example.com", "password123")).thenReturn(driver);
-        when(jwtService.generateToken("5", Role.DELIVERY_DRIVER.toString())).thenReturn("driver-token");
+        when(jwtService.generateAccessToken("5", Role.DELIVERY_DRIVER.toString())).thenReturn("driver-token");
+        when(jwtService.generateRefreshToken("5", Role.DELIVERY_DRIVER.toString())).thenReturn("refresh-driver");
+        when(jwtService.extractAllClaims("refresh-driver")).thenReturn(mockClaims);
 
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "driver-token"))));
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("accessToken", "driver-token"))));
 
-        verify(jwtService).generateToken("5", Role.DELIVERY_DRIVER.toString());
+        verify(jwtService).generateAccessToken("5", Role.DELIVERY_DRIVER.toString());
+        verify(jwtService).generateRefreshToken("5", Role.DELIVERY_DRIVER.toString());
+        verify(refreshTokenService).saveRefreshToken(anyString(), anyLong(), any(Date.class));
     }
 
     @Test
@@ -280,16 +328,24 @@ class UserControllerTest {
         saved.setRole(Role.RESTAURANT_ADMIN);
         saved.setRestaurantId(100L);
 
+        Claims mockClaims = new DefaultClaims();
+        mockClaims.setExpiration(new Date(System.currentTimeMillis() + 86400000));
+
         when(userService.registerRestaurantAdmin(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("7", Role.RESTAURANT_ADMIN.toString())).thenReturn("restaurant-token");
+        when(jwtService.generateAccessToken("7", Role.RESTAURANT_ADMIN.toString())).thenReturn("restaurant-token");
+        when(jwtService.generateRefreshToken("7", Role.RESTAURANT_ADMIN.toString())).thenReturn("refresh-restaurant");
+        when(jwtService.extractAllClaims("refresh-restaurant")).thenReturn(mockClaims);
 
         mockMvc.perform(post("/api/users/register/restaurant")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "restaurant-token"))));
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("accessToken", "restaurant-token"))));
 
         verify(userService).registerRestaurantAdmin(any(RegisterRequestDto.class));
+        verify(jwtService).generateAccessToken("7", Role.RESTAURANT_ADMIN.toString());
+        verify(jwtService).generateRefreshToken("7", Role.RESTAURANT_ADMIN.toString());
+        verify(refreshTokenService).saveRefreshToken(anyString(), anyLong(), any(Date.class));
     }
 
     @Test
@@ -308,15 +364,24 @@ class UserControllerTest {
         saved.setRole(Role.DELIVERY_DRIVER);
         saved.setDriverId(200L);
 
+        Claims mockClaims = new DefaultClaims();
+        mockClaims.setExpiration(new Date(System.currentTimeMillis() + 86400000));
+
         when(userService.registerDriver(any(RegisterRequestDto.class))).thenReturn(saved);
-        when(jwtService.generateToken("8", Role.DELIVERY_DRIVER.toString())).thenReturn("minimal-driver-token");
+        when(jwtService.generateAccessToken("8", Role.DELIVERY_DRIVER.toString())).thenReturn("minimal-driver-token");
+        when(jwtService.generateRefreshToken("8", Role.DELIVERY_DRIVER.toString())).thenReturn("refresh-minimal");
+        when(jwtService.extractAllClaims("refresh-minimal")).thenReturn(mockClaims);
 
         mockMvc.perform(post("/api/users/register/driver")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("token", "minimal-driver-token"))));
+                .andExpect(
+                        content().json(objectMapper.writeValueAsString(Map.of("accessToken", "minimal-driver-token"))));
 
         verify(userService).registerDriver(any(RegisterRequestDto.class));
+        verify(jwtService).generateAccessToken("8", Role.DELIVERY_DRIVER.toString());
+        verify(jwtService).generateRefreshToken("8", Role.DELIVERY_DRIVER.toString());
+        verify(refreshTokenService).saveRefreshToken(anyString(), anyLong(), any(Date.class));
     }
 }

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend-deployment
+  namespace: ${NAMESPACE}
   labels:
     app: frontend
 spec:
@@ -17,7 +18,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: frontend
-          image: minh020698/event-driven-food-delivery-frontend:0.0.1-SNAPSHOT
+          image: minh020698/event-driven-food-delivery-frontend:${VERSION}
           ports:
             - containerPort: 80
           resources:
@@ -28,18 +29,19 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "1"
-          
+
           env:
-          - name: JWT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: app-secret
-                key: jwt-secret
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: jwt-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend-service
+  namespace: ${NAMESPACE}
 spec:
   selector:
     app: frontend

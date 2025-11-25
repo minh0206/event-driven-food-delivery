@@ -8,11 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.fooddelivery.shared.dto.ErrorResponseDto;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-
     // Handler for authentication failures (e.g., wrong credentials)
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponseDto> handleBadCredentialsException(
@@ -46,6 +47,32 @@ public class GlobalExceptionHandler {
                 "Access denied",
                 request.getRequestURI());
         return new ResponseEntity<>(responseDto, HttpStatus.FORBIDDEN);
+    }
+
+    // Handle for JWT token expiration
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ErrorResponseDto> handleExpiredJwtException(
+            ExpiredJwtException ex, HttpServletRequest request) {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                "JWT token expired",
+                request.getRequestURI());
+        return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+    }
+
+    // MissingRequestCookieException
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<ErrorResponseDto> handleMissingRequestCookieException(
+            MissingRequestCookieException ex, HttpServletRequest request) {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Missing request cookie",
+                request.getRequestURI());
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
     }
 
     // Handler for entity already exists

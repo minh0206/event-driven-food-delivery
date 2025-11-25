@@ -6,7 +6,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health
+      base-path: /api/actuator
 
 logging:
   level:

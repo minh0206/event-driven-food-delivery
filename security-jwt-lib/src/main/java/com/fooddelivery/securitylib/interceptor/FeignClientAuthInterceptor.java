@@ -20,6 +20,11 @@ public class FeignClientAuthInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate template) {
+        // Skip authentication for internal endpoints
+        if (template.path().contains("/internal/")) {
+            return;
+        }
+
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null)
             return;
@@ -29,12 +34,19 @@ public class FeignClientAuthInterceptor implements RequestInterceptor {
             template.header(HttpHeaders.AUTHORIZATION, authorizationHeader);
         } else {
             var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            // Skip if anonymous user
+            if (authentication == null || !authentication.isAuthenticated()
+                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                return;
+            }
+
             String userId = authentication.getPrincipal().toString();
             String role = authentication.getAuthorities().stream().findFirst()
                     .map(GrantedAuthority::getAuthority)
                     .orElseThrow(() -> new IllegalArgumentException("User must have at least one role"));
 
-            String token = jwtService.generateToken(userId, role);
+            String token = jwtService.generateAccessToken(userId, role);
             template.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
     }

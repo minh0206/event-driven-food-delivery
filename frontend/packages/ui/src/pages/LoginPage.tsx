@@ -10,33 +10,65 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useAuthStore } from "@repo/shared/hooks";
+import { Role } from "@repo/shared/models";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { LoadingSpinner } from "../components";
 import { PasswordInput } from "../components/ui/password-input";
+import { ErrorPage } from "./ErrorPage";
 
 interface FormValues {
   email: string;
   password: string;
 }
 
-export const LoginPage = () => {
+interface LoginContent {
+  title: string;
+  description: string;
+}
+
+const LOGIN_CONTENT_BY_ROLE: Record<Role, LoginContent> = {
+  [Role.CUSTOMER]: {
+    title: "Welcome Back",
+    description: "Sign in to continue",
+  },
+  [Role.RESTAURANT_ADMIN]: {
+    title: "Restaurant Login",
+    description: "Manage your restaurant operations",
+  },
+  [Role.DRIVER]: {
+    title: "Driver Login",
+    description: "Access your delivery routes",
+  },
+  [Role.SYSTEM_ADMIN]: {
+    title: "Admin Login",
+    description: "Manage the system",
+  },
+};
+
+const SERVER_ERROR_MESSAGE = "Server error, please try again later";
+
+export const LoginPage = ({ role }: { role: Role }) => {
+  const navigate = useNavigate();
+  const { user, isLoading, isInitialized, login, initialize } = useAuthStore();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>();
-  const { user, isLoading, isInitialized, login, initialize } = useAuthStore();
-  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: FormValues) => {
     try {
-      await login(data.email, data.password);
+      await login(data.email, data.password, role);
       // With per-app basename, navigating to root goes to the correct app dashboard
       navigate("/");
     } catch (error: any) {
-      setError(error.response?.data?.message || "Server is down");
+      const errorMessage = error.response?.data?.message || error.message;
+
+      console.error("Login failed:", errorMessage);
+      setError(errorMessage);
     }
   };
 
@@ -45,9 +77,13 @@ export const LoginPage = () => {
     if (user) navigate("/");
   }, [initialize, user]);
 
+  if (isLoading || !isInitialized) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <>
-      {isInitialized && (
+      {!isLoading && isInitialized ? (
         <AbsoluteCenter>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Card.Root
@@ -57,8 +93,10 @@ export const LoginPage = () => {
               rounded="md"
             >
               <Card.Header>
-                <Card.Title>Sign in</Card.Title>
-                <Card.Description>Access your account</Card.Description>
+                <Card.Title>{LOGIN_CONTENT_BY_ROLE[role].title}</Card.Title>
+                <Card.Description>
+                  {LOGIN_CONTENT_BY_ROLE[role].description}
+                </Card.Description>
               </Card.Header>
               <Card.Body>
                 <Stack gap="4">
@@ -92,22 +130,28 @@ export const LoginPage = () => {
                   {error && (
                     <Alert.Root status="error">
                       <Alert.Indicator />
-                      <Alert.Content>Error: {error}</Alert.Content>
+                      <Alert.Content>{error}</Alert.Content>
                     </Alert.Root>
                   )}
                 </Stack>
               </Card.Body>
               <Card.Footer justifyContent="center">
-                <Text>Don't have an account?</Text>
-                <ChakraLink asChild>
-                  <Link to="/signup" replace>
-                    <b>Sign up</b>
-                  </Link>
-                </ChakraLink>
+                {role !== Role.SYSTEM_ADMIN && (
+                  <>
+                    <Text>Don't have an account?</Text>
+                    <ChakraLink asChild>
+                      <Link to="/signup" replace>
+                        <b>Sign up</b>
+                      </Link>
+                    </ChakraLink>
+                  </>
+                )}
               </Card.Footer>
             </Card.Root>
           </form>
         </AbsoluteCenter>
+      ) : (
+        <ErrorPage errorMessage={SERVER_ERROR_MESSAGE} />
       )}
     </>
   );

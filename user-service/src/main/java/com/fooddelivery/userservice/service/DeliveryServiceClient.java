@@ -5,9 +5,9 @@ import java.util.Map;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.fooddelivery.securitylib.config.FeignClientConfiguration;
+import com.fooddelivery.securitylib.config.FeignClientConfig;
 
-@FeignClient(name = "delivery-service", url = "${delivery-service.url}", configuration = FeignClientConfiguration.class)
+@FeignClient(name = "delivery-service", url = "${delivery-service.url}", configuration = FeignClientConfig.class)
 public interface DeliveryServiceClient {
     @PostMapping(path = "/internal/drivers", consumes = "application/json", produces = "application/json")
     Map<String, Long> createDriver();

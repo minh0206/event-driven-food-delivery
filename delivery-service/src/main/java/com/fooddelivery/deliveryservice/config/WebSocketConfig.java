@@ -17,7 +17,7 @@ import lombok.AllArgsConstructor;
 @EnableWebSocketMessageBroker
 @AllArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    @Value("${app.cors.allowed-origins:localhost:5175}")
+    @Value("${app.cors.allowed-origins:*}")
     private @NonNull String[] allowedOrigins;
 
     private WebSocketAuthInterceptor webSocketAuthInterceptor;

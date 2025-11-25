@@ -11,7 +11,6 @@
     "lint": "eslint \"**/*.ts\""
   },
   "dependencies": {
-    "api-client": "workspace:*",
     "@repo/shared": "workspace:*"
   },
   "peerDependencies": {

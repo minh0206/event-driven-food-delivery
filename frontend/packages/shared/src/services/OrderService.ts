@@ -1,4 +1,4 @@
-import apiClient from "api-client";
+import { apiClient } from "@repo/shared/services";
 import { Order } from "../models/Order";
 import { OrderItem } from "../models/OrderItem";
 

@@ -35,7 +35,7 @@ eclipse-formatter.xml
 /target/
 /build/
 .mvn/wrapper/maven-wrapper.jar
-
+.flattened-pom.xml
 
 # IDE-specific files
 .idea/

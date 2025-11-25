@@ -1,4 +1,3 @@
-// apps/customer/src/pages/LoginPage.tsx
 import {
   AbsoluteCenter,
   Alert,

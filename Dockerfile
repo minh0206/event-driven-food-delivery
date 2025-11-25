@@ -12,7 +12,6 @@ COPY user-service /app/user-service
 COPY restaurant-service /app/restaurant-service
 COPY order-service /app/order-service
 COPY delivery-service /app/delivery-service
-COPY service-discovery /app/service-discovery
 # Build the entire project
 RUN ./mvnw clean package -DskipTests
 
@@ -77,15 +76,7 @@ COPY --from=backend-builder /app/security-jwt-lib/target/*.jar /app/lib/security
 EXPOSE 8080
 CMD ["java", "-Dloader.path=lib/", "-jar", "app.jar"]
 
-# --- STAGE 7: Target Service Discovery ---
-# FROM eclipse-temurin:25-jre-jammy AS service-discovery
-# WORKDIR /app
-# RUN mkdir -p /app/lib
-# COPY --from=backend-builder /app/service-discovery/target/*.jar app.jar
-# EXPOSE 8761
-# CMD ["java", "-jar", "app.jar"]
-
-# --- STAGE 8: Target Frontend ---
+# --- STAGE 7: Target Frontend ---
 FROM nginx:alpine AS frontend
 COPY --from=frontend-builder /app/apps/customer/dist /usr/share/nginx/html/customer
 COPY --from=frontend-builder /app/apps/restaurant/dist /usr/share/nginx/html/restaurant

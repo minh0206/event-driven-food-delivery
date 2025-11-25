@@ -9,6 +9,7 @@ FROM nginx:alpine AS frontend
 COPY --from=builder /app/apps/customer/dist /usr/share/nginx/html/customer
 COPY --from=builder /app/apps/restaurant/dist /usr/share/nginx/html/restaurant
 COPY --from=builder /app/apps/driver/dist /usr/share/nginx/html/driver
+COPY --from=builder /app/apps/admin/dist /usr/share/nginx/html/admin
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN nginx -t
 
