@@ -13,7 +13,7 @@ const router = createBrowserRouter(
     {
       path: "/",
       element: (
-        <PrivateRoutes>
+        <PrivateRoutes expectedRole={Role.DRIVER}>
           <Layout />
         </PrivateRoutes>
       ),
@@ -26,8 +26,7 @@ const router = createBrowserRouter(
     },
     { path: "login", element: <LoginPage role={Role.DRIVER} /> },
     { path: "signup", element: <SignUpPage role={Role.DRIVER} /> },
-  ],
-  { basename: (import.meta as any).env.BASE_URL }
+  ]
 );
 
 export const Routes = () => {

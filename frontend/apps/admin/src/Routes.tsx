@@ -11,7 +11,7 @@ const router = createBrowserRouter(
     {
       path: "/",
       element: (
-        <PrivateRoutes>
+        <PrivateRoutes expectedRole={Role.SYSTEM_ADMIN}>
           <Layout />
         </PrivateRoutes>
       ),

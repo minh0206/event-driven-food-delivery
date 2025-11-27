@@ -4,11 +4,11 @@ import { defineConfig } from "vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/driver/",
   define: {
     global: "window",
   },
   server: {
+    host: "driver.localhost",
     port: 5175,
     proxy: {
       "/api": {
