@@ -5,6 +5,7 @@ import { createBrowserRouter } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import { Layout } from "./pages/Layout";
 import { ProfilePage } from "./pages/ProfilePage";
+import UsersPage from "./pages/UsersPage";
 
 const router = createBrowserRouter(
   [
@@ -19,11 +20,11 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <HomePage /> },
         { path: "profile", element: <ProfilePage /> },
+        { path: "users", element: <UsersPage /> },
       ],
     },
     { path: "login", element: <LoginPage role={Role.SYSTEM_ADMIN} /> },
   ],
-  { basename: (import.meta as any).env.BASE_URL }
 );
 
 export default router;

@@ -15,6 +15,34 @@ const TokensTable = ({ tokens, currentTime }: TokensTableProps) => {
         return new Date(expiresAt) <= currentTime;
     };
 
+    const getRoleBadgeColor = (roleString: string) => {
+        // Remove ROLE_ prefix if present
+        const role = roleString.replace("ROLE_", "");
+        if (role === "SYSTEM_ADMIN") return "red";
+        if (role === "RESTAURANT_ADMIN") return "purple";
+        if (role === "DELIVERY_DRIVER" || role === "DRIVER") return "blue";
+        if (role === "CUSTOMER") return "green";
+        return "gray";
+    };
+
+    const getRoleLabel = (roleString: string) => {
+        // Remove ROLE_ prefix if present
+        const role = roleString.replace("ROLE_", "");
+        switch (role) {
+            case "SYSTEM_ADMIN":
+                return "System Admin";
+            case "RESTAURANT_ADMIN":
+                return "Restaurant Admin";
+            case "DELIVERY_DRIVER":
+            case "DRIVER":
+                return "Delivery Driver";
+            case "CUSTOMER":
+                return "Customer";
+            default:
+                return role;
+        }
+    };
+
     const getTimeLeft = (expiresAt: string) => {
         const expiryDate = new Date(expiresAt);
         const diffMs = expiryDate.getTime() - currentTime.getTime();
@@ -46,8 +74,8 @@ const TokensTable = ({ tokens, currentTime }: TokensTableProps) => {
                     <Table.Row>
                         <Table.ColumnHeader>ID</Table.ColumnHeader>
                         <Table.ColumnHeader>User ID</Table.ColumnHeader>
-                        <Table.ColumnHeader>User Email</Table.ColumnHeader>
-                        <Table.ColumnHeader>User Role</Table.ColumnHeader>
+                        <Table.ColumnHeader>Email</Table.ColumnHeader>
+                        <Table.ColumnHeader>Role</Table.ColumnHeader>
                         <Table.ColumnHeader minWidth={"70px"}>Status</Table.ColumnHeader>
                         <Table.ColumnHeader>Created At</Table.ColumnHeader>
                         <Table.ColumnHeader>Time Left</Table.ColumnHeader>
@@ -61,7 +89,11 @@ const TokensTable = ({ tokens, currentTime }: TokensTableProps) => {
                             <Table.Cell>{token.id}</Table.Cell>
                             <Table.Cell>{token.userId}</Table.Cell>
                             <Table.Cell>{token.userEmail}</Table.Cell>
-                            <Table.Cell>{token.userRole}</Table.Cell>
+                            <Table.Cell>
+                                <Badge colorPalette={getRoleBadgeColor(token.userRole)}>
+                                    {getRoleLabel(token.userRole)}
+                                </Badge>
+                            </Table.Cell>
                             <Table.Cell>
                                 {token.revoked ? (
                                     <Badge colorPalette="red">Revoked</Badge>
