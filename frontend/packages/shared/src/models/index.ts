@@ -7,3 +7,4 @@ export * from "./Restaurant";
 export * from "./RestaurantOrder";
 export * from "./RestaurantOrderItem";
 export * from "./Role";
+export * from "./User";
