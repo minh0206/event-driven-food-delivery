@@ -5,6 +5,6 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class DriverDto extends UserDto {
+public class DriverDto extends CustomerDto {
     private String driverId;
 }
