@@ -1,8 +1,10 @@
 package com.fooddelivery.userservice.controller;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fooddelivery.securitylib.config.JwtConfig;
 import com.fooddelivery.securitylib.service.JwtService;
+import com.fooddelivery.userservice.dto.CustomerDto;
 import com.fooddelivery.userservice.dto.LoginRequestDto;
 import com.fooddelivery.userservice.dto.RegisterRequestDto;
 import com.fooddelivery.userservice.dto.UserDto;
@@ -28,14 +31,17 @@ import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/users")
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserController {
+    @Value("${spring.cookie.set.secure:false}")
+    private boolean secureCookie;
+
     private static final String ACCESS_TOKEN_KEY = "accessToken";
     private static final String REFRESH_TOKEN_KEY = "refreshToken";
     private final UserService userService;
@@ -44,11 +50,11 @@ public class UserController {
     private final UserMapper userMapper;
     private final RefreshTokenService refreshTokenService;
 
-    private Cookie createCookie(String key, String value, String path, int maxAge) {
+    private Cookie createCookie(String key, String value, int maxAge) {
         Cookie cookie = new Cookie(key, value);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true); // Set to true in production with HTTPS
-        cookie.setPath(path);
+        cookie.setSecure(secureCookie); // Set to true in production with HTTPS
+        cookie.setPath("/api/users/refresh");
         cookie.setMaxAge(maxAge);
         return cookie;
     }
@@ -75,7 +81,7 @@ public class UserController {
 
         // Add refresh token to cookie
         response.addCookie(
-                createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
+                createCookie(REFRESH_TOKEN_KEY, refreshToken, jwtConfig.getRefreshExpiration()));
 
         return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
@@ -102,7 +108,7 @@ public class UserController {
 
         // Add refresh token to cookie
         response.addCookie(
-                createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
+                createCookie(REFRESH_TOKEN_KEY, refreshToken, jwtConfig.getRefreshExpiration()));
 
         return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
@@ -128,8 +134,7 @@ public class UserController {
         refreshTokenService.saveRefreshToken(refreshToken, registeredUser.getId(), refreshClaims.getExpiration());
 
         // Add refresh token to cookie
-        response.addCookie(
-                createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
+        response.addCookie(createCookie(REFRESH_TOKEN_KEY, refreshToken, jwtConfig.getRefreshExpiration()));
 
         return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
@@ -147,8 +152,7 @@ public class UserController {
 
         // Save new refresh token to database
         Claims refreshClaims = jwtService.extractAllClaims(refreshToken);
-        var savedRefreshToken = refreshTokenService.saveRefreshToken(refreshToken, user.getId(),
-                refreshClaims.getExpiration());
+        refreshTokenService.saveRefreshToken(refreshToken, user.getId(), refreshClaims.getExpiration());
         log.info("Created new refresh token for user: {}", user.getId());
 
         // Generate a new access token
@@ -156,8 +160,8 @@ public class UserController {
                 user.getId().toString(),
                 user.getRole().toString());
 
-        response.addCookie(
-                createCookie(REFRESH_TOKEN_KEY, refreshToken, "/api/users/refresh", jwtConfig.getRefreshExpiration()));
+        // Add refresh token to cookie
+        response.addCookie(createCookie(REFRESH_TOKEN_KEY, refreshToken, jwtConfig.getRefreshExpiration()));
 
         return ResponseEntity.ok(Map.of(ACCESS_TOKEN_KEY, accessToken));
     }
@@ -205,16 +209,15 @@ public class UserController {
         // Revoke all tokens for this user
         Long userId = Long.parseLong(principal.getName());
         refreshTokenService.revokeAllUserTokens(userId);
-        log.info("User {} logged out successfully", userId);
-
         // Clear refresh token cookie
-        response.addCookie(createCookie(REFRESH_TOKEN_KEY, "", "/api/users/refresh", 0));
+        response.addCookie(createCookie(REFRESH_TOKEN_KEY, "", 0));
 
+        log.info("User {} logged out successfully", userId);
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
     @GetMapping("/profile")
-    public UserDto getUserProfile(Principal principal) {
+    public CustomerDto getUserProfile(Principal principal) {
         Long userId = Long.parseLong(principal.getName());
         User user = userService.getUserById(userId);
 
@@ -226,5 +229,13 @@ public class UserController {
             default:
                 return userMapper.toCustomerDto(user);
         }
+    }
+
+    @GetMapping
+    public List<UserDto> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        return users.stream()
+                .map(user -> userMapper.toUserDto(user))
+                .toList();
     }
 }
