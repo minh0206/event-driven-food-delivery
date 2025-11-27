@@ -35,9 +35,11 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class RestaurantService {
     private static final String RESTAURANT_NOT_FOUND_MESSAGE = "Restaurant not found";
     private static final String RESTAURANT_ORDER_NOT_FOUND_MESSAGE = "Restaurant order not found";
@@ -251,19 +253,30 @@ public class RestaurantService {
                 .orElseThrow(() -> new EntityNotFoundException(RESTAURANT_NOT_FOUND_MESSAGE));
 
         // FETCH MASTER DATA from order-service
-        Page<MasterOrderDto> masterOrderData = orderServiceClient
-                .getHistoricalOrdersByRestaurantId(restaurant.getId(), pageable);
+        Page<MasterOrderDto> masterOrderData = null;
+        try {
+            masterOrderData = orderServiceClient
+                    .getHistoricalOrdersByRestaurantId(restaurant.getId(), pageable);
+        } catch (Exception e) {
+            log.error("Error fetching masterOrderData: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
 
         // FETCH OPERATIONAL DATA from the local database
         Page<RestaurantOrder> operationalData = restaurantOrderRepository
                 .findByRestaurantIdAndLocalStatus(restaurant.getId(), OrderStatus.DELIVERED, pageable);
 
         if (operationalData.getTotalElements() != masterOrderData.getTotalElements()) {
-            throw new IllegalArgumentException("operationalData and masterOrderData must have the same size");
+            String errorMessage = String.format("operationalData and masterOrderData must have the same size. " +
+                    "operationalData: %s, masterOrderData: %s", operationalData.getTotalElements(),
+                    masterOrderData.getTotalElements());
+
+            log.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
 
         List<CompleteOrderViewDto> completeData = new ArrayList<>();
-        for (int i = 0; i < pageable.getPageSize(); i++) {
+        for (int i = 0; i < masterOrderData.getTotalElements(); i++) {
             MasterOrderDto masterOrder = masterOrderData.getContent().get(i);
             RestaurantOrder operationalOrder = operationalData.getContent().get(i);
             completeData.add(restaurantOrderMapper.toCompleteOrderViewDto(masterOrder, operationalOrder));
