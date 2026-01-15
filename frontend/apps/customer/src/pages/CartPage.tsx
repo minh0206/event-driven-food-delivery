@@ -96,7 +96,7 @@ const CartPage = () => {
                     <LuShoppingCart />
                   </EmptyState.Indicator>
                   <VStack textAlign="center">
-                    <EmptyState.Title>Your cart is empty</EmptyState.Title>
+                    <EmptyState.Title>You have nothing yet</EmptyState.Title>
                     <EmptyState.Description>
                       Explore our restaurants and add items to your cart
                     </EmptyState.Description>
