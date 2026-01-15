@@ -51,6 +51,9 @@ services:
       - postgres-db
     environment:
       JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+      COOKIE_SET_SECURE: ${COOKIE_SET_SECURE}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/food_delivery_db
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
@@ -58,7 +61,7 @@ services:
       RESTAURANT_SERVICE_URL: http://restaurant-service:8082
       ORDER_SERVICE_URL: http://order-service:8083
       DELIVERY_SERVICE_URL: http://delivery-service:8084
-      APP_CORS_ALLOWED_ORIGINS: http://localhost
+      APP_CORS_ALLOWED_ORIGINS: http://customer.localhost,http://restaurant.localhost,http://driver.localhost,http://admin.localhost
 
   restaurant-service:
     build:
@@ -82,7 +85,7 @@ services:
       RESTAURANT_SERVICE_URL: http://restaurant-service:8082
       ORDER_SERVICE_URL: http://order-service:8083
       DELIVERY_SERVICE_URL: http://delivery-service:8084
-      APP_CORS_ALLOWED_ORIGINS: http://localhost
+      APP_CORS_ALLOWED_ORIGINS: http://customer.localhost,http://restaurant.localhost,http://driver.localhost,http://admin.localhost
 
   order-service:
     build:
@@ -106,7 +109,7 @@ services:
       RESTAURANT_SERVICE_URL: http://restaurant-service:8082
       ORDER_SERVICE_URL: http://order-service:8083
       DELIVERY_SERVICE_URL: http://delivery-service:8084
-      APP_CORS_ALLOWED_ORIGINS: http://localhost
+      APP_CORS_ALLOWED_ORIGINS: http://customer.localhost,http://restaurant.localhost,http://driver.localhost,http://admin.localhost
   
   delivery-service:
     build:
@@ -130,7 +133,7 @@ services:
       RESTAURANT_SERVICE_URL: http://restaurant-service:8082
       ORDER_SERVICE_URL: http://order-service:8083
       DELIVERY_SERVICE_URL: http://delivery-service:8084
-      APP_CORS_ALLOWED_ORIGINS: http://localhost
+      APP_CORS_ALLOWED_ORIGINS: http://customer.localhost,http://restaurant.localhost,http://driver.localhost,http://admin.localhost
 
   api-gateway:
     build:
@@ -153,9 +156,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        - VITE_ENABLE_TOKEN_LOGGER=${VITE_ENABLE_TOKEN_LOGGER:-false}
     image: minh020698/event-driven-food-delivery-frontend:${VERSION}
     ports:
       - "80:80"
+    # Note: Subdomain routing requires host file configuration
+    # Add to your hosts file (C:\Windows\System32\drivers\etc\hosts on Windows):
+    # 127.0.0.1 customer.localhost
+    # 127.0.0.1 restaurant.localhost
+    # 127.0.0.1 driver.localhost
+    # 127.0.0.1 admin.localhost
 
 volumes:
   postgres_data:

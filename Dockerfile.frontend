@@ -2,6 +2,8 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY frontend /app
+ARG VITE_ENABLE_TOKEN_LOGGER=false
+ENV VITE_ENABLE_TOKEN_LOGGER=${VITE_ENABLE_TOKEN_LOGGER}
 RUN npm install -g pnpm && pnpm install && pnpm build
 
 # --- STAGE 2: Serving Frontend ---
