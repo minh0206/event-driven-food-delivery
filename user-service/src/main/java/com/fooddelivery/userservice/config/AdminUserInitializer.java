@@ -33,11 +33,6 @@ public class AdminUserInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Check if an admin user already exists
-        if (userRepository.findByRole(Role.SYSTEM_ADMIN).isPresent()) {
-            log.info("SYSTEM_ADMIN user already exists");
-            return;
-        }
-
         if (userRepository.findByEmail(adminEmail).isEmpty()) {
             User admin = new User();
             admin.setEmail(adminEmail);
