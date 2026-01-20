@@ -21,9 +21,9 @@ public class FeignClientAuthInterceptor implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate template) {
         // Skip authentication for internal endpoints
-        if (template.path().contains("/internal/")) {
-            return;
-        }
+        // if (template.path().contains("/internal/")) {
+        // return;
+        // }
 
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null)

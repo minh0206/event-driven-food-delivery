@@ -4,11 +4,11 @@ import { defineConfig } from "vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/admin/",
   define: {
     global: "window",
   },
   server: {
+    host: "admin.localhost",
     port: 5176,
     proxy: {
       "/api": {

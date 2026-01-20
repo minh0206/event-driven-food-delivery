@@ -9,6 +9,7 @@ export const AdminNavBar = () => {
     ? location.pathname.slice(base.length - (base.endsWith("/") ? 1 : 0))
     : location.pathname;
   const isHomeActive = localPath === "/";
+  const isUsersActive = localPath === "/users";
 
   return (
     <Flex
@@ -23,6 +24,9 @@ export const AdminNavBar = () => {
       <HStack>
         <Button variant="plain" color={isHomeActive ? "black" : "gray"} asChild>
           <NavLink to="/">Home</NavLink>
+        </Button>
+        <Button variant="plain" color={isUsersActive ? "black" : "gray"} asChild>
+          <NavLink to="/users">Users</NavLink>
         </Button>
       </HStack>
 

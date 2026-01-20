@@ -1,14 +1,11 @@
 package com.fooddelivery.userservice.dto;
 
-import com.fooddelivery.userservice.model.Role;
-
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class UserDto {
-    private Long id;
-    private String email;
-    private String firstName;
-    private String lastName;
-    private Role role;
+@EqualsAndHashCode(callSuper = false)
+public class UserDto extends CustomerDto {
+    private Long restaurantId;
+    private String driverId;
 }

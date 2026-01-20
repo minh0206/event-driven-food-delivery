@@ -4,11 +4,12 @@ metadata:
   name: app-config
 data:
   kafka-bootstrap-servers: food-delivery-kafka-cluster-kafka-bootstrap.kafka:9092
-  jwt-expiration: "864000"
+  jwt-access-expiration: "300"
+  jwt-refresh-expiration: "604800"
   
   user-service-url: http://user-service-service:8081
   restaurant-service-url: http://restaurant-service-service:8082
   order-service-url: http://order-service-service:8083
   delivery-service-url: http://delivery-service-service:8084
 
-  app-cors-allowed-origins: "http://frontend.local"
+  app-cors-allowed-origins: "http://customer.local,http://restaurant.local,http://driver.local,http://admin.local"

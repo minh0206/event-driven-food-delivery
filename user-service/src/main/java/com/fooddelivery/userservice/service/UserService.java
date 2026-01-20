@@ -20,9 +20,11 @@ import com.fooddelivery.userservice.repository.UserRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -68,9 +70,15 @@ public class UserService {
                 requestDto.address(),
                 requestDto.cuisineType());
 
-        Long restaurantId = restaurantServiceClient.createRestaurant(restaurantRequestDto).get("restaurantId");
-        registeredUser.setRestaurantId(restaurantId);
+        Long restaurantId = 0L;
+        try {
+            restaurantId = restaurantServiceClient.createRestaurant(restaurantRequestDto).get("restaurantId");
+        } catch (Exception e) {
+            log.error("Error creating restaurant: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
 
+        registeredUser.setRestaurantId(restaurantId);
         return userRepository.save(registeredUser);
     }
 
@@ -95,5 +103,9 @@ public class UserService {
 
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow();
+    }
+
+    public java.util.List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

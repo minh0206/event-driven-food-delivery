@@ -13,7 +13,7 @@ type AuthState = {
   user: User | null;
   isLoading: boolean;
   isInitialized: boolean;
-  initialize: () => Promise<void>;
+  initialize: (expectedRole?: Role) => Promise<void>;
   login: (email: string, password: string, role: Role) => Promise<void>;
   register: (registerUser: RegisterUser) => Promise<void>;
   refreshToken: () => Promise<void>;
@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   isLoading: false,
   isInitialized: false,
 
-  initialize: async () => {
+  initialize: async (expectedRole?: Role) => {
     set({ isLoading: true });
 
     try {
@@ -45,6 +45,21 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       // If token is present, get the user
       if (accessToken) {
         const user = await userService.getProfile();
+
+        // If expectedRole is provided, validate the user's role
+        if (expectedRole && user.role !== expectedRole) {
+          console.error(
+            "Role mismatch during initialization:",
+            user.role,
+            "!==",
+            expectedRole
+          );
+          tokenLogger.logTokenRemoved("role_mismatch");
+          sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+          set({ isLoading: false, isInitialized: true });
+          return;
+        }
+
         set({ token: accessToken, user });
       }
       set({ isLoading: false, isInitialized: true });

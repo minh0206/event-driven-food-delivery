@@ -5,6 +5,6 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class RestaurantAdminDto extends UserDto {
+public class RestaurantAdminDto extends CustomerDto {
     private Long restaurantId;
 }

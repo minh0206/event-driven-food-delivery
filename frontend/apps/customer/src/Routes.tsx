@@ -16,7 +16,7 @@ const router = createBrowserRouter(
     {
       path: "/",
       element: (
-        <PrivateRoutes>
+        <PrivateRoutes expectedRole={Role.CUSTOMER}>
           <Layout />
         </PrivateRoutes>
       ),
@@ -31,8 +31,7 @@ const router = createBrowserRouter(
     },
     { path: "login", element: <LoginPage role={Role.CUSTOMER} /> },
     { path: "signup", element: <SignUpPage role={Role.CUSTOMER} /> },
-  ],
-  { basename: (import.meta as any).env.BASE_URL }
+  ]
 );
 
 export default router;

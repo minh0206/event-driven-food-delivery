@@ -1,12 +1,13 @@
 /**
  * Token Logger Utility
  * Logs the complete lifecycle of JWT access and refresh tokens
- * Only logs in development mode (NODE_ENV === 'development')
+ * Controlled by VITE_ENABLE_TOKEN_LOGGER environment variable
  */
 
 class TokenLogger {
   private logPrefix = "[JWT Token Lifecycle]";
-  private isDevelopment = process.env.NODE_ENV === "development";
+  private IsEnabled =
+    (import.meta as any).env.VITE_ENABLE_TOKEN_LOGGER === "true";
 
   /**
    * Decode JWT token to extract expiration time
@@ -58,7 +59,7 @@ class TokenLogger {
     token: string,
     source: "login" | "register" | "refresh"
   ) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     const decoded = this.decodeToken(token);
     const now = new Date().toISOString();
@@ -80,7 +81,7 @@ class TokenLogger {
    * Log access token stored
    */
   logAccessTokenStored(token: string) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     const decoded = this.decodeToken(token);
     console.log(
@@ -94,7 +95,7 @@ class TokenLogger {
    * Log access token retrieved from storage
    */
   logAccessTokenRetrieved(token: string | null) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     if (!token) {
       console.log(
@@ -118,7 +119,7 @@ class TokenLogger {
    * Log access token attached to request
    */
   logAccessTokenAttached(url: string, token: string) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     const decoded = this.decodeToken(token);
     console.log(
@@ -132,7 +133,7 @@ class TokenLogger {
    * Log token refresh initiated
    */
   logRefreshInitiated(reason: "401_error" | "manual" | "queued_request") {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     console.group(`${this.logPrefix} 🔄 Token REFRESH Initiated`);
     console.log("Reason:", reason);
@@ -145,7 +146,7 @@ class TokenLogger {
    * Log token refresh success
    */
   logRefreshSuccess(newToken: string, queuedRequestsCount: number = 0) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     const decoded = this.decodeToken(newToken);
     console.group(`${this.logPrefix} ✅ Token REFRESH Successful`);
@@ -166,7 +167,7 @@ class TokenLogger {
    * Log token refresh failure
    */
   logRefreshFailure(error: unknown) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     console.group(`${this.logPrefix} ❌ Token REFRESH Failed`);
     console.error("Error:", error);
@@ -179,9 +180,13 @@ class TokenLogger {
    * Log token removed
    */
   logTokenRemoved(
-    reason: "logout" | "refresh_failed" | "initialization_failed"
+    reason:
+      | "logout"
+      | "refresh_failed"
+      | "initialization_failed"
+      | "role_mismatch"
   ) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     console.log(
       `${this.logPrefix} 🗑️ Access Token REMOVED from sessionStorage`,
@@ -194,7 +199,7 @@ class TokenLogger {
    * Log 401 error detected
    */
   log401Error(url: string, isRetry: boolean) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     console.warn(
       `${this.logPrefix} ⚠️ 401 Unauthorized Error`,
@@ -208,7 +213,7 @@ class TokenLogger {
    * Log request queued during refresh
    */
   logRequestQueued(url: string, queueLength: number) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     console.log(
       `${this.logPrefix} ⏳ Request QUEUED (refresh in progress)`,
@@ -221,7 +226,7 @@ class TokenLogger {
    * Log initialization
    */
   logInitialization(hasToken: boolean) {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     console.group(`${this.logPrefix} 🚀 Auth Store INITIALIZATION`);
     console.log("Timestamp:", new Date().toISOString());
@@ -236,7 +241,7 @@ class TokenLogger {
    * Log logout
    */
   logLogout() {
-    if (!this.isDevelopment) return;
+    if (!this.IsEnabled) return;
 
     console.group(`${this.logPrefix} 👋 User LOGOUT`);
     console.log("Timestamp:", new Date().toISOString());
