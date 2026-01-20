@@ -46,11 +46,17 @@ spec:
                   name: postgres-credentials
                   key: password
 
-            - name: JWT_EXPIRATION
+            - name: JWT_ACCESS_EXPIRATION
               valueFrom:
                 configMapKeyRef:
                   name: app-config
-                  key: jwt-expiration
+                  key: jwt-access-expiration
+
+            - name: JWT_REFRESH_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: jwt-refresh-expiration
 
             - name: JWT_SECRET
               valueFrom:
